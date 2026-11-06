@@ -764,10 +764,10 @@
                 <!-- Floating In-Page Overlay Controls (Top-Right) -->
                 <div class="absolute top-3 right-3 z-[100] flex items-center gap-2 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-700/70 shadow-2xl">
                     <button type="button" onclick="reloadLiveMapFrame()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition cursor-pointer" title="Refresh Map">
-                        <i class="fa-solid fa-arrows-rotate text-blue-400"></i> à°°à±€à°«à±à°°à±†à°·à± (Refresh)
+                        <i class="fa-solid fa-arrows-rotate text-blue-400"></i> Refresh
                     </button>
                     <button type="button" onclick="toggleLiveMapFullscreen()" id="btn-livemap-fullscreen" class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition cursor-pointer" title="Toggle In-Page Fullscreen">
-                        <i class="fa-solid fa-expand text-amber-300"></i> <span id="txt-livemap-fullscreen">à°«à±à°²à± à°¸à±à°•à±à°°à±€à°¨à± (Full Screen)</span>
+                        <i class="fa-solid fa-expand text-amber-300"></i> <span id="txt-livemap-fullscreen">Full Screen</span>
                     </button>
                 </div>
 
@@ -1220,7 +1220,7 @@
             const isFs = container.classList.contains('in-page-fullscreen');
             if (!isFs) {
                 container.classList.add('in-page-fullscreen');
-                if (btnTxt) btnTxt.innerText = 'à°Žà°—à±à°œà°¿à°Ÿà± (Exit) Full Screen';
+                if (btnTxt) btnTxt.innerText = 'Exit Full Screen';
                 if (icon) icon.className = 'fa-solid fa-compress text-amber-300';
                 try {
                     if (container.requestFullscreen) {
@@ -1231,7 +1231,7 @@
                 } catch(e) {}
             } else {
                 container.classList.remove('in-page-fullscreen');
-                if (btnTxt) btnTxt.innerText = 'à°«à±à°²à± à°¸à±à°•à±à°°à±€à°¨à± (Full Screen)';
+                if (btnTxt) btnTxt.innerText = 'Full Screen';
                 if (icon) icon.className = 'fa-solid fa-expand text-amber-300';
                 try {
                     if (document.fullscreenElement && document.exitFullscreen) {
