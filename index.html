@@ -77,6 +77,21 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+        /* In-Page Fullscreen for Live Map */
+        #live-map-container.in-page-fullscreen {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            z-index: 999999 !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans antialiased text-xs min-h-screen flex flex-col">
@@ -745,20 +760,17 @@
 
         <!-- ================= TAB: LIVE ROUTE MAP (EMBEDDED LIVEMAP) ================= -->
         <section id="tab-livemap" class="hidden flex-1 flex flex-col space-y-2">
-            <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl shadow-lg flex flex-wrap items-center justify-between gap-3 text-white">
-                <div class="flex items-center gap-2.5">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/50 shadow-sm">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                        LIVE GPS / MQTT PATROL TRACKING
-                    </span>
-                    <span class="text-xs text-slate-300 font-medium hidden sm:inline">Real-Time Mobile Patrol & Route Vehicle Tracking</span>
+            <div id="live-map-container" class="flex-1 w-full rounded-xl overflow-hidden shadow-2xl border border-slate-700/60 bg-slate-950 relative min-h-[750px] flex flex-col">
+                <!-- Floating In-Page Overlay Controls (Top-Right) -->
+                <div class="absolute top-3 right-3 z-[100] flex items-center gap-2 bg-slate-900/90 backdrop-blur-md p-1.5 rounded-xl border border-slate-700/70 shadow-2xl">
+                    <button type="button" onclick="reloadLiveMapFrame()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition cursor-pointer" title="Refresh Map">
+                        <i class="fa-solid fa-arrows-rotate text-blue-400"></i> à°°à±€à°«à±à°°à±†à°·à± (Refresh)
+                    </button>
+                    <button type="button" onclick="toggleLiveMapFullscreen()" id="btn-livemap-fullscreen" class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition cursor-pointer" title="Toggle In-Page Fullscreen">
+                        <i class="fa-solid fa-expand text-amber-300"></i> <span id="txt-livemap-fullscreen">à°«à±à°²à± à°¸à±à°•à±à°°à±€à°¨à± (Full Screen)</span>
+                    </button>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button type="button" onclick="reloadLiveMapFrame()" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition cursor-pointer"><i class="fa-solid fa-arrows-rotate text-blue-400"></i> Refresh</button>
-                    <a href="https://election-maps.github.io/LiveMap/" target="_blank" class="px-3.5 py-1 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition"><i class="fa-solid fa-up-right-from-square text-amber-300"></i> Full Screen</a>
-                </div>
-            </div>
-            <div class="flex-1 w-full rounded-xl overflow-hidden shadow-2xl border border-slate-700/60 bg-slate-950 relative min-h-[750px] flex flex-col">
+
                 <iframe id="live-map-iframe" src="https://election-maps.github.io/LiveMap/" class="w-full flex-1 border-0" allow="geolocation; fullscreen; clipboard-write" title="Police Real-Time Live Map"></iframe>
             </div>
         </section>
@@ -1122,6 +1134,10 @@
 
             document.addEventListener('keydown', e => {
                 if (e.key === 'Escape') {
+                    const liveContainer = document.getElementById('live-map-container');
+                    if (liveContainer && liveContainer.classList.contains('in-page-fullscreen')) {
+                        toggleLiveMapFullscreen();
+                    }
                     if (typeof closeEnlargedRouteModal === 'function') closeEnlargedRouteModal();
                     if (typeof closeAllRoutesModal === 'function') closeAllRoutesModal();
                     if (typeof closeModal === 'function') closeModal();
@@ -1192,6 +1208,36 @@
             const frame = document.getElementById('live-map-iframe');
             if (frame) {
                 frame.src = 'https://election-maps.github.io/LiveMap/?t=' + new Date().getTime();
+            }
+        }
+
+        function toggleLiveMapFullscreen() {
+            const container = document.getElementById('live-map-container');
+            const btnTxt = document.getElementById('txt-livemap-fullscreen');
+            const icon = document.querySelector('#btn-livemap-fullscreen i');
+            if (!container) return;
+
+            const isFs = container.classList.contains('in-page-fullscreen');
+            if (!isFs) {
+                container.classList.add('in-page-fullscreen');
+                if (btnTxt) btnTxt.innerText = 'à°Žà°—à±à°œà°¿à°Ÿà± (Exit) Full Screen';
+                if (icon) icon.className = 'fa-solid fa-compress text-amber-300';
+                try {
+                    if (container.requestFullscreen) {
+                        container.requestFullscreen().catch(() => {});
+                    } else if (container.webkitRequestFullscreen) {
+                        container.webkitRequestFullscreen();
+                    }
+                } catch(e) {}
+            } else {
+                container.classList.remove('in-page-fullscreen');
+                if (btnTxt) btnTxt.innerText = 'à°«à±à°²à± à°¸à±à°•à±à°°à±€à°¨à± (Full Screen)';
+                if (icon) icon.className = 'fa-solid fa-expand text-amber-300';
+                try {
+                    if (document.fullscreenElement && document.exitFullscreen) {
+                        document.exitFullscreen().catch(() => {});
+                    }
+                } catch(e) {}
             }
         }
 
