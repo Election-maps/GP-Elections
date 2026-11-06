@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -134,7 +134,10 @@
                         <i class="fa-solid fa-table-list text-cyan-400"></i> Polling Stations Report
                     </button>
                     <button onclick="switchTab('map')" id="tab-btn-map" class="px-3.5 py-1.5 rounded-lg font-semibold text-xs bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5 border border-slate-700/60 shadow-sm">
-                        <i class="fa-solid fa-map-location-dot text-amber-400"></i> Live Route Map
+                        <i class="fa-solid fa-map-location-dot text-amber-400"></i> Route Map
+                    </button>
+                    <button onclick="switchTab('livemap')" id="tab-btn-livemap" class="px-3.5 py-1.5 rounded-lg font-semibold text-xs bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5 border border-slate-700/60 shadow-sm">
+                        <i class="fa-solid fa-satellite-dish text-emerald-400 animate-pulse"></i> Live Route Map
                     </button>
                     <button onclick="openAddModal()" class="px-3.5 py-1.5 rounded-lg font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center gap-1.5 shadow-sm">
                         <i class="fa-solid fa-plus"></i> Add PS
@@ -740,6 +743,29 @@
             </div>
         </section>
 
+        <!-- ================= TAB 5: REAL-TIME LIVE ROUTE MAP (MQTT / GPS PATROL TRACKING) ================= -->
+        <section id="tab-livemap" class="hidden flex-1 flex flex-col space-y-2">
+            <!-- Top Live Control & Status Bar -->
+            <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl shadow-lg flex flex-wrap items-center justify-between gap-3 text-white">
+                <div class="flex items-center gap-2.5">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/50 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        LIVE GPS / MQTT PATROL TRACKING
+                    </span>
+                    <span class="text-xs text-slate-300 font-medium hidden sm:inline">Real-Time Mobile Patrol & Route Vehicle Tracking</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="reloadLiveMapFrame()" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition cursor-pointer"><i class="fa-solid fa-arrows-rotate text-blue-400"></i> Refresh</button>
+                    <a href="https://election-maps.github.io/LiveMap/" target="_blank" class="px-3.5 py-1 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md transition"><i class="fa-solid fa-up-right-from-square text-amber-300"></i> Full Screen</a>
+                </div>
+            </div>
+
+            <!-- Embedded LiveMap Container -->
+            <div class="flex-1 w-full rounded-xl overflow-hidden shadow-2xl border border-slate-700/60 bg-slate-950 relative min-h-[750px] flex flex-col">
+                <iframe id="live-map-iframe" src="https://election-maps.github.io/LiveMap/" class="w-full flex-1 border-0" allow="geolocation; fullscreen; clipboard-write" title="Police Real-Time Live Map"></iframe>
+            </div>
+        </section>
+
     </main>
 
     <!-- ================= ALL ROUTES & VILLAGES DIRECTORY MODAL ================= -->
@@ -1162,9 +1188,17 @@
             }
         }
 
+
+        function reloadLiveMapFrame() {
+            const frame = document.getElementById('live-map-iframe');
+            if (frame) {
+                frame.src = "https://election-maps.github.io/LiveMap/?t=" + new Date().getTime();
+            }
+        }
+
         // Tab Switching Logic
         function switchTab(tabId) {
-            ['dashboard', 'map', 'report', 'routewise'].forEach(t => {
+            ['dashboard', 'map', 'report', 'routewise', 'livemap'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 const btn = document.getElementById(`tab-btn-${t}`);
                 if (el) {
@@ -1201,6 +1235,11 @@
                 }
             } else if (tabId === 'dashboard') {
                 renderDashboard();
+            } else if (tabId === 'livemap') {
+                const frame = document.getElementById('live-map-iframe');
+                if (frame && !frame.src) {
+                    frame.src = 'https://election-maps.github.io/LiveMap/';
+                }
             }
         }
 
@@ -3551,7 +3590,8 @@
         function formatPhoneLinks(rawText) {
             if (!rawText || rawText === 'N/A' || rawText === '-') return rawText || '-';
             // Regex to find 10-digit phone numbers
-            return rawText.replace(/(\b[6-9]\d{9}\b)/g, '<a href="tel:$1" class="text-blue-600 hover:text-blue-800 font-semibold underline inline-flex items-center gap-0.5"><i class="fa-solid fa-phone text-[9px]"></i>$1</a>').replace(/\n/g, '<br>');
+            return rawText.replace(/(\b[6-9]\d{9}\b)/g, '<a href="tel:$1" class="text-blue-600 hover:text-blue-800 font-semibold underline inline-flex items-center gap-0.5"><i class="fa-solid fa-phone text-[9px]"></i>$1</a>').replace(/
+/g, '<br>');
         }
 
         function renderTable() {
