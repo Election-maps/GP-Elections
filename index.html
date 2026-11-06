@@ -1082,8 +1082,8 @@
     </div>
 
     <!-- Load Local Stations Dataset & Precomputed Road Routes Geometry -->
-    <script src="data/stations.js?v=20261105_v22"></script>
-    <script defer src="data/routes_geometry.js?v=20261104_v20"></script>
+    <script src="data/stations.js"></script>
+    <script defer src="data/routes_geometry.js"></script>
 
     <!-- Main Application JavaScript Logic -->
     <script>
@@ -1143,7 +1143,7 @@
 
         // Initialize Data (LocalStorage -> window.INITIAL_STATIONS -> fetch fallback)
         async function initializeDataset() {
-            const DATASET_VERSION = "2026-11-05_v22_metturu_coords_update";
+            const DATASET_VERSION = "2026-11-06_v26_force_full_refresh";
             const savedVer = localStorage.getItem('POLICE_ELECTION_DATASET_VERSION');
             if (savedVer !== DATASET_VERSION) {
                 localStorage.removeItem('POLICE_ELECTION_STATIONS_DATA');
@@ -1153,9 +1153,12 @@
             const stored = localStorage.getItem('POLICE_ELECTION_STATIONS_DATA');
             if (stored) {
                 try {
-                    allStations = JSON.parse(stored);
-                    console.log('Loaded from LocalStorage:', allStations.length);
-                    return;
+                    const parsed = JSON.parse(stored);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        allStations = parsed;
+                        console.log('Loaded from LocalStorage:', allStations.length);
+                        return;
+                    }
                 } catch(e) {
                     console.error('Error parsing local storage:', e);
                 }
@@ -1168,7 +1171,7 @@
             }
 
             try {
-                const res = await fetch('data/stations.json?v=20261105_v22');
+                const res = await fetch('data/stations.json');
                 allStations = await res.json();
                 console.log('Loaded from fetch:', allStations.length);
             } catch (err) {
