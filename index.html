@@ -771,7 +771,7 @@
                     </button>
                 </div>
 
-                <iframe id="live-map-iframe" src="https://election-maps.github.io/LiveMap/?v=20261107_v2" class="w-full flex-1 border-0" allow="geolocation; fullscreen; clipboard-write" title="Police Real-Time Live Map"></iframe>
+                <iframe id="live-map-iframe" src="https://election-maps.github.io/LiveMap/?v=20261107_v3" class="w-full flex-1 border-0" allow="geolocation; fullscreen; clipboard-write" title="Police Real-Time Live Map"></iframe>
             </div>
         </section>
 
@@ -4247,6 +4247,16 @@
         }
 
         async function exportToExcel() {
+            // If currently viewing Live Route Map tab, trigger the Live Forces Online/Offline Excel Export
+            const liveTab = document.getElementById('tab-livemap');
+            if (liveTab && !liveTab.classList.contains('hidden')) {
+                const frame = document.getElementById('live-map-iframe');
+                if (frame && frame.contentWindow) {
+                    frame.contentWindow.postMessage({ type: 'TRIGGER_EXCEL_EXPORT' }, '*');
+                    return;
+                }
+            }
+
             if (typeof XLSX === 'undefined') {
                 const btn = event?.currentTarget;
                 const origHtml = btn ? btn.innerHTML : '';
