@@ -437,8 +437,7 @@
                             <i class="fa-solid fa-road text-rose-600"></i>
                             <span id="banner-distance-text">Distance: 0.00 KM</span>
                         </div>
-                        <span class="text-xs text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 font-medium" id="banner-staff-details">
-                            Route Inchage: -
+                        <span class="hidden text-xs text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 font-medium" id="banner-staff-details">
                         </span>
                         <a id="banner-nav-link" href="#" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded text-xs flex items-center gap-1 transition shadow-sm">
                             <i class="fa-solid fa-diamond-turn-right"></i> Navigate (Google Maps)
@@ -486,7 +485,6 @@
                                 <th class="p-2">Mandal / ZPTC</th>
                                 <th class="p-2">MPTC Segment</th>
                                 <th class="p-2 text-center">Route</th>
-                                <th class="p-2">Route Incharge</th>
                                 <th class="p-2">PS Name</th>
                                 <th class="p-2">Polling Station Location (PSL)</th>
                                 <th class="p-2 text-center">Voters</th>
@@ -704,14 +702,11 @@
                     <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200 space-y-2">
                         <div class="flex items-center justify-between border-b pb-1">
                             <h3 class="font-bold text-xs text-slate-900 flex items-center gap-1">
-                                <i class="fa-solid fa-user-shield text-blue-600"></i> Route Officer / Mobile In-charge
+                                <i class="fa-solid fa-route text-blue-600"></i> Route Summary
                             </h3>
                             <span id="route-detail-badge" class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">ROUTE -</span>
                         </div>
                         <div class="text-[11px] space-y-1.5">
-                            <div class="flex justify-between items-start gap-2"><span class="text-slate-500 font-semibold shrink-0">Route Inchage:</span> <span id="route-officer-name" class="font-bold text-slate-800 text-right leading-tight">N/A</span></div>
-                            <div class="flex justify-between items-start gap-2"><span class="text-slate-500 font-semibold shrink-0">Striking force Incharge:</span> <span id="route-striking-incharge" class="font-bold text-slate-800 text-right leading-tight">N/A</span></div>
-                            <div class="flex justify-between items-start gap-2"><span class="text-slate-500 font-semibold shrink-0">Special Stricking force  Incharge:</span> <span id="route-special-striking-incharge" class="font-bold text-slate-800 text-right leading-tight">N/A</span></div>
                             <div class="flex justify-between border-t border-slate-100 pt-1"><span class="text-slate-500">Total Polling Stations:</span> <b id="route-total-stations">0</b></div>
                             <div class="flex justify-between"><span class="text-slate-500">Total Electors / Voters:</span> <b id="route-total-voters">0</b></div>
                             <div class="flex justify-between"><span class="text-slate-500">Calculated Driving Path:</span> <b id="route-total-km" class="text-rose-600">-- km</b></div>
@@ -830,20 +825,7 @@
                         <i class="fa-solid fa-building-shield"></i>
                         <span id="enlarged-route-ps">Police Station</span>
                     </h3>
-                    <div class="text-xs text-rose-100 mt-2 pt-1.5 border-t border-white/20 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <div class="bg-black/25 rounded px-2.5 py-1.5">
-                            <span class="text-[10px] text-amber-300 font-bold block uppercase">Route Inchage</span>
-                            <span id="enlarged-route-incharge" class="font-semibold text-white leading-tight block">-</span>
-                        </div>
-                        <div class="bg-black/25 rounded px-2.5 py-1.5">
-                            <span class="text-[10px] text-amber-300 font-bold block uppercase">Striking force Incharge</span>
-                            <span id="enlarged-striking-incharge" class="font-semibold text-white leading-tight block">-</span>
-                        </div>
-                        <div class="bg-black/25 rounded px-2.5 py-1.5">
-                            <span class="text-[10px] text-amber-300 font-bold block uppercase">Special Stricking force  Incharge</span>
-                            <span id="enlarged-special-striking-incharge" class="font-semibold text-white leading-tight block">-</span>
-                        </div>
-                    </div>
+
                 </div>
                 <button onclick="closeEnlargedRouteModal()" class="w-8 h-8 rounded-full bg-white/15 hover:bg-white/30 text-white flex items-center justify-center transition text-base shrink-0 cursor-pointer" title="Close (Esc)">
                     <i class="fa-solid fa-xmark"></i>
@@ -934,25 +916,7 @@
                     <input type="text" id="form-route" required placeholder="e.g. I, II, III, 1, 2" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 font-bold text-blue-900">
                 </div>
 
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Route Inchage</label>
-                    <input type="text" id="form-route-incharge" placeholder="Officer Name, Phone" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
-                </div>
 
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Striking force Incharge</label>
-                    <input type="text" id="form-striking-incharge" placeholder="Officer Name, Phone" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Special Stricking force Incharge</label>
-                    <input type="text" id="form-special-striking" placeholder="Officer Name, Phone" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">QRT</label>
-                    <input type="text" id="form-qrt" placeholder="Officer Name, Phone" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
-                </div>
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Name of the PS *</label>
@@ -999,30 +963,7 @@
                     </select>
                 </div>
 
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">SI</label>
-                    <input type="text" id="form-si" placeholder="SI count/name" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
-                </div>
 
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">ASI/HC</label>
-                    <input type="text" id="form-asi" placeholder="ASI/HC count/details" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">PC</label>
-                    <input type="text" id="form-pc" placeholder="PC count" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">HG</label>
-                    <input type="text" id="form-hg" placeholder="HG count" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Others</label>
-                    <input type="text" id="form-others" placeholder="Others staff" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
-                </div>
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Latitude</label>
@@ -1844,15 +1785,8 @@
                     }
                 }
                 
-                const bannerParts = [];
-                const rInc = firstStation.route_incharge || firstStation.route_staff;
-                if (rInc) bannerParts.push(`<b>Route Inchage:</b> ${rInc}`);
-                if (firstStation.striking_force_incharge) bannerParts.push(`<b>Striking force Incharge:</b> ${firstStation.striking_force_incharge}`);
-                if (firstStation.special_striking_force_incharge) bannerParts.push(`<b>Special Stricking force  Incharge:</b> ${firstStation.special_striking_force_incharge}`);
-                
-                document.getElementById('banner-staff-details').innerHTML = bannerParts.length > 0 
-                    ? bannerParts.join(' | ') 
-                    : '<b>Route Inchage:</b> Not Assigned';
+                const staffEl = document.getElementById('banner-staff-details');
+                if (staffEl) staffEl.classList.add('hidden');
                 
                 const fLat = parseFloat(firstStation.latitude);
                 const fLng = parseFloat(firstStation.longitude);
@@ -1945,10 +1879,6 @@
             { key: 'mandal_zptc', label: 'Name of the Mandal / ZPTC Segment' },
             { key: 'mptc', label: 'Name of the MPTC Segment' },
             { key: 'route_no', label: 'Route_no' },
-            { key: 'route_incharge', label: 'Route Inchage' },
-            { key: 'striking_incharge', label: 'Striking force Incharge' },
-            { key: 'special_striking', label: 'Special Stricking force Incharge' },
-            { key: 'qrt', label: 'QRT' },
             { key: 'psname', label: 'Name of the PS' },
             { key: 'code', label: 'Code' },
             { key: 'location', label: 'Name of the Polling Station Location (PSL)' },
@@ -1957,11 +1887,6 @@
             { key: 'blo', label: 'Name & Contact No. of BLO' },
             { key: 'distance', label: 'Distance from Police Station in KMs' },
             { key: 'sensitivity', label: 'Sensitivity (NORMAL / SENSITIVE / CRITICAL / HYPER SENSITIVE)' },
-            { key: 'si', label: 'SI' },
-            { key: 'asi_hc', label: 'ASI/HC' },
-            { key: 'pc', label: 'PC' },
-            { key: 'hg', label: 'HG' },
-            { key: 'others', label: 'Others' },
             { key: 'lat', label: 'Latitude' },
             { key: 'lng', label: 'Longitude' }
         ];
@@ -2158,42 +2083,7 @@
                                     </td>
                                     <td class="py-1 font-bold text-blue-700">Route ${station.route_no || 'N/A'}</td>
                                 </tr>
-                                <tr data-field-key="route_incharge" style="${hidden.includes('route_incharge') ? 'display:none;' : ''}" class="border-b border-slate-100 hover:bg-slate-50 transition">
-                                    <td class="py-1 text-slate-500 font-medium align-top">
-                                        <div class="flex items-center justify-between pr-1">
-                                            <span>Route Inchage:</span>
-                                            <button type="button" onclick="hideSinglePopupField('route_incharge', this)" title="Hide this field" class="text-slate-300 hover:text-rose-600 p-0.5 rounded hover:bg-rose-50 transition cursor-pointer text-[10px]"><i class="fa-solid fa-eye-slash"></i></button>
-                                        </div>
-                                    </td>
-                                    <td class="py-1 font-semibold text-slate-900 leading-tight break-words">${formatPhoneLinks(station.route_incharge || station.route_staff || 'N/A')}</td>
-                                </tr>
-                                <tr data-field-key="striking_incharge" style="${hidden.includes('striking_incharge') ? 'display:none;' : ''}" class="border-b border-slate-100 hover:bg-slate-50 transition">
-                                    <td class="py-1 text-slate-500 font-medium align-top">
-                                        <div class="flex items-center justify-between pr-1">
-                                            <span>Striking force Incharge:</span>
-                                            <button type="button" onclick="hideSinglePopupField('striking_incharge', this)" title="Hide this field" class="text-slate-300 hover:text-rose-600 p-0.5 rounded hover:bg-rose-50 transition cursor-pointer text-[10px]"><i class="fa-solid fa-eye-slash"></i></button>
-                                        </div>
-                                    </td>
-                                    <td class="py-1 font-semibold text-slate-900 leading-tight break-words">${formatPhoneLinks(station.striking_force_incharge || 'N/A')}</td>
-                                </tr>
-                                <tr data-field-key="special_striking" style="${hidden.includes('special_striking') ? 'display:none;' : ''}" class="border-b border-slate-100 hover:bg-slate-50 transition">
-                                    <td class="py-1 text-slate-500 font-medium align-top">
-                                        <div class="flex items-center justify-between pr-1">
-                                            <span>Special Stricking force Incharge:</span>
-                                            <button type="button" onclick="hideSinglePopupField('special_striking', this)" title="Hide this field" class="text-slate-300 hover:text-rose-600 p-0.5 rounded hover:bg-rose-50 transition cursor-pointer text-[10px]"><i class="fa-solid fa-eye-slash"></i></button>
-                                        </div>
-                                    </td>
-                                    <td class="py-1 font-semibold text-slate-900 leading-tight break-words">${formatPhoneLinks(station.special_striking_force_incharge || 'N/A')}</td>
-                                </tr>
-                                <tr data-field-key="qrt" style="${hidden.includes('qrt') ? 'display:none;' : ''}" class="border-b border-slate-100 hover:bg-slate-50 transition">
-                                    <td class="py-1 text-slate-500 font-medium align-top">
-                                        <div class="flex items-center justify-between pr-1">
-                                            <span>QRT:</span>
-                                            <button type="button" onclick="hideSinglePopupField('qrt', this)" title="Hide this field" class="text-slate-300 hover:text-rose-600 p-0.5 rounded hover:bg-rose-50 transition cursor-pointer text-[10px]"><i class="fa-solid fa-eye-slash"></i></button>
-                                        </div>
-                                    </td>
-                                    <td class="py-1 font-semibold text-slate-900 leading-tight break-words">${formatPhoneLinks(station.qrt || 'N/A')}</td>
-                                </tr>
+
                                 <tr data-field-key="psname" style="${hidden.includes('psname') ? 'display:none;' : ''}" class="border-b border-slate-100 hover:bg-slate-50 transition">
                                     <td class="py-1 text-slate-500 font-medium align-top">
                                         <div class="flex items-center justify-between pr-1">
@@ -2266,51 +2156,7 @@
                                     </td>
                                     <td class="py-1"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold border ${badgeClass} inline-block">${cat}</span></td>
                                 </tr>
-                                <tr data-field-key="si" style="${hidden.includes('si') ? 'display:none;' : ''}" class="border-b border-slate-100 hover:bg-slate-50 transition">
-                                    <td class="py-1 text-slate-500 font-medium align-top">
-                                        <div class="flex items-center justify-between pr-1">
-                                            <span>SI:</span>
-                                            <button type="button" onclick="hideSinglePopupField('si', this)" title="Hide this field" class="text-slate-300 hover:text-rose-600 p-0.5 rounded hover:bg-rose-50 transition cursor-pointer text-[10px]"><i class="fa-solid fa-eye-slash"></i></button>
-                                        </div>
-                                    </td>
-                                    <td class="py-1 font-semibold text-slate-800">${station.si || '0'}</td>
-                                </tr>
-                                <tr data-field-key="asi_hc" style="${hidden.includes('asi_hc') ? 'display:none;' : ''}" class="border-b border-slate-100 hover:bg-slate-50 transition">
-                                    <td class="py-1 text-slate-500 font-medium align-top">
-                                        <div class="flex items-center justify-between pr-1">
-                                            <span>ASI/HC:</span>
-                                            <button type="button" onclick="hideSinglePopupField('asi_hc', this)" title="Hide this field" class="text-slate-300 hover:text-rose-600 p-0.5 rounded hover:bg-rose-50 transition cursor-pointer text-[10px]"><i class="fa-solid fa-eye-slash"></i></button>
-                                        </div>
-                                    </td>
-                                    <td class="py-1 font-semibold text-slate-800">${station.asi_hc || '0'}</td>
-                                </tr>
-                                <tr data-field-key="pc" style="${hidden.includes('pc') ? 'display:none;' : ''}" class="border-b border-slate-100 hover:bg-slate-50 transition">
-                                    <td class="py-1 text-slate-500 font-medium align-top">
-                                        <div class="flex items-center justify-between pr-1">
-                                            <span>PC:</span>
-                                            <button type="button" onclick="hideSinglePopupField('pc', this)" title="Hide this field" class="text-slate-300 hover:text-rose-600 p-0.5 rounded hover:bg-rose-50 transition cursor-pointer text-[10px]"><i class="fa-solid fa-eye-slash"></i></button>
-                                        </div>
-                                    </td>
-                                    <td class="py-1 font-semibold text-slate-800">${station.pc || '0'}</td>
-                                </tr>
-                                <tr data-field-key="hg" style="${hidden.includes('hg') ? 'display:none;' : ''}" class="border-b border-slate-100 hover:bg-slate-50 transition">
-                                    <td class="py-1 text-slate-500 font-medium align-top">
-                                        <div class="flex items-center justify-between pr-1">
-                                            <span>HG:</span>
-                                            <button type="button" onclick="hideSinglePopupField('hg', this)" title="Hide this field" class="text-slate-300 hover:text-rose-600 p-0.5 rounded hover:bg-rose-50 transition cursor-pointer text-[10px]"><i class="fa-solid fa-eye-slash"></i></button>
-                                        </div>
-                                    </td>
-                                    <td class="py-1 font-semibold text-slate-800">${station.hg || '0'}</td>
-                                </tr>
-                                <tr data-field-key="others" style="${hidden.includes('others') ? 'display:none;' : ''}" class="border-b border-slate-100 hover:bg-slate-50 transition">
-                                    <td class="py-1 text-slate-500 font-medium align-top">
-                                        <div class="flex items-center justify-between pr-1">
-                                            <span>Others:</span>
-                                            <button type="button" onclick="hideSinglePopupField('others', this)" title="Hide this field" class="text-slate-300 hover:text-rose-600 p-0.5 rounded hover:bg-rose-50 transition cursor-pointer text-[10px]"><i class="fa-solid fa-eye-slash"></i></button>
-                                        </div>
-                                    </td>
-                                    <td class="py-1 font-semibold text-slate-800">${station.others || '-'}</td>
-                                </tr>
+
                                 <tr data-field-key="lat" style="${hidden.includes('lat') ? 'display:none;' : ''}" class="border-b border-slate-100 hover:bg-slate-50 transition">
                                     <td class="py-1 text-slate-500 font-medium align-top">
                                         <div class="flex items-center justify-between pr-1">
@@ -2448,21 +2294,7 @@
                         <h4 class="font-black text-sm text-white flex items-center gap-1.5 leading-tight">
                             <i class="fa-solid fa-building-shield text-xs"></i> ${info.ps} Police Station
                         </h4>
-                        <!-- 3 Incharge Officers (Route Inchage, Striking force Incharge, Special Stricking force Incharge) -->
-                        <div class="text-[11px] text-red-100 mt-1.5 pt-1.5 border-t border-white/20 space-y-1">
-                            <div class="leading-tight">
-                                <b class="text-amber-300">Route Inchage:</b>
-                                <span class="text-white">${formatPhoneLinks(info.route_incharge || info.staff || 'Not Assigned')}</span>
-                            </div>
-                            <div class="leading-tight">
-                                <b class="text-amber-300">Striking force Incharge:</b>
-                                <span class="text-white">${formatPhoneLinks(info.striking_force_incharge || '-')}</span>
-                            </div>
-                            <div class="leading-tight">
-                                <b class="text-amber-300">Special Stricking force  Incharge:</b>
-                                <span class="text-white">${formatPhoneLinks(info.special_striking_force_incharge || '-')}</span>
-                            </div>
-                        </div>
+
                     </div>
 
                     <!-- Route Summary Badges -->
@@ -2530,7 +2362,9 @@
             document.getElementById('enlarged-route-tag').innerHTML = `<i class="fa-solid fa-route mr-1"></i> ROUTE ${info.route}`;
             document.getElementById('enlarged-route-dist').innerText = distBadge;
             document.getElementById('enlarged-route-ps').innerText = `${info.ps} Police Station`;
-            document.getElementById('enlarged-route-incharge').innerHTML = formatPhoneLinks(info.route_incharge || info.staff || 'Not Assigned');
+            if (document.getElementById('enlarged-route-incharge')) {
+                document.getElementById('enlarged-route-incharge').innerHTML = formatPhoneLinks(info.route_incharge || info.staff || 'Not Assigned');
+            }
             if (document.getElementById('enlarged-striking-incharge')) {
                 document.getElementById('enlarged-striking-incharge').innerHTML = formatPhoneLinks(info.striking_force_incharge || '-');
             }
@@ -2950,11 +2784,7 @@
                                     ROUTE ${info.route}
                                 </span>
                                 <h4 class="font-bold text-slate-900 text-xs">${info.ps} Police Station</h4>
-                                <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-slate-600">
-                                    <span><b>Route Inchage:</b> ${info.route_incharge || info.staff || '-'}</span>
-                                    ${info.striking_force_incharge ? `<span>| <b>Striking force Incharge:</b> ${info.striking_force_incharge}</span>` : ''}
-                                    ${info.special_striking_force_incharge ? `<span>| <b>Special Stricking force  Incharge:</b> ${info.special_striking_force_incharge}</span>` : ''}
-                                </div>
+
                             </div>
                             <button onclick="selectAndZoomRoute('${info.ps}', '${info.route}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded text-xs flex items-center gap-1 shadow-sm transition">
                                 <i class="fa-solid fa-map-location-dot"></i> View on Map
@@ -3024,30 +2854,7 @@
                 align: 'text-center',
                 renderCell: (s, idx, startIdx, hiddenCls) => `<td class="p-2 text-center col-route ${hiddenCls}"><span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded text-[10px] border border-blue-200">Route ${s.route_no || '-'}</span></td>`
             },
-            'col-route-incharge': {
-                key: 'col-route-incharge',
-                label: 'Route Inchage',
-                align: 'text-left',
-                renderCell: (s, idx, startIdx, hiddenCls) => `<td class="p-2 text-[10px] text-slate-700 break-words leading-snug col-route-incharge ${hiddenCls}">${formatPhoneLinks(s.route_incharge) || '-'}</td>`
-            },
-            'col-striking-incharge': {
-                key: 'col-striking-incharge',
-                label: 'Striking force Incharge',
-                align: 'text-left',
-                renderCell: (s, idx, startIdx, hiddenCls) => `<td class="p-2 text-[10px] text-slate-700 break-words leading-snug col-striking-incharge ${hiddenCls}">${formatPhoneLinks(s.striking_force_incharge) || '-'}</td>`
-            },
-            'col-special-striking': {
-                key: 'col-special-striking',
-                label: 'Special Stricking force Incharge',
-                align: 'text-left',
-                renderCell: (s, idx, startIdx, hiddenCls) => `<td class="p-2 text-[10px] text-slate-700 break-words leading-snug col-special-striking ${hiddenCls}">${formatPhoneLinks(s.special_striking_force_incharge) || '-'}</td>`
-            },
-            'col-qrt': {
-                key: 'col-qrt',
-                label: 'QRT',
-                align: 'text-left',
-                renderCell: (s, idx, startIdx, hiddenCls) => `<td class="p-2 text-[10px] text-slate-700 break-words leading-snug col-qrt ${hiddenCls}">${formatPhoneLinks(s.qrt) || '-'}</td>`
-            },
+
             'col-psname': {
                 key: 'col-psname',
                 label: 'Name of the PS',
@@ -3102,36 +2909,7 @@
                 align: 'text-center',
                 renderCell: (s, idx, startIdx, hiddenCls, badgeClass, cat) => `<td class="p-2 text-center col-cat ${hiddenCls}"><span class="px-2.5 py-0.5 rounded text-[10px] font-bold border ${badgeClass} inline-block shadow-sm">${cat}</span></td>`
             },
-            'col-si': {
-                key: 'col-si',
-                label: 'SI',
-                align: 'text-center',
-                renderCell: (s, idx, startIdx, hiddenCls) => `<td class="p-2 text-center text-slate-700 col-si ${hiddenCls}">${s.si || '-'}</td>`
-            },
-            'col-asi-hc': {
-                key: 'col-asi-hc',
-                label: 'ASI/HC',
-                align: 'text-center',
-                renderCell: (s, idx, startIdx, hiddenCls) => `<td class="p-2 text-center text-slate-700 col-asi-hc ${hiddenCls}">${s.asi_hc || '-'}</td>`
-            },
-            'col-pc': {
-                key: 'col-pc',
-                label: 'PC',
-                align: 'text-center',
-                renderCell: (s, idx, startIdx, hiddenCls) => `<td class="p-2 text-center text-slate-700 col-pc ${hiddenCls}">${s.pc || '-'}</td>`
-            },
-            'col-hg': {
-                key: 'col-hg',
-                label: 'HG',
-                align: 'text-center',
-                renderCell: (s, idx, startIdx, hiddenCls) => `<td class="p-2 text-center text-slate-700 col-hg ${hiddenCls}">${s.hg || '-'}</td>`
-            },
-            'col-others': {
-                key: 'col-others',
-                label: 'Others',
-                align: 'text-center',
-                renderCell: (s, idx, startIdx, hiddenCls) => `<td class="p-2 text-center text-slate-700 col-others ${hiddenCls}">${s.others || '-'}</td>`
-            },
+
             'col-lat': {
                 key: 'col-lat',
                 label: 'Latitude',
@@ -3170,10 +2948,8 @@
 
         const DEFAULT_TABLE_COLUMNS_KEYS = [
             'col-sno', 'col-mandal', 'col-mptc', 'col-route',
-            'col-route-incharge', 'col-striking-incharge', 'col-special-striking', 'col-qrt',
             'col-psname', 'col-code', 'col-location', 'col-ps-count', 'col-voters',
             'col-blo', 'col-dist', 'col-cat',
-            'col-si', 'col-asi-hc', 'col-pc', 'col-hg', 'col-others',
             'col-lat', 'col-lng', 'col-actions'
         ];
 
@@ -3209,16 +2985,17 @@
 
         function initTableColumns() {
             try {
-                const COLS_VERSION = "2026-10-31_v10_user_exact_order";
+                const COLS_VERSION = "2026-11-07_v11_no_static_moving";
                 if (localStorage.getItem('police_election_cols_version') !== COLS_VERSION) {
                     localStorage.removeItem('police_election_cols_order');
                     localStorage.removeItem('police_election_cols_hidden');
                     localStorage.setItem('police_election_cols_version', COLS_VERSION);
                 }
 
+                const REMOVED_KEYS = new Set(['col-route-incharge', 'col-striking-incharge', 'col-special-striking', 'col-qrt', 'col-si', 'col-asi-hc', 'col-pc', 'col-hg', 'col-others']);
                 const savedOrder = JSON.parse(localStorage.getItem('police_election_cols_order'));
                 if (Array.isArray(savedOrder) && savedOrder.length > 0) {
-                    tableColumnsOrder = savedOrder.filter(k => TABLE_COLUMNS_DEF[k]);
+                    tableColumnsOrder = savedOrder.filter(k => !REMOVED_KEYS.has(k) && TABLE_COLUMNS_DEF[k]);
                     DEFAULT_TABLE_COLUMNS_KEYS.forEach(k => {
                         if (!tableColumnsOrder.includes(k)) tableColumnsOrder.push(k);
                     });
@@ -3923,7 +3700,9 @@
             // Update Officer Header Card & Badges
             const firstStation = routeStations[0];
             document.getElementById('route-detail-badge').innerText = `ROUTE - ${selectedRoute} (${selectedPS})`;
-            document.getElementById('route-officer-name').innerHTML = formatPhoneLinks(firstStation.route_incharge || firstStation.route_staff || 'Not Assigned');
+            if (document.getElementById('route-officer-name')) {
+                document.getElementById('route-officer-name').innerHTML = formatPhoneLinks(firstStation.route_incharge || firstStation.route_staff || 'Not Assigned');
+            }
             if (document.getElementById('route-striking-incharge')) {
                 document.getElementById('route-striking-incharge').innerHTML = formatPhoneLinks(firstStation.striking_force_incharge || '-');
             }
@@ -4080,10 +3859,10 @@
             document.getElementById('form-mandal').value = s.mandal_zptc_segment || '';
             document.getElementById('form-mptc').value = s.mptc_segment || '';
             document.getElementById('form-route').value = s.route_no || '';
-            document.getElementById('form-route-incharge').value = s.route_incharge || s.route_staff || '';
-            document.getElementById('form-striking-incharge').value = s.striking_force_incharge || '';
-            document.getElementById('form-special-striking').value = s.special_striking_force_incharge || '';
-            document.getElementById('form-qrt').value = s.qrt || '';
+            if (document.getElementById('form-route-incharge')) document.getElementById('form-route-incharge').value = s.route_incharge || s.route_staff || '';
+            if (document.getElementById('form-striking-incharge')) document.getElementById('form-striking-incharge').value = s.striking_force_incharge || '';
+            if (document.getElementById('form-special-striking')) document.getElementById('form-special-striking').value = s.special_striking_force_incharge || '';
+            if (document.getElementById('form-qrt')) document.getElementById('form-qrt').value = s.qrt || '';
             document.getElementById('form-psname').value = s.psname || '';
             document.getElementById('form-code').value = s.code || '';
             document.getElementById('form-location').value = s.polling_station_location || '';
@@ -4092,11 +3871,11 @@
             document.getElementById('form-blo').value = s.blo_contact_no || '';
             document.getElementById('form-distance').value = s.distance_from_ps_kms || '';
             document.getElementById('form-categorization').value = (s.categorization || 'NORMAL').trim().toUpperCase();
-            document.getElementById('form-si').value = s.si || '';
-            document.getElementById('form-asi').value = s.asi_hc || '';
-            document.getElementById('form-pc').value = s.pc || '';
-            document.getElementById('form-hg').value = s.hg || '';
-            document.getElementById('form-others').value = s.others || '';
+            if (document.getElementById('form-si')) document.getElementById('form-si').value = s.si || '';
+            if (document.getElementById('form-asi')) document.getElementById('form-asi').value = s.asi_hc || '';
+            if (document.getElementById('form-pc')) document.getElementById('form-pc').value = s.pc || '';
+            if (document.getElementById('form-hg')) document.getElementById('form-hg').value = s.hg || '';
+            if (document.getElementById('form-others')) document.getElementById('form-others').value = s.others || '';
             document.getElementById('form-lat').value = s.latitude || '';
             document.getElementById('form-lng').value = s.longitude || '';
 
@@ -4120,11 +3899,11 @@
                 mandal_zptc_segment: document.getElementById('form-mandal').value.trim(),
                 mptc_segment: document.getElementById('form-mptc').value.trim(),
                 route_no: document.getElementById('form-route').value.trim(),
-                route_incharge: document.getElementById('form-route-incharge').value.trim(),
-                route_staff: document.getElementById('form-route-incharge').value.trim(),
-                striking_force_incharge: document.getElementById('form-striking-incharge').value.trim(),
-                special_striking_force_incharge: document.getElementById('form-special-striking').value.trim(),
-                qrt: document.getElementById('form-qrt').value.trim(),
+                route_incharge: document.getElementById('form-route-incharge')?.value?.trim() || orig.route_incharge || '',
+                route_staff: document.getElementById('form-route-incharge')?.value?.trim() || orig.route_staff || '',
+                striking_force_incharge: document.getElementById('form-striking-incharge')?.value?.trim() || orig.striking_force_incharge || '',
+                special_striking_force_incharge: document.getElementById('form-special-striking')?.value?.trim() || orig.special_striking_force_incharge || '',
+                qrt: document.getElementById('form-qrt')?.value?.trim() || orig.qrt || '',
                 psname: document.getElementById('form-psname').value.trim(),
                 code: document.getElementById('form-code').value.trim(),
                 polling_station_location: document.getElementById('form-location').value.trim(),
@@ -4133,11 +3912,11 @@
                 blo_contact_no: document.getElementById('form-blo').value.trim(),
                 distance_from_ps_kms: document.getElementById('form-distance').value.trim(),
                 categorization: document.getElementById('form-categorization').value.trim().toUpperCase(),
-                si: document.getElementById('form-si').value.trim(),
-                asi_hc: document.getElementById('form-asi').value.trim(),
-                pc: document.getElementById('form-pc').value.trim(),
-                hg: document.getElementById('form-hg').value.trim(),
-                others: document.getElementById('form-others').value.trim(),
+                si: document.getElementById('form-si')?.value?.trim() || orig.si || '',
+                asi_hc: document.getElementById('form-asi')?.value?.trim() || orig.asi_hc || '',
+                pc: document.getElementById('form-pc')?.value?.trim() || orig.pc || '',
+                hg: document.getElementById('form-hg')?.value?.trim() || orig.hg || '',
+                others: document.getElementById('form-others')?.value?.trim() || orig.others || '',
                 latitude: document.getElementById('form-lat').value.trim(),
                 longitude: document.getElementById('form-lng').value.trim()
             };
@@ -4287,10 +4066,7 @@
                     else if (colKey === 'col-mandal') row['Name of the Mandal / ZPTC Segment'] = s.mandal_zptc_segment || '';
                     else if (colKey === 'col-mptc') row['Name of the MPTC Segment'] = s.mptc_segment || '';
                     else if (colKey === 'col-route') row['Route_no'] = s.route_no || '';
-                    else if (colKey === 'col-route-incharge') row['Route Inchage'] = s.route_incharge || '';
-                    else if (colKey === 'col-striking-incharge') row['Striking force Incharge'] = s.striking_force_incharge || '';
-                    else if (colKey === 'col-special-striking') row['Special Stricking force Incharge'] = s.special_striking_force_incharge || '';
-                    else if (colKey === 'col-qrt') row['QRT'] = s.qrt || '';
+
                     else if (colKey === 'col-psname') row['Name of the PS'] = s.psname || '';
                     else if (colKey === 'col-code') row['Code'] = s.code || '';
                     else if (colKey === 'col-location') row['Name of the Polling Station Location (PSL)'] = s.polling_station_location || '';
@@ -4299,11 +4075,7 @@
                     else if (colKey === 'col-blo') row['Name & Contact No. of BLO'] = s.blo_contact_no || '';
                     else if (colKey === 'col-dist') row['Distance from Police Station in KMs'] = s.distance_from_ps_kms || '';
                     else if (colKey === 'col-cat') row['Sensitivity'] = (s.categorization || 'NORMAL').trim().toUpperCase();
-                    else if (colKey === 'col-si') row['SI'] = s.si || '';
-                    else if (colKey === 'col-asi-hc') row['ASI/HC'] = s.asi_hc || '';
-                    else if (colKey === 'col-pc') row['PC'] = s.pc || '';
-                    else if (colKey === 'col-hg') row['HG'] = s.hg || '';
-                    else if (colKey === 'col-others') row['Others'] = s.others || '';
+
                     else if (colKey === 'col-lat') row['Latitude'] = s.latitude || '';
                     else if (colKey === 'col-lng') row['Longitude'] = s.longitude || '';
                 });
@@ -4368,7 +4140,7 @@
             if (btnCountEl) btnCountEl.innerText = stations.length;
 
             if (stations.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="12" class="p-6 text-center text-slate-400">No matching stations found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="11" class="p-6 text-center text-slate-400">No matching stations found.</td></tr>';
                 return;
             }
 
@@ -4388,7 +4160,6 @@
                         <td class="p-2 font-medium text-slate-800 break-words">${s.mandal_zptc_segment || '-'}</td>
                         <td class="p-2 text-slate-600 break-words">${s.mptc_segment || '-'}</td>
                         <td class="p-2 text-center"><span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded text-[10px] border border-blue-200">Route ${s.route_no || '-'}</span></td>
-                        <td class="p-2 text-slate-700 leading-tight">${formatPhoneLinks(s.route_incharge || s.route_staff || '-')}</td>
                         <td class="p-2 font-semibold text-blue-900">${s.psname || '-'}</td>
                         <td class="p-2 font-bold text-slate-900 break-words">${s.polling_station_location || '-'}</td>
                         <td class="p-2 text-center font-bold text-blue-600">${s.no_of_voters ? Number(s.no_of_voters).toLocaleString() : '0'}</td>
@@ -4409,7 +4180,7 @@
                 `;
             }
             if (stations.length > maxRows) {
-                rowsHtml += `<tr><td colspan="12" class="p-2 text-center bg-slate-50 text-slate-500 font-semibold text-xs">... and ${stations.length - maxRows} more stations shown on map</td></tr>`;
+                rowsHtml += `<tr><td colspan="11" class="p-2 text-center bg-slate-50 text-slate-500 font-semibold text-xs">... and ${stations.length - maxRows} more stations shown on map</td></tr>`;
             }
             tbody.innerHTML = rowsHtml;
         }
