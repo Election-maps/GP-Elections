@@ -134,11 +134,11 @@
                     <button onclick="switchTab('report')" id="tab-btn-report" class="px-3.5 py-1.5 rounded-lg font-semibold text-xs bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5 border border-slate-700/60 shadow-sm">
                         <i class="fa-solid fa-table-list text-cyan-400"></i> Polling Stations Report
                     </button>
-                    <button onclick="switchTab('map')" id="tab-btn-map" class="px-3.5 py-1.5 rounded-lg font-semibold text-xs bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5 border border-slate-700/60 shadow-sm">
-                        <i class="fa-solid fa-map-location-dot text-amber-400"></i> Route Map
+                    <button onclick="switchTab('routewise')" id="tab-btn-routewise" class="px-3.5 py-1.5 rounded-lg font-semibold text-xs bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5 border border-slate-700/60 shadow-sm">
+                        <i class="fa-solid fa-route text-amber-400"></i> Route Map
                     </button>
-                    <button onclick="switchTab('livemap')" id="tab-btn-livemap" class="px-3.5 py-1.5 rounded-lg font-semibold text-xs bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5 border border-slate-700/60 shadow-sm">
-                        <i class="fa-solid fa-satellite-dish text-emerald-400"></i> Live Route Map
+                    <button onclick="switchTab('map')" id="tab-btn-map" class="px-3.5 py-1.5 rounded-lg font-semibold text-xs bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5 border border-slate-700/60 shadow-sm">
+                        <i class="fa-solid fa-map-location-dot text-emerald-400"></i> Live Route Map
                     </button>
 
                     <button onclick="openAddModal()" class="px-3.5 py-1.5 rounded-lg font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center gap-1.5 shadow-sm">
@@ -312,7 +312,7 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <!-- Live Mode Indicator & GPS Locate Me (Active when Live Route Map tab is selected) -->
-                        <div id="live-map-mode-indicator" class="hidden flex items-center gap-1.5">
+                        <div id="live-map-mode-indicator" class="flex items-center gap-1.5">
                             <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 shadow-2xs">
                                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
                                 <span>LIVE TRACKING</span>
@@ -1217,19 +1217,16 @@
 
         // Tab Switching Logic
         function switchTab(tabId) {
-            const targetSection = (tabId === 'livemap') ? 'map' : tabId;
-            isLiveModeActive = (tabId === 'livemap');
-
             ['dashboard', 'map', 'report', 'routewise'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 if (el) {
-                    if (t === targetSection) el.classList.remove('hidden');
+                    if (t === tabId) el.classList.remove('hidden');
                     else el.classList.add('hidden');
                 }
             });
 
             // Update all navbar button highlights
-            ['dashboard', 'report', 'map', 'livemap'].forEach(t => {
+            ['dashboard', 'report', 'routewise', 'map'].forEach(t => {
                 const btn = document.getElementById(`tab-btn-${t}`);
                 if (btn) {
                     if (t === tabId) {
@@ -1242,13 +1239,7 @@
                 }
             });
 
-            const liveIndicator = document.getElementById('live-map-mode-indicator');
-            if (liveIndicator) {
-                if (isLiveModeActive) liveIndicator.classList.remove('hidden');
-                else liveIndicator.classList.add('hidden');
-            }
-
-            if (tabId === 'map' || tabId === 'livemap') {
+            if (tabId === 'map') {
                 if (!isMainMapInitialized) {
                     initMainMapLazy();
                 } else {
@@ -1259,6 +1250,7 @@
             } else if (tabId === 'routewise') {
                 setTimeout(() => {
                     initRouteMap();
+                    if (routeMap) routeMap.invalidateSize();
                 }, 100);
             } else if (tabId === 'report') {
                 if (!isTableRendered) {
