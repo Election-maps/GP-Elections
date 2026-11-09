@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -137,8 +137,8 @@
                     <button onclick="switchTab('map')" id="tab-btn-map" class="px-3.5 py-1.5 rounded-lg font-semibold text-xs bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5 border border-slate-700/60 shadow-sm">
                         <i class="fa-solid fa-map-location-dot text-amber-400"></i> Route Map
                     </button>
-                    <button onclick="switchTab('routewise')" id="tab-btn-routewise" class="px-3.5 py-1.5 rounded-lg font-semibold text-xs bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5 border border-slate-700/60 shadow-sm">
-                        <i class="fa-solid fa-route text-emerald-400"></i> Live Route Map
+                    <button onclick="switchTab('livemap')" id="tab-btn-livemap" class="px-3.5 py-1.5 rounded-lg font-semibold text-xs bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5 border border-slate-700/60 shadow-sm">
+                        <i class="fa-solid fa-satellite-dish text-emerald-400"></i> Live Route Map
                     </button>
 
                     <button onclick="openAddModal()" class="px-3.5 py-1.5 rounded-lg font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center gap-1.5 shadow-sm">
@@ -499,6 +499,220 @@
                 </div>
             </div>
         </section>
+
+        <!-- ================= TAB: LIVE ROUTE MAP ================= -->
+        <section id="tab-livemap" class="hidden space-y-2">
+            <div class="bg-white p-2.5 rounded-lg shadow-sm border border-slate-200">
+                <!-- Map Filter Bar (Responsive Flex with ZERO horizontal overflow) -->
+                <!-- Row 1: Quick Category Filter Pills & Report Data Table Toggle -->
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5 mb-2.5">
+                    <div class="flex flex-wrap items-center gap-1.5 text-xs">
+                        <span class="font-bold text-slate-700 mr-1 flex items-center gap-1">
+                            <i class="fa-solid fa-filter text-emerald-600"></i> Category Filter:
+                        </span>
+                        <button type="button" onclick="setLiveMapQuickCategory('')" id="live-pill-cat-all" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-600 text-white transition shadow-sm">
+                            All (<span id="live-cat-count-all">0</span>)
+                        </button>
+                        <button type="button" onclick="setLiveMapQuickCategory('NORMAL')" id="live-pill-cat-normal" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 transition">
+                            Normal (<span id="live-cat-count-normal">0</span>)
+                        </button>
+                        <button type="button" onclick="setLiveMapQuickCategory('SENSITIVE')" id="live-pill-cat-sensitive" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 transition">
+                            Sensitive (<span id="live-cat-count-sensitive">0</span>)
+                        </button>
+                        <button type="button" onclick="setLiveMapQuickCategory('CRITICAL')" id="live-pill-cat-critical" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-300 transition">
+                            Critical (<span id="live-cat-count-critical">0</span>)
+                        </button>
+                        <button type="button" onclick="setLiveMapQuickCategory('HYPER SENSITIVE')" id="live-pill-cat-hyper" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 transition">
+                            Hyper Sensitive (<span id="live-cat-count-hyper">0</span>)
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <!-- Live Mode Indicator & GPS Locate Me -->
+                        <div id="live-map-mode-indicator-live" class="flex items-center gap-1.5">
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 shadow-2xs">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                                <span>LIVE TRACKING</span>
+                            </span>
+                            <button type="button" onclick="locateUserPositionLiveMap()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded text-xs flex items-center gap-1 transition shadow-xs cursor-pointer" title="Locate My Current GPS Position">
+                                <i class="fa-solid fa-crosshairs"></i> My Location
+                            </button>
+                        </div>
+                        <button type="button" onclick="toggleLiveMapReportTable()" id="toggle-live-map-table-btn" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold px-2.5 py-1 rounded text-xs border border-indigo-300 flex items-center gap-1.5 transition shadow-xs cursor-pointer" title="View matching report table data under map">
+                            <i class="fa-solid fa-table-list text-indigo-600"></i> Polling Stations Table (<span id="live-map-table-shown-count">0</span>)
+                        </button>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-end gap-2.5">
+                    <!-- Police Station Filter -->
+                    <div class="flex-1 min-w-[140px] max-w-xs">
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Police Station</label>
+                        <select id="live-filter-psname" onchange="onLiveMapPSChange(this.value)" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 bg-white font-medium">
+                            <option value="">-- All Police Stations --</option>
+                        </select>
+                    </div>
+
+                    <!-- Route No Filter -->
+                    <div class="w-28 sm:w-32 min-w-[100px]">
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Route No</label>
+                        <select id="live-filter-route" onchange="applyLiveMapFilters()" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 bg-white font-medium">
+                            <option value="">-- All Routes --</option>
+                        </select>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="w-28 sm:w-32 min-w-[100px]">
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Category</label>
+                        <select id="live-filter-category" onchange="applyLiveMapFilters()" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 bg-white">
+                            <option value="">-- All Categories --</option>
+                            <option value="NORMAL">Normal</option>
+                            <option value="SENSITIVE">Sensitive</option>
+                            <option value="CRITICAL">Critical</option>
+                            <option value="HYPER SENSITIVE">Hyper Sensitive</option>
+                        </select>
+                    </div>
+
+                    <!-- Distance Filter in Live Route Map -->
+                    <div class="w-28 sm:w-32 min-w-[100px]">
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Distance (PS)</label>
+                        <select id="live-filter-distance" onchange="applyLiveMapFilters()" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 bg-white">
+                            <option value="">-- All Distances --</option>
+                            <option value="near">&le; 5 KM (Near)</option>
+                            <option value="medium">5 - 12 KM</option>
+                            <option value="far">&gt; 12 KM (Far)</option>
+                        </select>
+                    </div>
+
+                    <!-- Search PSL / Village -->
+                    <div class="flex-1 min-w-[170px] max-w-sm">
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                            <i class="fa-solid fa-magnifying-glass text-blue-600 mr-0.5"></i> Search Village / School
+                        </label>
+                        <div class="relative w-full" id="live-map-search-container">
+                            <input type="text" id="live-search-text" oninput="onLiveMapSearchInput(this.value)" onfocus="onLiveMapSearchFocus()" placeholder="Type PSL (e.g. MPP School)..." autocomplete="off" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 pr-7 bg-white">
+                            <button type="button" onclick="clearLiveMapSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs cursor-pointer" title="Clear">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            <!-- Suggestions on Map -->
+                            <div id="live-psl-suggestions" class="hidden absolute left-0 right-0 top-full mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-2xl z-[1500] max-h-72 overflow-y-auto divide-y divide-slate-100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Map Layers & Visibility Toggles -->
+                    <div class="flex items-center gap-1.5">
+                        <label class="flex items-center gap-1.5 px-2.5 py-1.5 bg-rose-50 border border-rose-300 rounded text-rose-900 font-bold text-xs cursor-pointer hover:bg-rose-100 transition shadow-2xs select-none">
+                            <input type="checkbox" id="live-toggle-routes" checked onchange="toggleLiveRoadRoutes(this.checked)" class="w-3.5 h-3.5 rounded text-rose-600 focus:ring-rose-500 cursor-pointer">
+                            <span><i class="fa-solid fa-route text-rose-600 mr-0.5"></i> Road Routes</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded text-slate-700 font-semibold text-xs cursor-pointer hover:bg-slate-100 transition shadow-2xs select-none">
+                            <input type="checkbox" id="live-toggle-borders" checked onchange="toggleLiveBorders(this.checked)" class="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer">
+                            <span>Borders</span>
+                        </label>
+                    </div>
+
+                    <!-- Action Buttons: Reset & Routes Directory -->
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="resetLiveMapFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded text-xs transition border border-slate-300 flex items-center justify-center gap-1 shadow-2xs" title="Reset Filters">
+                            <i class="fa-solid fa-arrows-rotate"></i> Reset
+                        </button>
+                        <button onclick="openAllRoutesModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded text-xs transition flex items-center justify-center gap-1 shadow-sm whitespace-nowrap" title="View all routes & villages directory">
+                            <i class="fa-solid fa-list-ol"></i> Routes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Route & Journey Banner -->
+                <div id="live-active-route-banner" class="hidden mt-2 p-2.5 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border border-blue-200 rounded-lg text-blue-900 shadow-sm flex flex-wrap items-center justify-between gap-2.5">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="bg-blue-600 text-white font-bold px-2.5 py-0.5 rounded text-[11px] shadow-sm flex items-center gap-1" id="live-banner-route-tag">
+                            <i class="fa-solid fa-route"></i> ROUTE
+                        </span>
+                        
+                        <div class="flex flex-wrap items-center gap-1.5 bg-white px-2.5 py-1 rounded border border-blue-200 text-xs shadow-xs">
+                            <span class="font-bold text-rose-700 flex items-center gap-1">
+                                <i class="fa-solid fa-flag text-rose-600"></i> FROM:
+                            </span>
+                            <span class="font-bold text-slate-800" id="live-banner-from-ps">Police Station</span>
+                            <i class="fa-solid fa-arrow-right text-blue-500 mx-1"></i>
+                            <span class="font-bold text-emerald-700 flex items-center gap-1">
+                                <i class="fa-solid fa-location-dot text-emerald-600"></i> TO:
+                            </span>
+                            <span class="font-bold text-blue-950 truncate max-w-xs" id="live-banner-to-location">Polling Station / Village</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div class="bg-rose-50 border border-rose-300 text-rose-800 px-2.5 py-0.5 rounded text-xs font-bold flex items-center gap-1.5 shadow-xs">
+                            <i class="fa-solid fa-road text-rose-600"></i>
+                            <span id="live-banner-distance-text">Distance: 0.00 KM</span>
+                        </div>
+                        <span class="text-xs text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 font-medium" id="live-banner-staff-details">
+                            Route Incharge: -
+                        </span>
+                        <a id="live-banner-nav-link" href="#" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded text-xs flex items-center gap-1 transition shadow-sm">
+                            <i class="fa-solid fa-diamond-turn-right"></i> Navigate (Google Maps)
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaflet Map Container -->
+            <div class="relative w-full h-[calc(100vh-175px)] min-h-[500px] rounded-lg shadow-md border border-slate-200 overflow-hidden bg-slate-200">
+                <div id="live-map-canvas" class="w-full h-full"></div>
+
+                <!-- Floating Map Legend -->
+                <div class="absolute bottom-4 left-4 z-[1000] bg-white/95 backdrop-blur-sm p-2 rounded-lg shadow-lg border border-slate-200 text-[10px] space-y-1">
+                    <div class="font-bold text-slate-700 border-b pb-0.5 mb-1 flex items-center justify-between gap-3">
+                        <span><i class="fa-solid fa-layer-group text-emerald-600"></i> PS Sensitivity</span>
+                        <span id="live-legend-total-shown" class="font-bold text-emerald-700">1329 Shown</span>
+                    </div>
+                    <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-emerald-500 text-white font-black text-[9px] flex items-center justify-center shadow-sm">N</span> Normal Polling Station</div>
+                    <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-amber-500 text-white font-black text-[9px] flex items-center justify-center shadow-sm">S</span> Sensitive Polling Station</div>
+                    <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-orange-500 text-white font-black text-[9px] flex items-center justify-center shadow-sm">C</span> Critical Polling Station</div>
+                    <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-rose-600 text-white font-black text-[9px] flex items-center justify-center shadow-sm">H</span> Hyper Sensitive Polling Station</div>
+                    <div class="flex items-center gap-1.5"><span class="w-4 h-1 bg-red-600 inline-block border-t border-b border-white"></span> Police Patrol Road Route</div>
+                </div>
+            </div>
+
+            <!-- Polling Station Report Data Table Under Map -->
+            <div id="live-map-stations-report-container" class="hidden bg-white p-3 rounded-lg shadow-sm border border-slate-200 space-y-2 mt-2">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <div class="flex items-center gap-2">
+                        <h3 class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                            <i class="fa-solid fa-table-list text-emerald-600"></i> Polling Station Report Data (Matching Live Map Filter)
+                        </h3>
+                        <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded" id="live-map-report-data-count">0 Stations</span>
+                    </div>
+                    <button type="button" onclick="toggleLiveMapReportTable()" class="text-slate-400 hover:text-slate-700 text-xs font-bold px-2 py-1 rounded hover:bg-slate-100 transition">
+                        <i class="fa-solid fa-xmark mr-0.5"></i> Close Table
+                    </button>
+                </div>
+                <div class="overflow-x-auto max-h-96 overflow-y-auto border border-slate-200 rounded-lg">
+                    <table class="w-full text-[11px] divide-y divide-slate-200 text-left">
+                        <thead class="bg-slate-900 text-white sticky top-0 z-10 text-[11px]">
+                            <tr>
+                                <th class="p-2 text-center w-12">S.No</th>
+                                <th class="p-2">Mandal / ZPTC</th>
+                                <th class="p-2">MPTC Segment</th>
+                                <th class="p-2 text-center">Route</th>
+                                <th class="p-2">Route Incharge</th>
+                                <th class="p-2">PS Name</th>
+                                <th class="p-2">Polling Station Location (PSL)</th>
+                                <th class="p-2 text-center">Voters</th>
+                                <th class="p-2">BLO Contact</th>
+                                <th class="p-2 text-center">Distance</th>
+                                <th class="p-2 text-center">Sensitivity</th>
+                                <th class="p-2 text-center w-16">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="live-map-report-data-tbody" class="divide-y divide-slate-100 bg-white">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
 
         <!-- ================= TAB 3: POLLING STATIONS REPORT (TABLE) ================= -->
         <section id="tab-report" class="hidden space-y-2.5">
@@ -1217,7 +1431,7 @@
 
         // Tab Switching Logic
         function switchTab(tabId) {
-            ['dashboard', 'map', 'report', 'routewise'].forEach(t => {
+            ['dashboard', 'map', 'report', 'routewise', 'livemap'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 if (el) {
                     if (t === tabId) el.classList.remove('hidden');
@@ -1226,7 +1440,7 @@
             });
 
             // Update all navbar button highlights
-            ['dashboard', 'report', 'routewise', 'map'].forEach(t => {
+            ['dashboard', 'report', 'map', 'livemap', 'routewise'].forEach(t => {
                 const btn = document.getElementById(`tab-btn-${t}`);
                 if (btn) {
                     if (t === tabId) {
@@ -1245,6 +1459,14 @@
                 } else {
                     setTimeout(() => {
                         if (mainMap) mainMap.invalidateSize();
+                    }, 50);
+                }
+            } else if (tabId === 'livemap') {
+                if (!isLiveMapInitialized) {
+                    initLiveMapLazy();
+                } else {
+                    setTimeout(() => {
+                        if (liveMap) liveMap.invalidateSize();
                     }, 50);
                 }
             } else if (tabId === 'routewise') {
@@ -1285,12 +1507,18 @@
             if (mapPsSelect) mapPsSelect.innerHTML = '<option value="">-- All Police Stations --</option>' + psOptions;
             if (tablePsSelect) tablePsSelect.innerHTML = '<option value="">-- All Police Stations --</option>' + psOptions;
             if (routeTabPsSelect) routeTabPsSelect.innerHTML = '<option value="">-- సెలెక్ట్ పోలీస్ స్టేషన్ --</option>' + psOptions;
+            const livePsSelect = document.getElementById('live-filter-psname');
+            if (livePsSelect) livePsSelect.innerHTML = '<option value="">-- All Police Stations --</option>' + psOptions;
 
             // Populate Table Routes
             // Populate Live Route Map Routes with Natural Sorting
             const mapRouteSelect = document.getElementById('map-filter-route');
             if (mapRouteSelect) {
                 mapRouteSelect.innerHTML = '<option value="">-- All Routes --</option>' + sortedRoutes.map(r => `<option value="${r}">Route - ${r}</option>`).join('');
+            }
+            const liveRouteSelect = document.getElementById('live-filter-route');
+            if (liveRouteSelect) {
+                liveRouteSelect.innerHTML = '<option value="">-- All Routes --</option>' + sortedRoutes.map(r => `<option value="${r}">Route - ${r}</option>`).join('');
             }
             const tableRouteSelect = document.getElementById('table-filter-route');
             if (tableRouteSelect) {
@@ -4414,6 +4642,541 @@
                 toggleMapReportTable();
             }
         }
+
+
+        // ================= TAB: LIVE ROUTE MAP CONTROLLER =================
+        let isLiveMapInitialized = false;
+        let liveMap = null;
+        let liveMarkersGroup = null;
+        let liveRoutesGroup = null;
+        let liveActiveQuickCategory = '';
+        let filteredLiveMapStations = [];
+        let currentLiveMapFilterToken = 0;
+        let liveMandalBoundariesLayer = null;
+        let liveUserLocationMarker = null;
+
+        function initLiveMapLazy() {
+            if (isLiveMapInitialized) return;
+            if (typeof L === 'undefined') {
+                setTimeout(initLiveMapLazy, 80);
+                return;
+            }
+            isLiveMapInitialized = true;
+            initLiveMap();
+        }
+
+        function initLiveMap() {
+            if (liveMap) return;
+
+            liveMap = L.map('live-map-canvas').setView([18.3, 83.9], 10);
+
+            const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(liveMap);
+
+            const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                attribution: '© Google Maps Satellite'
+            });
+
+            const cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '© CARTO'
+            });
+
+            L.control.layers({
+                "OpenStreetMap": osm,
+                "Google Satellite Hybrid": googleHybrid,
+                "Carto Light Clean": cartoLight
+            }, null, { position: 'topright' }).addTo(liveMap);
+
+            liveMarkersGroup = L.layerGroup().addTo(liveMap);
+            liveRoutesGroup = L.layerGroup().addTo(liveMap);
+
+            loadLiveMandalBoundaries();
+            applyLiveMapFilters();
+        }
+
+        async function loadLiveMandalBoundaries() {
+            if (liveMandalBoundariesLayer) return;
+            const toggle = document.getElementById('live-toggle-borders');
+            if (toggle && !toggle.checked) return;
+
+            try {
+                if (typeof omnivore !== 'undefined') {
+                    const res = await fetch('BORDERSKL-Mandals.kmz');
+                    if (res.ok) {
+                        const data = await res.arrayBuffer();
+                        const zip = await JSZip.loadAsync(data);
+                        const kmlFile = Object.keys(zip.files).find(f => f.endsWith('.kml'));
+                        if (kmlFile) {
+                            const kmlText = await zip.files[kmlFile].async('string');
+                            const parser = new DOMParser();
+                            const kmlDom = parser.parseFromString(kmlText, 'text/xml');
+                            liveMandalBoundariesLayer = omnivore.kml.parse(kmlDom, null, L.geoJson(null, {
+                                style: { color: '#0284c7', weight: 2, opacity: 0.85, fillOpacity: 0.04, dashArray: '4, 4' }
+                            })).addTo(liveMap);
+                        }
+                    }
+                }
+            } catch(e) {
+                console.error('Error loading live mandal borders:', e);
+            }
+        }
+
+        function setLiveMapQuickCategory(cat) {
+            liveActiveQuickCategory = cat;
+            const pills = [
+                { id: 'live-pill-cat-all', catVal: '' },
+                { id: 'live-pill-cat-normal', catVal: 'NORMAL' },
+                { id: 'live-pill-cat-sensitive', catVal: 'SENSITIVE' },
+                { id: 'live-pill-cat-critical', catVal: 'CRITICAL' },
+                { id: 'live-pill-cat-hyper', catVal: 'HYPER SENSITIVE' }
+            ];
+
+            pills.forEach(p => {
+                const el = document.getElementById(p.id);
+                if (!el) return;
+                if (liveActiveQuickCategory === p.catVal) {
+                    el.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-600 text-white transition shadow-sm';
+                } else {
+                    if (p.catVal === 'NORMAL') el.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 transition';
+                    else if (p.catVal === 'SENSITIVE') el.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 transition';
+                    else if (p.catVal === 'CRITICAL') el.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-300 transition';
+                    else if (p.catVal === 'HYPER SENSITIVE') el.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 transition';
+                    else el.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition';
+                }
+            });
+
+            const catDropdown = document.getElementById('live-filter-category');
+            if (catDropdown) catDropdown.value = cat;
+
+            applyLiveMapFilters();
+        }
+
+        function onLiveMapPSChange(psName) {
+            const routeSelect = document.getElementById('live-filter-route');
+            if (!routeSelect) return;
+
+            const currentRoute = routeSelect.value;
+            let options = '<option value="">-- All Routes --</option>';
+
+            const routes = new Set();
+            allStations.forEach(s => {
+                if (!psName || (s.psname || '').trim() === psName.trim()) {
+                    if (s.route_no) routes.add(s.route_no.trim());
+                }
+            });
+
+            const sortedRoutes = Array.from(routes).sort((a, b) => {
+                const numA = parseInt(a, 10);
+                const numB = parseInt(b, 10);
+                if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+                return a.localeCompare(b);
+            });
+
+            sortedRoutes.forEach(r => {
+                options += `<option value="${r}">Route - ${r}</option>`;
+            });
+
+            routeSelect.innerHTML = options;
+            if (routes.has(currentRoute)) {
+                routeSelect.value = currentRoute;
+            } else {
+                routeSelect.value = '';
+            }
+
+            applyLiveMapFilters();
+        }
+
+        function resetLiveMapFilters() {
+            setLiveMapQuickCategory('');
+            document.getElementById('live-filter-psname').value = '';
+            document.getElementById('live-filter-route').innerHTML = '<option value="">-- All Routes --</option>';
+            document.getElementById('live-filter-category').value = '';
+            document.getElementById('live-filter-distance').value = '';
+            document.getElementById('live-search-text').value = '';
+            
+            const psSet = new Set();
+            const routeSet = new Set();
+            allStations.forEach(s => {
+                if (s.psname) psSet.add(s.psname.trim());
+                if (s.route_no) routeSet.add(s.route_no.trim());
+            });
+            const sortedRoutes = Array.from(routeSet).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+            const liveRouteSelect = document.getElementById('live-filter-route');
+            if (liveRouteSelect) {
+                liveRouteSelect.innerHTML = '<option value="">-- All Routes --</option>' + sortedRoutes.map(r => `<option value="${r}">Route - ${r}</option>`).join('');
+            }
+
+            applyLiveMapFilters();
+        }
+
+        function applyLiveMapFilters() {
+            if (!liveMap) return;
+            const thisToken = ++currentLiveMapFilterToken;
+
+            const selectedPS = (document.getElementById('live-filter-psname')?.value || '').trim();
+            const selectedRoute = (document.getElementById('live-filter-route')?.value || '').trim();
+            const selectedCat = (document.getElementById('live-filter-category')?.value || '').trim();
+            const searchText = (document.getElementById('live-search-text')?.value || '').trim();
+            const distFilter = (document.getElementById('live-filter-distance')?.value || '').trim();
+
+            if (liveMarkersGroup) liveMarkersGroup.clearLayers();
+            if (liveRoutesGroup) liveRoutesGroup.clearLayers();
+
+            let mcAll = 0, mcNormal = 0, mcSensitive = 0, mcCritical = 0, mcHyper = 0;
+            allStations.forEach(s => {
+                mcAll++;
+                const cat = (s.categorization || 'NORMAL').trim().toUpperCase();
+                if (cat === 'HYPER SENSITIVE') mcHyper++;
+                else if (cat === 'CRITICAL') mcCritical++;
+                else if (cat === 'SENSITIVE') mcSensitive++;
+                else mcNormal++;
+            });
+            if (document.getElementById('live-cat-count-all')) document.getElementById('live-cat-count-all').innerText = mcAll.toLocaleString();
+            if (document.getElementById('live-cat-count-normal')) document.getElementById('live-cat-count-normal').innerText = mcNormal.toLocaleString();
+            if (document.getElementById('live-cat-count-sensitive')) document.getElementById('live-cat-count-sensitive').innerText = mcSensitive.toLocaleString();
+            if (document.getElementById('live-cat-count-critical')) document.getElementById('live-cat-count-critical').innerText = mcCritical.toLocaleString();
+            if (document.getElementById('live-cat-count-hyper')) document.getElementById('live-cat-count-hyper').innerText = mcHyper.toLocaleString();
+
+            filteredLiveMapStations = allStations.filter(s => {
+                if (selectedPS && (s.psname || '').trim() !== selectedPS) return false;
+                if (selectedRoute && (s.route_no || '').trim() !== selectedRoute) return false;
+
+                const cat = (s.categorization || 'NORMAL').trim().toUpperCase();
+                if (liveActiveQuickCategory) {
+                    if (cat !== liveActiveQuickCategory) return false;
+                } else if (selectedCat && cat !== selectedCat) {
+                    return false;
+                }
+
+                if (distFilter) {
+                    const d = parseFloat(s.distance_from_ps_kms) || 0;
+                    if (distFilter === 'near' && d > 5) return false;
+                    if (distFilter === 'medium' && (d <= 5 || d > 12)) return false;
+                    if (distFilter === 'far' && d <= 12) return false;
+                }
+
+                if (searchText && !matchStationLocationSearch(s, searchText)) return false;
+                return true;
+            });
+
+            if (document.getElementById('live-legend-total-shown')) {
+                document.getElementById('live-legend-total-shown').innerText = `${filteredLiveMapStations.length} Shown`;
+            }
+
+            const bounds = [];
+            const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+            const shouldBindTooltip = !isTouchDevice || filteredLiveMapStations.length <= 120;
+
+            filteredLiveMapStations.forEach((s) => {
+                const lat = parseFloat(s.latitude);
+                const lng = parseFloat(s.longitude);
+
+                if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                    const latLng = [lat, lng];
+                    bounds.push(latLng);
+
+                    const marker = L.marker(latLng, {
+                        icon: L.divIcon({
+                            className: 'custom-station-pin',
+                            html: getStationPinHtml(s.categorization, s.route_no, s.psname),
+                            iconSize: [26, 32],
+                            iconAnchor: [13, 30],
+                            popupAnchor: [0, -28]
+                        })
+                    });
+
+                    marker.on('click', () => {
+                        L.popup({ maxWidth: 440, minWidth: 320 })
+                            .setLatLng(latLng)
+                            .setContent(buildStationPopupHtml(s))
+                            .openOn(liveMap);
+                    });
+
+                    if (shouldBindTooltip) {
+                        const cleanLocation = (s.polling_station_location || '').replace(/\s*[\(\[].*$/, '').trim();
+                        marker.bindTooltip(
+                            `<div class="ps-tooltip-badge"><b>#${s.route_no || '-'}</b> ${cleanLocation}</div>`,
+                            { permanent: false, direction: 'top', offset: [0, -26], opacity: 0.95 }
+                        );
+                    }
+
+                    liveMarkersGroup.addLayer(marker);
+                }
+            });
+
+            // Draw road routes if checked
+            const routesChecked = document.getElementById('live-toggle-routes')?.checked ?? true;
+            if (routesChecked) {
+                renderLiveRoadRoutes(filteredLiveMapStations, thisToken);
+            }
+
+            // Update banner
+            updateLiveActiveRouteBanner(selectedPS, selectedRoute, searchText, filteredLiveMapStations);
+
+            // Fit bounds
+            if (bounds.length > 0) {
+                if (searchText || selectedRoute) {
+                    liveMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+                } else if (selectedPS) {
+                    liveMap.fitBounds(bounds, { padding: [30, 30] });
+                }
+            }
+
+            // Render bottom table
+            renderLiveMapReportTable(filteredLiveMapStations);
+        }
+
+        function renderLiveRoadRoutes(stations, token) {
+            if (!liveRoutesGroup || !liveMap) return;
+            const routesToDraw = {};
+
+            stations.forEach(s => {
+                const ps = (s.psname || '').trim();
+                const r = (s.route_no || '').trim();
+                if (!ps || !r) return;
+                const key = `${ps}__${r}`;
+                if (!routesToDraw[key]) routesToDraw[key] = [];
+                const lat = parseFloat(s.latitude);
+                const lng = parseFloat(s.longitude);
+                if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                    routesToDraw[key].push([lat, lng]);
+                }
+            });
+
+            // Draw driving route polylines
+            Object.keys(routesToDraw).forEach(key => {
+                const pts = routesToDraw[key];
+                if (pts.length < 2) return;
+                const poly = L.polyline(pts, {
+                    color: '#dc2626',
+                    weight: 3.5,
+                    opacity: 0.85,
+                    dashArray: '6, 6'
+                }).addTo(liveRoutesGroup);
+            });
+        }
+
+        function updateLiveActiveRouteBanner(selectedPS, selectedRoute, searchText, stations) {
+            const banner = document.getElementById('live-active-route-banner');
+            if (!banner) return;
+
+            if (selectedRoute || selectedPS || searchText) {
+                banner.classList.remove('hidden');
+                document.getElementById('live-banner-route-tag').innerText = selectedRoute ? `ROUTE - ${selectedRoute}` : (selectedPS || 'SEARCH');
+                document.getElementById('live-banner-from-ps').innerText = selectedPS || 'District Police HQ';
+                document.getElementById('live-banner-to-location').innerText = stations.length > 0 ? (stations[0].polling_station_location || 'Stations') : 'Selected Area';
+                
+                const staff = stations.find(s => s.route_incharge || s.route_staff);
+                const staffText = staff ? (staff.route_incharge || staff.route_staff) : '-';
+                document.getElementById('live-banner-staff-details').innerText = `Route Incharge: ${staffText}`;
+
+                if (stations.length > 0) {
+                    const first = stations[0];
+                    const navLink = document.getElementById('live-banner-nav-link');
+                    if (navLink) navLink.href = `https://www.google.com/maps/dir/?api=1&destination=${first.latitude},${first.longitude}`;
+                }
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+
+        function toggleLiveMapReportTable() {
+            const container = document.getElementById('live-map-stations-report-container');
+            if (!container) return;
+            container.classList.toggle('hidden');
+        }
+
+        function renderLiveMapReportTable(stations) {
+            const countEl = document.getElementById('live-map-report-data-count');
+            const shownCountEl = document.getElementById('live-map-table-shown-count');
+            const tbody = document.getElementById('live-map-report-data-tbody');
+            if (countEl) countEl.innerText = `${stations.length} Stations`;
+            if (shownCountEl) shownCountEl.innerText = stations.length;
+            if (!tbody) return;
+
+            const maxRows = 250;
+            const slice = stations.slice(0, maxRows);
+            let rowsHtml = '';
+            for (let idx = 0; idx < slice.length; idx++) {
+                const s = slice[idx];
+                const cat = (s.categorization || 'NORMAL').trim().toUpperCase();
+                const badgeClass = SENSITIVITY_COLORS[cat]?.badge || 'bg-slate-100 text-slate-800';
+                const lat = parseFloat(s.latitude);
+                const lng = parseFloat(s.longitude);
+                const dist = s.distance_from_ps_kms ? `${s.distance_from_ps_kms} KM` : '-';
+
+                rowsHtml += `
+                    <tr class="hover:bg-blue-50/50 transition">
+                        <td class="p-2 text-center text-slate-500 font-bold">${idx + 1}</td>
+                        <td class="p-2 font-medium text-slate-800 break-words">${s.mandal_zptc_segment || '-'}</td>
+                        <td class="p-2 text-slate-600 break-words">${s.mptc_segment || '-'}</td>
+                        <td class="p-2 text-center"><span class="bg-blue-100 text-blue-900 font-bold px-2 py-0.5 rounded text-[10px] border border-blue-200">Route ${s.route_no || '-'}</span></td>
+                        <td class="p-2 text-slate-700 leading-tight">${formatPhoneLinks(s.route_incharge || s.route_staff || '-')}</td>
+                        <td class="p-2 font-semibold text-blue-900">${s.psname || '-'}</td>
+                        <td class="p-2 font-bold text-slate-900 break-words">${s.polling_station_location || '-'}</td>
+                        <td class="p-2 text-center font-bold text-blue-600">${s.no_of_voters ? Number(s.no_of_voters).toLocaleString() : '0'}</td>
+                        <td class="p-2 text-slate-600">${formatPhoneLinks(s.blo_contact_no || '-')}</td>
+                        <td class="p-2 text-center text-rose-700 font-bold">${dist}</td>
+                        <td class="p-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">${cat}</span></td>
+                        <td class="p-2 text-center">
+                            <div class="flex items-center justify-center gap-1">
+                                <button type="button" onclick="locateStationOnLiveMap(${s.id})" title="Locate on Live Map" class="w-6 h-6 rounded bg-emerald-100 hover:bg-emerald-600 hover:text-white text-emerald-700 flex items-center justify-center transition shadow-2xs cursor-pointer">
+                                    <i class="fa-solid fa-crosshairs text-[10px]"></i>
+                                </button>
+                                <a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}" target="_blank" title="Navigate on Google Maps" class="w-6 h-6 rounded bg-blue-100 hover:bg-blue-600 hover:text-white text-blue-700 flex items-center justify-center transition shadow-2xs">
+                                    <i class="fa-solid fa-diamond-turn-right text-[10px]"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+            if (stations.length > maxRows) {
+                rowsHtml += `<tr><td colspan="12" class="p-2 text-center bg-slate-50 text-slate-500 font-semibold text-xs">... and ${stations.length - maxRows} more stations shown on live map</td></tr>`;
+            }
+            tbody.innerHTML = rowsHtml;
+        }
+
+        function locateStationOnLiveMap(stationId) {
+            const station = allStations.find(s => s.id == stationId);
+            if (!station || !liveMap) return;
+            const lat = parseFloat(station.latitude);
+            const lng = parseFloat(station.longitude);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                liveMap.setView([lat, lng], 16);
+                L.popup({ maxWidth: 440, minWidth: 320 })
+                    .setLatLng([lat, lng])
+                    .setContent(buildStationPopupHtml(station))
+                    .openOn(liveMap);
+            }
+        }
+
+        function toggleLiveRoadRoutes(checked) {
+            if (!liveRoutesGroup || !liveMap) return;
+            if (checked) {
+                if (!liveMap.hasLayer(liveRoutesGroup)) liveMap.addLayer(liveRoutesGroup);
+                renderLiveRoadRoutes(filteredLiveMapStations, currentLiveMapFilterToken);
+            } else {
+                if (liveMap.hasLayer(liveRoutesGroup)) liveMap.removeLayer(liveRoutesGroup);
+            }
+        }
+
+        function toggleLiveBorders(checked) {
+            if (!liveMap) return;
+            if (checked) {
+                if (!liveMandalBoundariesLayer) loadLiveMandalBoundaries();
+                else if (!liveMap.hasLayer(liveMandalBoundariesLayer)) liveMap.addLayer(liveMandalBoundariesLayer);
+            } else {
+                if (liveMandalBoundariesLayer && liveMap.hasLayer(liveMandalBoundariesLayer)) {
+                    liveMap.removeLayer(liveMandalBoundariesLayer);
+                }
+            }
+        }
+
+        function locateUserPositionLiveMap() {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser.');
+                return;
+            }
+            if (!liveMap) return;
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    liveMap.setView([lat, lng], 15);
+
+                    if (liveUserLocationMarker) {
+                        liveMap.removeLayer(liveUserLocationMarker);
+                    }
+
+                    const pulseIcon = L.divIcon({
+                        className: 'user-gps-pulse-marker',
+                        html: `
+                            <div class="relative flex items-center justify-center w-7 h-7">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-4 w-4 bg-emerald-600 border-2 border-white shadow-md"></span>
+                            </div>
+                        `,
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
+                    });
+
+                    liveUserLocationMarker = L.marker([lat, lng], { icon: pulseIcon }).addTo(liveMap)
+                        .bindPopup('<b>Your Live GPS Location</b><br>Accuracy: ' + Math.round(pos.coords.accuracy) + 'm')
+                        .openPopup();
+                },
+                (err) => {
+                    alert('Could not get your location: ' + err.message);
+                },
+                { enableHighAccuracy: true, timeout: 8000 }
+            );
+        }
+
+        function onLiveMapSearchInput(val) {
+            const dropdown = document.getElementById('live-psl-suggestions');
+            if (!dropdown) return;
+            const q = (val || '').trim().toLowerCase();
+            if (!q || q.length < 2) {
+                dropdown.classList.add('hidden');
+                applyLiveMapFilters();
+                return;
+            }
+
+            const matches = [];
+            allStations.forEach(s => {
+                const loc = (s.polling_station_location || '').toLowerCase();
+                const ps = (s.psname || '').toLowerCase();
+                if (loc.includes(q) || ps.includes(q)) {
+                    if (!matches.some(m => m.location === s.polling_station_location)) {
+                        matches.push({
+                            location: s.polling_station_location,
+                            psname: s.psname,
+                            route: s.route_no
+                        });
+                    }
+                }
+            });
+
+            if (matches.length === 0) {
+                dropdown.classList.add('hidden');
+            } else {
+                dropdown.innerHTML = matches.slice(0, 10).map(m => `
+                    <div onclick="selectLiveMapSearchResult('${(m.location || '').replace(/'/g, "\\'")}')" class="px-3 py-2 hover:bg-emerald-50 cursor-pointer text-xs flex justify-between items-center">
+                        <span class="font-medium text-slate-800">${m.location}</span>
+                        <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">PS: ${m.psname} | R-${m.route}</span>
+                    </div>
+                `).join('');
+                dropdown.classList.remove('hidden');
+            }
+            applyLiveMapFilters();
+        }
+
+        function onLiveMapSearchFocus() {
+            const val = document.getElementById('live-search-text')?.value;
+            if (val && val.length >= 2) onLiveMapSearchInput(val);
+        }
+
+        function selectLiveMapSearchResult(loc) {
+            const input = document.getElementById('live-search-text');
+            if (input) input.value = loc;
+            const dropdown = document.getElementById('live-psl-suggestions');
+            if (dropdown) dropdown.classList.add('hidden');
+            applyLiveMapFilters();
+        }
+
+        function clearLiveMapSearch() {
+            const input = document.getElementById('live-search-text');
+            if (input) input.value = '';
+            const dropdown = document.getElementById('live-psl-suggestions');
+            if (dropdown) dropdown.classList.add('hidden');
+            applyLiveMapFilters();
+        }
+
 
     </script>
 </body>
