@@ -310,8 +310,12 @@
                             Hyper Sensitive (<span id="map-cat-count-hyper">0</span>)
                         </button>
                     </div>
+                    <button type="button" onclick="toggleMapFilterBar()" id="btn-map-filter-toggle" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 flex items-center gap-1.5 transition shadow-2xs cursor-pointer" title="Hide or Unhide Filter Controls">
+                        <i class="fa-solid fa-eye-slash text-slate-500" id="icon-map-filter-toggle"></i>
+                        <span id="txt-map-filter-toggle">Hide / Unhide</span>
+                    </button>
                 </div>
-                <div class="flex flex-wrap items-end gap-2.5">
+                <div id="map-filter-row-inputs" class="flex flex-wrap items-end gap-2.5">
                     <!-- Police Station Filter -->
                     <div class="flex-1 min-w-[140px] max-w-xs">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Police Station</label>
@@ -475,8 +479,12 @@
                             Hyper Sensitive (<span id="live-cat-count-hyper">0</span>)
                         </button>
                     </div>
+                    <button type="button" onclick="toggleLiveMapFilterBar()" id="btn-live-filter-toggle" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 flex items-center gap-1.5 transition shadow-2xs cursor-pointer" title="Hide or Unhide Filter Controls">
+                        <i class="fa-solid fa-eye-slash text-slate-500" id="icon-live-filter-toggle"></i>
+                        <span id="txt-live-filter-toggle">Hide / Unhide</span>
+                    </button>
                 </div>
-                <div class="flex flex-wrap items-end gap-2.5">
+                <div id="live-filter-row-inputs" class="flex flex-wrap items-end gap-2.5">
                     <!-- Police Station Filter -->
                     <div class="flex-1 min-w-[140px] max-w-xs">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Police Station</label>
@@ -5067,6 +5075,64 @@
             applyLiveMapFilters();
         }
 
+
+
+        // ================= HIDE / UNHIDE FILTER CONTROLS =================
+        function toggleMapFilterBar() {
+            const row = document.getElementById('map-filter-row-inputs');
+            const btn = document.getElementById('btn-map-filter-toggle');
+            const icon = document.getElementById('icon-map-filter-toggle');
+            const txt = document.getElementById('txt-map-filter-toggle');
+            if (!row) return;
+
+            const isHidden = row.classList.toggle('hidden');
+            if (isHidden) {
+                if (txt) txt.innerText = 'Unhide Filters';
+                if (icon) icon.className = 'fa-solid fa-eye text-blue-600';
+                if (btn) {
+                    btn.classList.remove('bg-slate-100', 'text-slate-700', 'border-slate-300');
+                    btn.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-300');
+                }
+            } else {
+                if (txt) txt.innerText = 'Hide / Unhide';
+                if (icon) icon.className = 'fa-solid fa-eye-slash text-slate-500';
+                if (btn) {
+                    btn.classList.remove('bg-blue-50', 'text-blue-700', 'border-blue-300');
+                    btn.classList.add('bg-slate-100', 'text-slate-700', 'border-slate-300');
+                }
+            }
+            if (mainMap) {
+                setTimeout(() => mainMap.invalidateSize(), 150);
+            }
+        }
+
+        function toggleLiveMapFilterBar() {
+            const row = document.getElementById('live-filter-row-inputs');
+            const btn = document.getElementById('btn-live-filter-toggle');
+            const icon = document.getElementById('icon-live-filter-toggle');
+            const txt = document.getElementById('txt-live-filter-toggle');
+            if (!row) return;
+
+            const isHidden = row.classList.toggle('hidden');
+            if (isHidden) {
+                if (txt) txt.innerText = 'Unhide Filters';
+                if (icon) icon.className = 'fa-solid fa-eye text-emerald-600';
+                if (btn) {
+                    btn.classList.remove('bg-slate-100', 'text-slate-700', 'border-slate-300');
+                    btn.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-300');
+                }
+            } else {
+                if (txt) txt.innerText = 'Hide / Unhide';
+                if (icon) icon.className = 'fa-solid fa-eye-slash text-slate-500';
+                if (btn) {
+                    btn.classList.remove('bg-emerald-50', 'text-emerald-700', 'border-emerald-300');
+                    btn.classList.add('bg-slate-100', 'text-slate-700', 'border-slate-300');
+                }
+            }
+            if (liveMap) {
+                setTimeout(() => liveMap.invalidateSize(), 150);
+            }
+        }
 
     </script>
 </body>
