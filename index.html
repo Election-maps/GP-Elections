@@ -631,25 +631,25 @@
                         <span id="txt-live-filter-toggle">Hide / Unhide</span>
                     </button>
                 </div>
-                <div id="live-filter-row-inputs" class="flex flex-wrap items-end gap-2.5">
+                <div id="live-filter-row-inputs" class="flex flex-wrap xl:flex-nowrap items-end gap-1.5 sm:gap-2 overflow-x-auto pb-0.5">
                     <!-- Police Station Filter -->
-                    <div class="flex-1 min-w-[140px] max-w-xs">
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Police Station</label>
-                        <select id="live-filter-psname" onchange="onLiveMapPSChange(this.value)" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 bg-white font-medium">
+                    <div class="w-36 sm:w-44 shrink-0">
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-0.5">Police Station</label>
+                        <select id="live-filter-psname" onchange="onLiveMapPSChange(this.value)" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 bg-white font-medium">
                             <option value="">-- All Police Stations --</option>
                         </select>
                     </div>
                     <!-- Route No Filter -->
-                    <div class="w-28 sm:w-32 min-w-[100px]">
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Route No</label>
-                        <select id="live-filter-route" onchange="applyLiveMapFilters()" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 bg-white font-medium">
+                    <div class="w-24 sm:w-28 shrink-0">
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-0.5">Route No</label>
+                        <select id="live-filter-route" onchange="applyLiveMapFilters()" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 bg-white font-medium">
                             <option value="">-- All Routes --</option>
                         </select>
                     </div>
                     <!-- Category Filter -->
-                    <div class="w-28 sm:w-32 min-w-[100px]">
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Category</label>
-                        <select id="live-filter-category" onchange="applyLiveMapFilters()" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 bg-white">
+                    <div class="w-24 sm:w-28 shrink-0">
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-0.5">Category</label>
+                        <select id="live-filter-category" onchange="applyLiveMapFilters()" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 bg-white">
                             <option value="">-- All Categories --</option>
                             <option value="NORMAL">Normal</option>
                             <option value="SENSITIVE">Sensitive</option>
@@ -658,9 +658,9 @@
                         </select>
                     </div>
                     <!-- Distance Filter in Live Route Map -->
-                    <div class="w-28 sm:w-32 min-w-[100px]">
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Distance (PS)</label>
-                        <select id="live-filter-distance" onchange="applyLiveMapFilters()" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 bg-white">
+                    <div class="w-24 sm:w-28 shrink-0">
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-0.5">Distance (PS)</label>
+                        <select id="live-filter-distance" onchange="applyLiveMapFilters()" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 bg-white">
                             <option value="">-- All Distances --</option>
                             <option value="near">&le; 5 KM (Near)</option>
                             <option value="medium">5 - 12 KM</option>
@@ -668,13 +668,13 @@
                         </select>
                     </div>
                     <!-- Search PSL / Village -->
-                    <div class="flex-1 min-w-[170px] max-w-sm">
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                    <div class="min-w-[140px] max-w-[210px] flex-1 shrink-0">
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase mb-0.5">
                             <i class="fa-solid fa-magnifying-glass text-blue-600 mr-0.5"></i> Search Village / School
                         </label>
                         <div class="relative w-full" id="live-map-search-container">
-                            <input type="text" id="live-search-text" oninput="onLiveMapSearchInput(this.value)" onfocus="onLiveMapSearchFocus()" placeholder="Type PSL (e.g. MPP School)..." autocomplete="off" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 pr-7 bg-white">
-                            <button type="button" onclick="clearLiveMapSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs cursor-pointer" title="Clear">
+                            <input type="text" id="live-search-text" oninput="onLiveMapSearchInput(this.value)" onfocus="onLiveMapSearchFocus()" placeholder="Type PSL..." autocomplete="off" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 pr-6 bg-white">
+                            <button type="button" onclick="clearLiveMapSearch()" class="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs cursor-pointer" title="Clear">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
                             <!-- Suggestions on Map -->
@@ -683,30 +683,27 @@
                         </div>
                     </div>
                     <!-- Map Layers & Visibility Toggles -->
-                    <div class="flex items-center gap-1.5">
-                        <label class="flex items-center gap-1.5 px-2.5 py-1.5 bg-rose-50 border border-rose-300 rounded text-rose-900 font-bold text-xs cursor-pointer hover:bg-rose-100 transition shadow-2xs select-none">
+                    <div class="flex items-center gap-1 shrink-0">
+                        <label class="flex items-center gap-1 px-2 py-1 bg-rose-50 border border-rose-300 rounded text-rose-900 font-bold text-[11px] cursor-pointer hover:bg-rose-100 transition shadow-2xs select-none">
                             <input type="checkbox" id="live-toggle-routes" checked onchange="toggleLiveRoadRoutes(this.checked)" class="w-3.5 h-3.5 rounded text-rose-600 focus:ring-rose-500 cursor-pointer">
                             <span><i class="fa-solid fa-route text-rose-600 mr-0.5"></i> Road Routes</span>
                         </label>
-                        <label class="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded text-slate-700 font-semibold text-xs cursor-pointer hover:bg-slate-100 transition shadow-2xs select-none">
+                        <label class="flex items-center gap-1 px-2 py-1 bg-slate-50 border border-slate-300 rounded text-slate-700 font-semibold text-[11px] cursor-pointer hover:bg-slate-100 transition shadow-2xs select-none">
                             <input type="checkbox" id="live-toggle-borders" checked onchange="toggleLiveBorders(this.checked)" class="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer">
                             <span>Borders</span>
                         </label>
-                        <label class="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded text-slate-700 font-semibold text-xs cursor-pointer hover:bg-slate-100 transition shadow-2xs select-none" title="Toggle Polling Station Pins on/off">
+                        <label class="flex items-center gap-1 px-2 py-1 bg-slate-50 border border-slate-300 rounded text-slate-700 font-semibold text-[11px] cursor-pointer hover:bg-slate-100 transition shadow-2xs select-none" title="Toggle Polling Station Pins on/off">
                             <input type="checkbox" id="live-toggle-pins" checked onchange="toggleLiveStationPins(this.checked)" class="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer">
                             <span><i class="fa-solid fa-location-dot text-emerald-600 mr-0.5"></i> PS Pins</span>
                         </label>
                     </div>
                     <!-- Action Buttons: Reset & Routes Directory -->
-                    <div class="flex items-center gap-1.5">
-                        <button onclick="resetLiveMapFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded text-xs transition border border-slate-300 flex items-center justify-center gap-1 shadow-2xs" title="Reset Filters">
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button onclick="resetLiveMapFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-2.5 py-1 rounded text-[11px] transition border border-slate-300 flex items-center justify-center gap-1 shadow-2xs cursor-pointer" title="Reset Filters">
                             <i class="fa-solid fa-arrows-rotate"></i> Reset
                         </button>
-                        <button onclick="openAllRoutesModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded text-xs transition flex items-center justify-center gap-1 shadow-sm whitespace-nowrap" title="View all routes & villages directory">
+                        <button onclick="openAllRoutesModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-1 rounded text-[11px] transition flex items-center justify-center gap-1 shadow-sm whitespace-nowrap cursor-pointer" title="View all routes & villages directory">
                             <i class="fa-solid fa-list-ol"></i> Routes
-                        </button>
-                        <button type="button" onclick="toggleLiveMapFullscreen()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded text-xs transition flex items-center justify-center gap-1 shadow-sm whitespace-nowrap" title="Toggle Full Screen Live Route Map">
-                            <i class="fa-solid fa-expand"></i> Full Screen
                         </button>
                     </div>
                 </div>
