@@ -15,6 +15,11 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+    <!-- MQTT.js library for real-time live synchronization -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <!-- Pre-loaded Forces Data (Routes, SF, SSF, QRTs, Reserve Parties) -->
+    <script src="route_mobiles_data.js"></script>
+
     <style>
         .ps-tooltip-badge {
             background-color: rgba(255, 255, 255, 0.96);
@@ -27,6 +32,114 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.25);
             white-space: nowrap;
         }
+        /* Live Police Moving & Stationary Markers */
+        .police-marker-container {
+            position: relative;
+            text-align: center;
+        }
+        .police-marker-label {
+            background: rgba(11, 26, 46, 0.95);
+            color: #fff;
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            white-space: nowrap;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.65);
+            border: 1px solid #fde047;
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+            z-index: 50;
+        }
+        .marker-title-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        .officer-incharge-badge {
+            font-size: 9.5px;
+            color: #fde047;
+            font-weight: 600;
+            white-space: nowrap;
+            max-width: 320px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            margin-top: 1px;
+            padding-top: 1px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+        }
+        .speed-pill {
+            background: rgba(56, 189, 248, 0.25);
+            color: #38bdf8;
+            padding: 1px 5px;
+            border-radius: 6px;
+            font-size: 9.5px;
+            font-weight: 800;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+        }
+        .vehicle-pointer-wrapper {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center center;
+        }
+        .police-marker-pin {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            transition: transform 0.3s ease;
+        }
+        .police-marker-pulse {
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            top: -6px;
+            left: -6px;
+            border-radius: 50%;
+            border: 3px solid #10b981;
+            animation: police-pulse-anim 1.8s infinite;
+            pointer-events: none;
+        }
+        @keyframes strobe-anim-red {
+            0%, 100% { fill: #ef4444; opacity: 1; filter: drop-shadow(0 0 6px #ef4444); }
+            50% { fill: #ffffff; opacity: 0.3; filter: none; }
+        }
+        @keyframes strobe-anim-blue {
+            0%, 100% { fill: #ffffff; opacity: 0.3; filter: none; }
+            50% { fill: #38bdf8; opacity: 1; filter: drop-shadow(0 0 6px #38bdf8); }
+        }
+        .police-strobe-l {
+            animation: strobe-anim-red 0.5s infinite alternate;
+        }
+        .police-strobe-r {
+            animation: strobe-anim-blue 0.5s infinite alternate;
+        }
+        @keyframes police-pulse-anim {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(1.9); opacity: 0; }
+        }
+
         .start-location-badge {
             background-color: #dcfce7;
             border: 1px solid #16a34a;
@@ -140,6 +253,9 @@
                     <button onclick="switchTab('livemap')" id="tab-btn-livemap" class="px-3.5 py-1.5 rounded-lg font-semibold text-xs bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5 border border-slate-700/60 shadow-sm">
                         <i class="fa-solid fa-satellite-dish text-emerald-400"></i> Live Route Map
                     </button>
+                    <a href="SrikakulamPoliceTracker.apk" download="SrikakulamPoliceTracker.apk" class="px-3.5 py-1.5 rounded-lg font-bold text-xs bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white transition flex items-center gap-1.5 shadow-md" title="Download Police Tracker Android App (APK)">
+                        <i class="fa-brands fa-android text-base text-emerald-200"></i> Download APK
+                    </a>
 
                     <button onclick="openAddModal()" class="px-3.5 py-1.5 rounded-lg font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center gap-1.5 shadow-sm">
                         <i class="fa-solid fa-plus"></i> Add PS
@@ -448,6 +564,14 @@
                     <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-orange-500 text-white font-black text-[9px] flex items-center justify-center shadow-sm">C</span> Critical Polling Station</div>
                     <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-rose-600 text-white font-black text-[9px] flex items-center justify-center shadow-sm">H</span> Hyper Sensitive Polling Station</div>
                     <div class="flex items-center gap-1.5"><span class="w-4 h-1 bg-red-600 inline-block border-t border-b border-white"></span> Police Patrol Road Route</div>
+                    <div class="font-bold text-slate-700 border-t pt-1 mt-1 mb-0.5 flex items-center gap-1">
+                        <i class="fa-solid fa-satellite-dish text-blue-600"></i> Live Police Forces
+                    </div>
+                    <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-blue-600 text-white font-black text-[9px] flex items-center justify-center shadow-sm"><i class="fa-solid fa-car-side text-[8px]"></i></span> Route Mobiles (264)</div>
+                    <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-rose-600 text-white font-black text-[9px] flex items-center justify-center shadow-sm"><i class="fa-solid fa-shield-halved text-[8px]"></i></span> Striking Forces - SF (59)</div>
+                    <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-purple-600 text-white font-black text-[9px] flex items-center justify-center shadow-sm"><i class="fa-solid fa-user-shield text-[8px]"></i></span> Special SF - SSF (30)</div>
+                    <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-amber-500 text-white font-black text-[9px] flex items-center justify-center shadow-sm"><i class="fa-solid fa-bolt text-[8px]"></i></span> QRTs (6)</div>
+                    <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center shadow-sm"><i class="fa-solid fa-building-columns text-[8px]"></i></span> Reserve Parties (5)</div>
                 </div>
             </div>
 
@@ -455,6 +579,49 @@
 
         <!-- ================= TAB: LIVE ROUTE MAP ================= -->
         <section id="tab-livemap" class="hidden space-y-2">
+            <!-- Live Forces & Tracker Status Bar (Routes, SF, SSF, QRTs, Reserve Parties) -->
+            <div class="flex flex-wrap items-center justify-between gap-2 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white p-2.5 rounded-lg border border-slate-800 shadow-md">
+                <div class="flex flex-wrap items-center gap-1.5 text-xs">
+                    <span class="font-bold text-amber-400 mr-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-satellite-dish animate-pulse text-emerald-400"></i> Live Forces (364):
+                    </span>
+                    <button type="button" onclick="setLivePartyCategory('ALL')" id="live-pill-party-all" class="px-2.5 py-1 rounded text-[11px] font-bold bg-blue-600 text-white transition shadow-sm">
+                        All (364)
+                    </button>
+                    <button type="button" onclick="setLivePartyCategory('RM')" id="live-pill-party-rm" class="px-2.5 py-1 rounded text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-500/40 transition">
+                        <i class="fa-solid fa-car-side text-blue-400 mr-1"></i> Routes (264)
+                    </button>
+                    <button type="button" onclick="setLivePartyCategory('SF')" id="live-pill-party-sf" class="px-2.5 py-1 rounded text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-500/40 transition">
+                        <i class="fa-solid fa-shield-halved text-rose-400 mr-1"></i> SF (59)
+                    </button>
+                    <button type="button" onclick="setLivePartyCategory('SSF')" id="live-pill-party-ssf" class="px-2.5 py-1 rounded text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-purple-300 border border-purple-500/40 transition">
+                        <i class="fa-solid fa-user-shield text-purple-400 mr-1"></i> SSF (30)
+                    </button>
+                    <button type="button" onclick="setLivePartyCategory('QRT')" id="live-pill-party-qrt" class="px-2.5 py-1 rounded text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 transition">
+                        <i class="fa-solid fa-bolt text-amber-400 mr-1"></i> QRT (6)
+                    </button>
+                    <button type="button" onclick="setLivePartyCategory('RESERVE')" id="live-pill-party-reserve" class="px-2.5 py-1 rounded text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/40 transition">
+                        <i class="fa-solid fa-building-columns text-emerald-400 mr-1"></i> Reserve (5)
+                    </button>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800/90 border border-slate-700 text-xs font-semibold">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping inline-block" id="live-mqtt-indicator-dot"></span>
+                        <span id="live-mqtt-status-text" class="text-emerald-400 font-bold">Online</span>
+                        <span class="text-slate-400 font-normal">|</span>
+                        <span class="text-slate-300">Live Active: <strong id="live-party-active-count" class="text-emerald-300">0</strong> / 364</span>
+                    </div>
+
+                    <button type="button" onclick="fitAllActiveLiveUnits()" class="px-2.5 py-1 rounded text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition flex items-center gap-1 shadow-sm" title="Center map on all active live moving units">
+                        <i class="fa-solid fa-crosshairs"></i> Center Units
+                    </button>
+
+                    <a href="SrikakulamPoliceTracker.apk" download="SrikakulamPoliceTracker.apk" class="px-3 py-1 rounded text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white transition flex items-center gap-1.5 shadow-md" title="Download Police Tracker APK for Android phones">
+                        <i class="fa-brands fa-android text-emerald-200"></i> Download Tracker APK
+                    </a>
+                </div>
+            </div>
             <div class="bg-white p-2.5 rounded-lg shadow-sm border border-slate-200">
                 <!-- Map Filter Bar (Responsive Flex with ZERO horizontal overflow) -->
                 <!-- Row 1: Quick Category Filter Pills & Report Data Table Toggle -->
@@ -613,6 +780,14 @@
                     <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-orange-500 text-white font-black text-[9px] flex items-center justify-center shadow-sm">C</span> Critical Polling Station</div>
                     <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-rose-600 text-white font-black text-[9px] flex items-center justify-center shadow-sm">H</span> Hyper Sensitive Polling Station</div>
                     <div class="flex items-center gap-1.5"><span class="w-4 h-1 bg-red-600 inline-block border-t border-b border-white"></span> Police Patrol Road Route</div>
+                    <div class="font-bold text-slate-700 border-t pt-1 mt-1 mb-0.5 flex items-center gap-1">
+                        <i class="fa-solid fa-satellite-dish text-blue-600"></i> Live Police Forces
+                    </div>
+                    <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-blue-600 text-white font-black text-[9px] flex items-center justify-center shadow-sm"><i class="fa-solid fa-car-side text-[8px]"></i></span> Route Mobiles (264)</div>
+                    <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-rose-600 text-white font-black text-[9px] flex items-center justify-center shadow-sm"><i class="fa-solid fa-shield-halved text-[8px]"></i></span> Striking Forces - SF (59)</div>
+                    <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-purple-600 text-white font-black text-[9px] flex items-center justify-center shadow-sm"><i class="fa-solid fa-user-shield text-[8px]"></i></span> Special SF - SSF (30)</div>
+                    <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-amber-500 text-white font-black text-[9px] flex items-center justify-center shadow-sm"><i class="fa-solid fa-bolt text-[8px]"></i></span> QRTs (6)</div>
+                    <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center shadow-sm"><i class="fa-solid fa-building-columns text-[8px]"></i></span> Reserve Parties (5)</div>
                 </div>
             </div>
 
@@ -4599,6 +4774,9 @@
 
             liveMarkersGroup = L.layerGroup().addTo(liveMap);
             liveRoutesGroup = L.layerGroup().addTo(liveMap);
+            livePartyMarkersGroup = L.layerGroup().addTo(liveMap);
+            initLiveMQTT();
+            restoreLiveUnitsFromCache();
 
             loadLiveMandalBoundaries();
             applyLiveMapFilters();
@@ -5240,6 +5418,434 @@
             }
         }
 
+    
+        // ================= LIVE FORCES REAL-TIME TRACKING (ROUTES, SF, SSF, QRTS, RESERVE PARTIES) =================
+        let livePartyMarkers = {};
+        let livePartyMarkersGroup = null;
+        let currentLivePartyCategory = 'ALL';
+        let liveMqttClient = null;
+        const LIVE_MQTT_BROKER = 'wss://broker.emqx.io:8084/mqtt';
+        const LIVE_ROOM_CODE = 'SrikakulamPolice';
+        const liveUserId = 'control_room_gp_' + Math.random().toString(36).substring(2, 9);
+
+        // Forces metadata lookup from route_mobiles_data.js
+        function getPartyUnitMeta(unitId) {
+            if (!window.ROUTE_MOBILES_DATA || !Array.isArray(window.ROUTE_MOBILES_DATA)) return null;
+            const cleanId = String(unitId || '').trim().toLowerCase();
+            return window.ROUTE_MOBILES_DATA.find(u => {
+                if (!u) return false;
+                if (String(u.id || '').trim().toLowerCase() === cleanId) return true;
+                if (String(u.unitId || '').trim().toLowerCase() === cleanId) return true;
+                return false;
+            }) || null;
+        }
+
+        function getLivePartyCategoryTheme(catKey) {
+            switch (String(catKey || '').toUpperCase()) {
+                case 'SF':
+                    return { color: '#ef4444', icon: 'fa-shield-halved', label: 'Striking Force', badgeClass: 'bg-rose-100 text-rose-800 border-rose-300' };
+                case 'SSF':
+                    return { color: '#a855f7', icon: 'fa-user-shield', label: 'Special Striking Force', badgeClass: 'bg-purple-100 text-purple-800 border-purple-300' };
+                case 'QRT':
+                    return { color: '#f59e0b', icon: 'fa-bolt', label: 'QRT', badgeClass: 'bg-amber-100 text-amber-800 border-amber-300' };
+                case 'RESERVE':
+                    return { color: '#10b981', icon: 'fa-building-columns', label: 'Reserve Party', badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300' };
+                default:
+                    return { color: '#3b82f6', icon: 'fa-car-side', label: 'Route Mobile', badgeClass: 'bg-blue-100 text-blue-800 border-blue-300' };
+            }
+        }
+
+        function initLiveMQTT() {
+            if (liveMqttClient && liveMqttClient.connected) return;
+            if (typeof mqtt === 'undefined') {
+                setTimeout(initLiveMQTT, 200);
+                return;
+            }
+
+            try {
+                liveMqttClient = mqtt.connect(LIVE_MQTT_BROKER, {
+                    clientId: 'gp_cr_' + liveUserId + '_' + Math.random().toString(16).substring(2, 8),
+                    clean: true,
+                    connectTimeout: 7000,
+                    reconnectPeriod: 3000,
+                    keepalive: 25
+                });
+
+                liveMqttClient.on('connect', () => {
+                    console.log('Connected to Srikakulam Police Real-time Broker (Live Route Map)!');
+                    const dot = document.getElementById('live-mqtt-indicator-dot');
+                    const txt = document.getElementById('live-mqtt-status-text');
+                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping inline-block';
+                    if (txt) {
+                        txt.innerText = 'Online';
+                        txt.className = 'text-emerald-400 font-bold';
+                    }
+
+                    // Subscribe to general locations topic and retained officer topics
+                    const generalTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/locations';
+                    const retainedTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/officer/+';
+                    liveMqttClient.subscribe(generalTopic, { qos: 0 });
+                    liveMqttClient.subscribe(retainedTopic, { qos: 1 }, (err) => {
+                        if (!err) {
+                            // Request sync
+                            const syncTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/sync_request';
+                            liveMqttClient.publish(syncTopic, JSON.stringify({ type: 'sync_request', from: liveUserId }), { qos: 0 });
+                        }
+                    });
+                });
+
+                liveMqttClient.on('message', (topic, message) => {
+                    try {
+                        const str = message.toString().trim();
+                        if (!str) return;
+                        const payload = JSON.parse(str);
+                        const unitKey = payload.unitId || payload.id || topic.split('/').pop();
+                        if (!unitKey) return;
+
+                        if (payload.status === 'stopped') {
+                            removeLivePartyUnit(unitKey);
+                        } else if (payload.latitude || payload.lat) {
+                            updateLivePartyUnitOnMap(unitKey, payload);
+                        }
+                    } catch (e) {
+                        console.error('Failed to parse live tracking packet:', e);
+                    }
+                });
+
+                liveMqttClient.on('error', (err) => {
+                    console.warn('MQTT Connection Error:', err);
+                    const txt = document.getElementById('live-mqtt-status-text');
+                    if (txt) {
+                        txt.innerText = 'Reconnecting...';
+                        txt.className = 'text-amber-400 font-bold';
+                    }
+                });
+
+                liveMqttClient.on('offline', () => {
+                    const txt = document.getElementById('live-mqtt-status-text');
+                    if (txt) {
+                        txt.innerText = 'Offline';
+                        txt.className = 'text-rose-400 font-bold';
+                    }
+                });
+            } catch (err) {
+                console.error('MQTT Init failed:', err);
+            }
+        }
+
+        function updateLivePartyUnitOnMap(key, data) {
+            if (!liveMap || !livePartyMarkersGroup) return;
+
+            const lat = parseFloat(data.latitude || data.lat);
+            const lng = parseFloat(data.longitude || data.lng);
+            if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) return;
+
+            const meta = getPartyUnitMeta(key) || {};
+            const catKey = (data.categoryKey || meta.categoryKey || 'RM').toUpperCase();
+            const mandal = data.mandal || meta.mandal || '';
+            const unitName = data.unitName || meta.unitName || key;
+            const officer = data.officer || meta.officer || data.name || 'Officer';
+            const phone = data.phone || meta.phone || '';
+            const speed = parseFloat(data.speed || 0);
+            const speedKmh = Math.round(speed * 3.6);
+            const isMoving = speedKmh >= 2 || !!data.isMoving;
+            const bearing = parseFloat(data.bearing || 0);
+            const accuracy = parseFloat(data.accuracy || 10);
+            const lastUpdated = data.lastUpdated || Date.now();
+
+            let unit = livePartyMarkers[key];
+            if (!unit) {
+                // Create new marker
+                const icon = createLivePoliceMarkerIcon(catKey, mandal, unitName, true, isMoving, bearing, speedKmh, officer);
+                const marker = L.marker([lat, lng], { icon: icon, zIndexOffset: 1000 });
+                
+                const circle = L.circle([lat, lng], {
+                    radius: Math.max(10, accuracy),
+                    color: getLivePartyCategoryTheme(catKey).color,
+                    fillColor: getLivePartyCategoryTheme(catKey).color,
+                    fillOpacity: 0.12,
+                    weight: 1,
+                    interactive: false
+                });
+
+                unit = {
+                    key: key,
+                    marker: marker,
+                    circle: circle,
+                    lat: lat,
+                    lng: lng,
+                    catKey: catKey,
+                    mandal: mandal,
+                    unitName: unitName,
+                    officer: officer,
+                    phone: phone,
+                    speedKmh: speedKmh,
+                    isMoving: isMoving,
+                    bearing: bearing,
+                    accuracy: accuracy,
+                    lastUpdated: lastUpdated,
+                    meta: meta
+                };
+
+                marker.bindPopup(() => buildLivePartyPopupHtml(key, unit, meta), { maxWidth: 360, minWidth: 260 });
+                livePartyMarkers[key] = unit;
+
+                if (shouldShowLivePartyUnit(catKey)) {
+                    livePartyMarkersGroup.addLayer(marker);
+                    livePartyMarkersGroup.addLayer(circle);
+                }
+            } else {
+                // Update existing unit
+                unit.lat = lat;
+                unit.lng = lng;
+                unit.speedKmh = speedKmh;
+                unit.isMoving = isMoving;
+                unit.bearing = bearing;
+                unit.accuracy = accuracy;
+                unit.lastUpdated = lastUpdated;
+                if (officer) unit.officer = officer;
+                if (phone) unit.phone = phone;
+
+                // Position update
+                unit.marker.setLatLng([lat, lng]);
+                unit.circle.setLatLng([lat, lng]);
+                unit.circle.setRadius(Math.max(10, accuracy));
+
+                // Icon update
+                unit.marker.setIcon(createLivePoliceMarkerIcon(catKey, mandal, unitName, true, isMoving, bearing, speedKmh, officer));
+
+                // Update popup if currently open
+                if (unit.marker.getPopup() && unit.marker.isPopupOpen()) {
+                    unit.marker.setPopupContent(buildLivePartyPopupHtml(key, unit, meta));
+                }
+            }
+
+            updateLivePartyCounter();
+            saveLiveUnitsToCache();
+        }
+
+        function removeLivePartyUnit(key) {
+            if (livePartyMarkers[key]) {
+                const u = livePartyMarkers[key];
+                if (livePartyMarkersGroup) {
+                    livePartyMarkersGroup.removeLayer(u.marker);
+                    livePartyMarkersGroup.removeLayer(u.circle);
+                }
+                delete livePartyMarkers[key];
+                updateLivePartyCounter();
+                saveLiveUnitsToCache();
+            }
+        }
+
+        function createLivePoliceMarkerIcon(catKey, mandal, unitName, isLive, isMoving, bearing, speedKmh, rawOfficer) {
+            const theme = getLivePartyCategoryTheme(catKey);
+            const badgeText = catKey + ': ' + (unitName || mandal);
+            const officerDisp = formatOfficerDisplay(rawOfficer, mandal);
+            const officerHtml = officerDisp 
+                ? '<div class="officer-incharge-badge"><i class="fa-solid fa-user-shield text-[9px] text-yellow-300"></i><span>' + officerDisp + '</span></div>' 
+                : '';
+
+            if (isLive && isMoving && speedKmh >= 2) {
+                // Directional top-down police cruiser SVG
+                return L.divIcon({
+                    className: 'custom-police-marker',
+                    html: 
+                        <div class="police-marker-container">
+                            <div class="police-marker-label" style="border-color:  + theme.color + ;">
+                                <div class="marker-title-row">
+                                    <span style="color:#10b981;">â— </span>
+                                    <span> + badgeText + </span>
+                                    <span class="speed-pill"> + speedKmh +  km/h</span>
+                                </div>
+                                 + officerHtml + 
+                            </div>
+                            <div class="vehicle-pointer-wrapper" style="transform: rotate( + Math.round(bearing) + deg);">
+                                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" style="filter: drop-shadow(0 3px 8px rgba(0,0,0,0.65));">
+                                    <circle cx="20" cy="20" r="18" fill="rgba(15, 23, 42, 0.9)" stroke="#ffffff" stroke-width="2"/>
+                                    <path d="M20 5L30 28L20 23L10 28L20 5Z" fill=" + theme.color + " stroke="#ffffff" stroke-width="1.8" stroke-linejoin="round"/>
+                                    <rect x="15" y="17" width="4" height="3" rx="1" fill="#ef4444" class="police-strobe-l"/>
+                                    <rect x="21" y="17" width="4" height="3" rx="1" fill="#3b82f6" class="police-strobe-r"/>
+                                </svg>
+                            </div>
+                        </div>
+                    ,
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 20]
+                });
+            }
+
+            // Stationary Police Badge Pin
+            return L.divIcon({
+                className: 'custom-police-marker',
+                html: 
+                    <div class="police-marker-container">
+                        <div class="police-marker-label" style="border-color:  + theme.color + ;">
+                            <div class="marker-title-row">
+                                <span style="color:#10b981;">â— </span>
+                                <span> + badgeText + </span>
+                                <span style="color:#94a3b8; font-size:9px; font-weight:normal;">(Stopped)</span>
+                            </div>
+                             + officerHtml + 
+                        </div>
+                        <div class="police-marker-pulse"></div>
+                        <div class="police-marker-pin" style="background:  + theme.color + ;">
+                            <i class="fa-solid  + theme.icon + "></i>
+                        </div>
+                    </div>
+                ,
+                iconSize: [36, 36],
+                iconAnchor: [18, 18]
+            });
+        }
+
+        function formatOfficerDisplay(rawOfficer, mandal) {
+            if (!rawOfficer) return mandal ? (mandal + ' PS') : '';
+            const parts = rawOfficer.split(',').map(p => p.trim()).filter(Boolean);
+            const cleaned = parts.filter(p => !/^\d{10}$/.test(p.replace(/\s+/g, '')));
+            if (cleaned.length >= 2) {
+                return cleaned[0] + ', ' + cleaned[1];
+            }
+            return cleaned[0] || rawOfficer;
+        }
+
+        function buildLivePartyPopupHtml(key, unit, meta) {
+            const theme = getLivePartyCategoryTheme(unit.catKey);
+            const phone = unit.phone || meta.phone || '';
+            const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+            
+            const callBtn = cleanPhone ? '<a href="tel:' + cleanPhone + '" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-xs flex items-center gap-1 shadow-sm"><i class="fa-solid fa-phone"></i> Call</a>' : '';
+            const waBtn = cleanPhone ? '<a href="https://wa.me/91' + cleanPhone + '" target="_blank" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold text-xs flex items-center gap-1 shadow-sm"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>' : '';
+            const navBtn = '<a href="https://www.google.com/maps/dir/?api=1&destination=' + unit.lat + ',' + unit.lng + '" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded font-bold text-xs flex items-center gap-1 shadow-sm"><i class="fa-solid fa-diamond-turn-right text-emerald-400"></i> Navigate</a>';
+
+            const timeDiff = Math.max(0, Math.round((Date.now() - (unit.lastUpdated || Date.now())) / 1000));
+            const timeAgoText = timeDiff < 60 ? (timeDiff + 's ago') : (Math.round(timeDiff / 60) + 'm ago');
+
+            return 
+                <div class="p-2 space-y-2 text-slate-800 font-sans" style="min-width: 260px;">
+                    <div class="flex items-center justify-between border-b pb-1.5" style="border-color: + theme.color + ;">
+                        <span class="px-2 py-0.5 rounded font-bold text-xs text-white" style="background: + theme.color + ;">
+                            <i class="fa-solid  + theme.icon +  mr-1"></i>  + theme.label + 
+                        </span>
+                        <span class="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block"></span> LIVE
+                        </span>
+                    </div>
+
+                    <div>
+                        <div class="text-sm font-black text-slate-900"> + (unit.unitName || key) + </div>
+                        <div class="text-xs text-slate-600 font-semibold"> + (unit.mandal ? unit.mandal + ' PS' : '') + </div>
+                    </div>
+
+                    <div class="bg-slate-50 p-2 rounded border border-slate-200 text-xs space-y-1">
+                        <div><strong class="text-slate-700">Incharge:</strong> <span class="text-slate-900 font-bold"> + (unit.officer || '-') + </span></div>
+                         + (unit.phone ? '<div><strong class="text-slate-700">Phone:</strong> <span class="text-blue-700 font-bold">' + unit.phone + '</span></div>' : '') + 
+                         + (meta.supporting ? '<div><strong class="text-slate-700">Supporting:</strong> <span class="text-slate-600">' + meta.supporting + '</span></div>' : '') + 
+                         + (meta.hq ? '<div><strong class="text-slate-700">HQ:</strong> <span class="text-slate-800 font-semibold">' + meta.hq + '</span></div>' : '') + 
+                         + (meta.pollingStations ? '<div><strong class="text-slate-700">Stations Covered:</strong> <span class="text-purple-700 font-bold">' + meta.pollingStations + '</span></div>' : '') + 
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-1.5 text-[11px] bg-blue-50 p-1.5 rounded border border-blue-200 text-blue-900">
+                        <div><strong>Speed:</strong>  + unit.speedKmh +  km/h  + (unit.isMoving ? 'ðŸŸ¢ Moving' : 'ðŸŸ  Stopped') + </div>
+                        <div><strong>GPS Acc:</strong> Â± + Math.round(unit.accuracy) + m</div>
+                        <div class="col-span-2 text-slate-500 text-[10px]"><strong>Last Update:</strong>  + timeAgoText + </div>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 pt-1 border-t border-slate-100">
+                         + callBtn + 
+                         + waBtn + 
+                         + navBtn + 
+                    </div>
+                </div>
+            ;
+        }
+
+        function shouldShowLivePartyUnit(catKey) {
+            if (currentLivePartyCategory === 'ALL') return true;
+            return String(catKey || '').toUpperCase() === currentLivePartyCategory;
+        }
+
+        function setLivePartyCategory(catKey) {
+            currentLivePartyCategory = catKey;
+            ['all', 'rm', 'sf', 'ssf', 'qrt', 'reserve'].forEach(k => {
+                const btn = document.getElementById('live-pill-party-' + k);
+                if (btn) {
+                    if (k.toUpperCase() === catKey) {
+                        btn.className = 'px-2.5 py-1 rounded text-[11px] font-bold bg-blue-600 text-white transition shadow-sm';
+                    } else {
+                        btn.className = 'px-2.5 py-1 rounded text-[11px] font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition';
+                    }
+                }
+            });
+
+            if (!livePartyMarkersGroup) return;
+            livePartyMarkersGroup.clearLayers();
+
+            for (const k in livePartyMarkers) {
+                const u = livePartyMarkers[k];
+                if (shouldShowLivePartyUnit(u.catKey)) {
+                    livePartyMarkersGroup.addLayer(u.marker);
+                    livePartyMarkersGroup.addLayer(u.circle);
+                }
+            }
+        }
+
+        function fitAllActiveLiveUnits() {
+            if (!liveMap) return;
+            const bounds = [];
+            for (const k in livePartyMarkers) {
+                const u = livePartyMarkers[k];
+                if (shouldShowLivePartyUnit(u.catKey) && u.lat && u.lng) {
+                    bounds.push([u.lat, u.lng]);
+                }
+            }
+            if (bounds.length > 0) {
+                liveMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+            } else {
+                alert('No active live units currently transmitting for selected category.');
+            }
+        }
+
+        function updateLivePartyCounter() {
+            const count = Object.keys(livePartyMarkers).length;
+            const el = document.getElementById('live-party-active-count');
+            if (el) el.innerText = count;
+        }
+
+        function saveLiveUnitsToCache() {
+            try {
+                const cache = {};
+                for (const k in livePartyMarkers) {
+                    const u = livePartyMarkers[k];
+                    cache[k] = {
+                        unitId: k,
+                        latitude: u.lat,
+                        longitude: u.lng,
+                        speed: (u.speedKmh || 0) / 3.6,
+                        bearing: u.bearing,
+                        accuracy: u.accuracy,
+                        isMoving: u.isMoving,
+                        categoryKey: u.catKey,
+                        mandal: u.mandal,
+                        unitName: u.unitName,
+                        officer: u.officer,
+                        phone: u.phone,
+                        lastUpdated: u.lastUpdated
+                    };
+                }
+                localStorage.setItem('gp_live_units_cache', JSON.stringify(cache));
+            } catch(e) {}
+        }
+
+        function restoreLiveUnitsFromCache() {
+            try {
+                const cachedStr = localStorage.getItem('gp_live_units_cache');
+                if (!cachedStr) return;
+                const cached = JSON.parse(cachedStr);
+                for (const k in cached) {
+                    updateLivePartyUnitOnMap(k, cached[k]);
+                }
+            } catch(e) {}
+        }
     </script>
 </body>
 </html>

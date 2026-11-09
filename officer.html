@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a1128">
+  <title>ఎన్నికల బందోబస్తు ట్రాకర్ | Srikakulam Police Election Duty Tracker</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <!-- MQTT.js library -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <!-- Pre-loaded Forces Data (Routes, SF, SSF, QRTs, Reserve Parties) -->
+  <script src="route_mobiles_data.js?v=20261104"></script>
+
+  <style>
+    :root {
+      --police-navy: #0b1a2e;
+      --police-blue: #1e3a8a;
+      --police-gold: #f59e0b;
+      --wa-green: #25D366;
+      --bg-dark: #0a1128;
+      --card-bg: #14223d;
+      --text-light: #f8fafc;
+      --text-muted: #94a3b8;
+      --danger: #ef4444;
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      background: var(--bg-dark);
+      color: var(--text-light);
+    }
+
+    .container {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+
+    /* Top Police Header */
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 2px solid var(--police-gold);
+      margin-bottom: 14px;
+    }
+
+    .brand-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--police-gold) 0%, #d97706 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0b1a2e;
+      font-size: 22px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 10px rgba(245, 158, 11, 0.4);
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      color: #93c5fd;
+      line-height: 1.3;
+      margin-top: 2px;
+    }
+
+    /* Install App Banner (APK / PWA) */
+    .install-banner {
+      background: linear-gradient(135deg, rgba(37, 211, 102, 0.15) 0%, rgba(16, 185, 129, 0.25) 100%);
+      border: 1px solid var(--wa-green);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .btn-install {
+      background: var(--wa-green);
+      color: #082f1b;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    /* Officer Details Card */
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      margin-bottom: 14px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--police-gold);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+      display: block;
+      font-weight: 600;
+    }
+
+    .form-select, .form-input {
+      width: 100%;
+      background: #091322;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: white;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .form-select:focus, .form-input:focus {
+      border-color: var(--wa-green);
+    }
+
+    .officer-preview-box {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px dashed rgba(255,255,255,0.18);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      margin-bottom: 14px;
+    }
+
+    .preview-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      gap: 10px;
+    }
+
+    .preview-row:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Live Tracking Cockpit (When sharing) */
+    .cockpit-card {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.2) 100%);
+      border: 2px solid var(--success);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    .pulse-indicator {
+      width: 14px;
+      height: 14px;
+      background: var(--success);
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 12px var(--success);
+      animation: pulse-dot 1.5s infinite;
+      margin-right: 6px;
+    }
+
+    @keyframes pulse-dot {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.7; }
+    }
+
+    .cockpit-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #34d399;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cockpit-desc {
+      font-size: 12px;
+      color: #cbd5e1;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .cockpit-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .stat-pill {
+      background: rgba(0, 0, 0, 0.45);
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .stat-val {
+      font-size: 15px;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    .stat-lbl {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .coords-bar {
+      background: rgba(0,0,0,0.4);
+      border-radius: 8px;
+      padding: 6px 10px;
+      margin-bottom: 8px;
+      font-size: 11px;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px dashed rgba(255,255,255,0.1);
+    }
+
+    .keep-screen-notice {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      font-size: 11px;
+      color: #fde68a;
+      text-align: left;
+      line-height: 1.4;
+    }
+
+    .map-controls-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .btn-map-control {
+      flex: 1;
+      padding: 6px 8px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      color: #e2e8f0;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .btn-map-control.active {
+      background: #059669;
+      border-color: #34d399;
+      color: white;
+    }
+
+    /* Big Action Buttons */
+    .btn-main {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-stop {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    }
+
+    /* Personal Mini Map (Only shows THIS officer's location) */
+    #officer-map {
+      width: 100%;
+      height: 220px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.15);
+      margin-top: 14px;
+      background: #0f172a;
+    }
+
+    /* Smooth Marker Movement Animation ("ekkada vunna icon kuda move avvali") */
+    .my-location-marker, .leaflet-marker-icon {
+      transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1) !important;
+    }
+
+    /* Keep-alive Advice Card */
+    .tip-card {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #93c5fd;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-top: 14px;
+      line-height: 1.4;
+    }
+
+    /* Notification toast */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: #0f172a;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      z-index: 3000;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Top Police Branding Header -->
+  <header class="app-header">
+    <div class="brand-badge">
+      <i class="fa-solid fa-shield-halved"></i>
+    </div>
+    <div>
+      <div class="brand-title">శ్రీకాకుళం జిల్లా పోలీస్</div>
+      <div class="brand-subtitle">Routes • SF • SSF • QRTs • Reserve Parties లైవ్ ట్రాకర్</div>
+    </div>
+  </header>
+
+  <!-- Direct Native APK Download Banner -->
+  <div style="background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(15, 23, 42, 0.8) 100%); border: 1.5px solid #3b82f6; border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.25);">
+    <div>
+      <div style="font-weight: 700; color: #93c5fd; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+        <i class="fa-brands fa-android" style="color: #34d399; font-size: 18px;"></i>
+        <span>పోలీస్ ఆండ్రాయిడ్ APK యాప్</span>
+      </div>
+      <div style="font-size: 11px; color: #cbd5e1; margin-top: 2px;">యాప్ క్లోజ్ చేసినా బ్యాక్‌గ్రౌండ్‌లో లొకేషన్ వెళ్తుంది</div>
+    </div>
+    <a href="SrikakulamPoliceTracker.apk" download="SrikakulamPoliceTracker.apk" style="text-decoration: none; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; color: white; background: #2563eb; display: flex; align-items: center; gap: 6px; white-space: nowrap; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.5);">
+      <i class="fa-solid fa-download"></i> APK ఫైల్
+    </a>
+  </div>
+
+  <!-- PWA Install Banner -->
+  <div class="install-banner" id="pwa-install-banner">
+    <div style="font-size: 12px;">
+      <strong>📲 హోమ్ స్క్రీన్‌కు చేర్చుకోండి</strong><br/>
+      <span style="color: var(--text-muted); font-size: 11px;">వెబ్ యాప్ లాగా పనిచేస్తుంది</span>
+    </div>
+    <button class="btn-install" id="btn-pwa-install">
+      <i class="fa-solid fa-plus"></i> యాడ్ చేయి
+    </button>
+  </div>
+
+  <!-- Live Transmission Cockpit (Active when tracking) -->
+  <div class="cockpit-card" id="cockpit-card">
+    <div class="cockpit-title">
+      <span class="pulse-indicator"></span>
+      కంట్రోల్ రూమ్‌కు లొకేషన్ వెళ్తోంది
+    </div>
+    <div class="cockpit-desc" id="cockpit-desc">
+      మీ లైవ్ లొకేషన్ నిరంతరం రియల్-టైమ్‌లో కంట్రోల్ రూమ్ మ్యాప్‌కు పంపబడుతోంది.
+    </div>
+
+    <!-- 4-Stat Grid for instant feedback -->
+    <div class="cockpit-stats">
+      <div class="stat-pill">
+        <div class="stat-val" id="disp-speed">0 km/h</div>
+        <div class="stat-lbl">⚡ ప్రస్తుత వేగం</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-val" id="disp-accuracy">±10 m</div>
+        <div class="stat-lbl">🎯 GPS ఖచ్చితత్వం</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-val" id="disp-distance" style="color: #4ade80;">0 m</div>
+        <div class="stat-lbl">🚶 కదిలిన దూరం</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-val" id="disp-updates" style="color: #fde047;">0</div>
+        <div class="stat-lbl">📡 అప్‌డేట్లు (Live)</div>
+      </div>
+    </div>
+
+    <!-- Live Coordinates & Last Time -->
+    <div class="coords-bar">
+      <span>📍 <span id="disp-coords">GPS సిగ్నల్ కోసం వెతుకుతోంది...</span></span>
+      <span id="disp-last-time" style="color: #f59e0b; font-weight: 700;">Stopped</span>
+    </div>
+
+    <!-- Background Mode Active Notice -->
+    <div id="cockpit-bg-notice" style="background: rgba(30, 58, 138, 0.25); border: 1.5px solid #3b82f6; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; font-size: 11.5px; color: #bfdbfe; text-align: left; line-height: 1.5;">
+      <div style="font-weight: 700; color: #93c5fd; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+        <i class="fa-solid fa-circle-info" style="color: #60a5fa; font-size: 14px;"></i>
+        <span>లొకేషన్ షేరింగ్ స్టేటస్:</span>
+      </div>
+      <div>
+        • బ్రౌజర్‌లో స్క్రీన్ ఆన్‌లో ఉన్నంతవరకు లొకేషన్ నిరంతరం కంట్రోల్ రూమ్‌కు వెళ్తుంది.<br/>
+        • <strong>HOME బటన్ ప్రెస్ చేసినా లేదా స్క్రీన్ లాక్ చేసినా లొకేషన్ ఆగకుండా వెళ్లడానికి</strong> పైన ఉన్న <a href="SrikakulamPoliceTracker.apk" download="SrikakulamPoliceTracker.apk" style="color: #38bdf8; font-weight: bold; text-decoration: underline;">"APK యాప్"</a> డౌన్‌లోడ్ చేసి ఇన్‌స్టాల్ చేసుకోండి.
+      </div>
+    </div>
+
+    <!-- Stop Button -->
+    <button class="btn-main btn-stop" id="btn-stop-track">
+      <i class="fa-solid fa-stop"></i> లొకేషన్ షేరింగ్ ఆపండి
+    </button>
+  </div>
+
+  <!-- Unit Registration Form Card -->
+  <div class="card" id="selection-card">
+    <div class="card-title">
+      <i class="fa-solid fa-user-shield"></i> మీ డ్యూటీ వివరాలు నమోదు చేయండి
+    </div>
+
+    <!-- Category Select -->
+    <div class="form-group">
+      <label class="form-label">1. విభాగం ఎంచుకోండి (Select Category):</label>
+      <select class="form-select" id="select-category">
+        <option value="Route Mobiles">🚗 రూట్ మొబైల్స్ (Route Mobiles)</option>
+        <option value="Striking Forces">🚔 స్ట్రైకింగ్ ఫోర్స్ (Striking Forces - SF)</option>
+        <option value="Special Striking Forces">🛡️ స్పెషల్ స్ట్రైకింగ్ ఫోర్స్ (SSF)</option>
+        <option value="QRTs">⚡ క్విక్ రియాక్షన్ టీమ్స్ (QRTs)</option>
+        <option value="Reserve Parties">🏛️ రిజర్వ్ పార్టీలు (SP / Addl. SP / HQ Reserve)</option>
+      </select>
+    </div>
+
+    <!-- Mandal / Unit Select -->
+    <div class="form-group">
+      <label class="form-label" id="lbl-mandal">2. మండలం / యూనిట్ ఎంచుకోండి (Select Mandal):</label>
+      <select class="form-select" id="select-mandal">
+        <option value="">-- మండలం ఎంచుకోండి --</option>
+      </select>
+    </div>
+
+    <!-- Team / Route Select -->
+    <div class="form-group">
+      <label class="form-label" id="lbl-unit">3. టీమ్ / రూట్ నెంబర్ ఎంచుకోండి (Select Team / Route):</label>
+      <select class="form-select" id="select-unit">
+        <option value="">-- టీమ్ ఎంచుకోండి --</option>
+      </select>
+    </div>
+
+    <!-- Auto-populated Officer Info -->
+    <div class="officer-preview-box">
+      <div class="preview-row">
+        <span style="color: var(--text-muted);">ఇన్-ఛార్జ్ ఆఫీసర్:</span>
+        <strong id="disp-officer-name" style="color: #67e8f9; text-align: right;">--</strong>
+      </div>
+      <div class="preview-row">
+        <span style="color: var(--text-muted);">ఫోన్ నెంబర్:</span>
+        <strong id="disp-officer-phone" style="color: #fde047;">--</strong>
+      </div>
+      <div class="preview-row" id="row-hq">
+        <span style="color: var(--text-muted);">హెడ్ క్వార్టర్ / స్టేయింగ్ పాయింట్:</span>
+        <strong id="disp-officer-hq" style="color: #cbd5e1; text-align: right;">--</strong>
+      </div>
+      <div class="preview-row" id="row-supporting" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed rgba(255,255,255,0.1);">
+        <span style="color: var(--text-muted); font-size: 11px;">సహాయక సిబ్బంది:</span>
+        <span id="disp-officer-supporting" style="color: #94a3b8; font-size: 11px; text-align: right;">--</span>
+      </div>
+    </div>
+
+    <!-- Start Button -->
+    <button class="btn-main btn-start" id="btn-start-track">
+      <i class="fa-solid fa-play"></i> లైవ్ లొకేషన్ ప్రారంభించండి
+    </button>
+  </div>
+
+  <!-- Personal Mini Map (Only shows THIS officer's location, NO other officers) -->
+  <div class="card" style="padding: 12px; margin-bottom: 8px;">
+    <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; justify-content: space-between;">
+      <span><i class="fa-solid fa-map-location-dot" style="color: #38bdf8;"></i> మీ కదలికల లైవ్ మ్యాప్:</span>
+      <span style="font-size: 10px; color: #10b981;">● ప్రైవేట్ ట్రాక్</span>
+    </div>
+    <div id="officer-map"></div>
+    <div class="map-controls-row">
+      <button class="btn-map-control active" id="btn-toggle-follow">
+        <i class="fa-solid fa-crosshairs"></i> <span id="txt-follow-mode">నన్ను ఫాలో అవ్వు (Active)</span>
+      </button>
+      <button class="btn-map-control" id="btn-recenter-map">
+        <i class="fa-solid fa-location-arrow"></i> కేంద్రీకరించు
+      </button>
+    </div>
+  </div>
+
+  <!-- Background Advice Tip -->
+  <div class="tip-card" style="background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.35); color: #a7f3d0;">
+    <i class="fa-solid fa-house-circle-check" style="font-size: 20px; color: #34d399; flex-shrink: 0; margin-top: 2px;"></i>
+    <div>
+      <strong style="color: #6ee7b7; font-size: 13px;">📲 HOME బటన్ నొక్కి వాడుకోవచ్చు:</strong><br/>
+      లొకేషన్ ప్రారంభించిన తర్వాత మొబైల్ <strong>HOME బటన్</strong> నొక్కి వాట్సాప్ లేదా ఇతర పనుల కోసం ఫోన్ వాడుకోవచ్చు. బ్రౌజర్‌ను క్లోజ్ చేయకుండా బ్యాక్‌గ్రౌండ్‌లో ఉంచితే మీ కదలికలు కంట్రోల్ రూమ్‌కు నిరంతరం వెళ్తాయి.
+    </div>
+  </div>
+</div>
+
+<!-- Notification Toast -->
+<div class="toast" id="toast">
+  <span id="toast-message">సందేశం</span>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<script>
+  // -------------------------------------------------------------
+  // PWA Service Worker Registration & Install Prompt
+  // -------------------------------------------------------------
+  let deferredPrompt = null;
+  const pwaBanner = document.getElementById('pwa-install-banner');
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(err => console.log('SW reg error:', err));
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    pwaBanner.style.display = 'flex';
+  });
+
+  document.getElementById('btn-pwa-install').addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        pwaBanner.style.display = 'none';
+      }
+      deferredPrompt = null;
+    }
+  });
+
+  // -------------------------------------------------------------
+  // Data Load: 364 Units (Routes, SF, SSF, QRTs, Reserve Parties)
+  // -------------------------------------------------------------
+  let allUnitsData = window.ROUTE_MOBILES_DATA || [];
+
+  if (!allUnitsData || allUnitsData.length === 0) {
+    fetch('route_mobiles.json')
+      .then(res => res.json())
+      .then(data => {
+        allUnitsData = data;
+        initSelectionHierarchy();
+      })
+      .catch(err => console.error("Error loading route_mobiles.json:", err));
+  }
+
+  // -------------------------------------------------------------
+  // Room and Officer Setup
+  // -------------------------------------------------------------
+  const urlParams = new URLSearchParams(window.location.search);
+  let roomCode = urlParams.get('room') || urlParams.get('group') || 'SrikakulamPolice';
+  roomCode = roomCode.replace(/[^a-zA-Z0-9_-]/g, '') || 'SrikakulamPolice';
+
+  const initialParamId = urlParams.get('id') || '';
+  const initialParamCategory = urlParams.get('cat') || '';
+  const initialParamMandal = urlParams.get('mandal') || '';
+  const initialParamRoute = urlParams.get('route') || urlParams.get('rm') || '';
+
+  const userId = 'officer_' + Math.random().toString(36).substring(2, 9);
+  let currentSelectedUnit = null;
+
+  // -------------------------------------------------------------
+  // Officer Personal Map (ONLY displays THIS officer, never others!)
+  // -------------------------------------------------------------
+  const officerMap = L.map('officer-map', {
+    zoomControl: true,
+    attributionControl: false
+  }).setView([18.2969, 83.8968], 13);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+  }).addTo(officerMap);
+
+  let myMarker = null;
+  let myCircle = null;
+  let followUserMode = true;
+  let movementTrail = L.polyline([], {
+    color: '#10b981',
+    weight: 4,
+    opacity: 0.85,
+    dashArray: '5, 8'
+  }).addTo(officerMap);
+
+  // Toggle follow mode & recenter
+  const btnToggleFollow = document.getElementById('btn-toggle-follow');
+  const txtFollowMode = document.getElementById('txt-follow-mode');
+  const btnRecenterMap = document.getElementById('btn-recenter-map');
+
+  if (btnToggleFollow) {
+    btnToggleFollow.addEventListener('click', () => {
+      followUserMode = !followUserMode;
+      if (followUserMode) {
+        btnToggleFollow.classList.add('active');
+        if (txtFollowMode) txtFollowMode.innerText = 'నన్ను ఫాలో అవ్వు (Active)';
+        if (lastLat !== null && lastLng !== null) {
+          officerMap.panTo([lastLat, lastLng]);
+        }
+      } else {
+        btnToggleFollow.classList.remove('active');
+        if (txtFollowMode) txtFollowMode.innerText = 'ఫాలో మోడ్ ఆఫ్';
+      }
+    });
+  }
+
+  if (btnRecenterMap) {
+    btnRecenterMap.addEventListener('click', () => {
+      if (lastLat !== null && lastLng !== null) {
+        officerMap.flyTo([lastLat, lastLng], 18, { duration: 0.8 });
+      } else {
+        showToast("ఇంకా GPS లొకేషన్ అందలేదు...");
+      }
+    });
+  }
+
+  function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Earth radius in meters
+    const rad = Math.PI / 180;
+    const φ1 = lat1 * rad;
+    const φ2 = lat2 * rad;
+    const Δφ = (lat2 - lat1) * rad;
+    const Δλ = (lon2 - lon1) * rad;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  let officerMarkerGlideId = null;
+  let curOfficerLat = null;
+  let curOfficerLng = null;
+
+  function formatOfficerInchargeDisplay(officerStr, mandal = '') {
+    const defaultPs = mandal ? (mandal.endsWith('PS') ? mandal : `${mandal} PS`) : '';
+    if (!officerStr) return defaultPs;
+    const parts = officerStr.split(',').map(p => p.trim()).filter(Boolean);
+    if (parts.length === 0) return defaultPs;
+    const cleaned = parts.filter(p => !/^\d{10}$/.test(p.replace(/\s+/g, '')));
+    
+    let nameAndRank = '';
+    let psPart = '';
+
+    if (cleaned.length >= 3) {
+      nameAndRank = `${cleaned[0]}, ${cleaned[1]}`;
+      psPart = cleaned[2];
+    } else if (cleaned.length === 2) {
+      nameAndRank = `${cleaned[0]}, ${cleaned[1]}`;
+      psPart = defaultPs;
+    } else if (cleaned.length === 1) {
+      nameAndRank = cleaned[0];
+      psPart = defaultPs;
+    }
+
+    if (nameAndRank && psPart) {
+      return `${nameAndRank} (${psPart})`;
+    }
+    return nameAndRank || psPart || officerStr;
+  }
+
+  function updateMyMarkerOnMap(lat, lng, accuracy, labelText, bearing, isMoving, kmh, rawOfficer, mandal = '') {
+    if (!myMarker) {
+      curOfficerLat = lat;
+      curOfficerLng = lng;
+      const offDisp = formatOfficerInchargeDisplay(rawOfficer, mandal);
+      const icon = L.divIcon({
+        className: 'my-location-marker',
+        html: `
+          <div style="position:relative; text-align:center;">
+            <div style="background:#0b1a2e; color:#fff; font-weight:bold; font-size:10px; padding:3px 8px; border-radius:8px; border:1px solid #10b981; white-space:nowrap; position:absolute; bottom:38px; left:50%; transform:translateX(-50%); box-shadow:0 3px 8px rgba(0,0,0,0.6); display:flex; flex-direction:column; align-items:center; gap:1px;">
+              <div style="display:flex; align-items:center; gap:4px;">
+                <span style="color:#10b981;">●</span>
+                <span>${labelText || 'మీరు ఇక్కడ ఉన్నారు'}</span>
+                ${kmh > 0 ? `<span style="background:rgba(56,189,248,0.25); color:#38bdf8; padding:1px 5px; border-radius:10px; font-size:9px;">${kmh} km/h</span>` : `<span style="color:#94a3b8; font-size:9px; font-weight:normal;">(Stopped)</span>`}
+              </div>
+              ${offDisp ? `<div style="font-size:9.5px; color:#fde047; font-weight:600; border-top:1px solid rgba(255,255,255,0.15); padding-top:1px;"><i class="fa-solid fa-user-shield"></i> ${offDisp}</div>` : ''}
+            </div>
+            <div class="officer-pointer-wrapper" style="transform: rotate(${Math.round(bearing || 0)}deg); transition: transform 0.3s ease;">
+              <svg width="38" height="38" viewBox="0 0 38 38" fill="none" style="filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));">
+                <circle cx="19" cy="19" r="17" fill="rgba(15, 23, 42, 0.9)" stroke="#ffffff" stroke-width="2"/>
+                <path d="M19 6L28 27L19 22L10 27L19 6Z" fill="#10b981" stroke="#ffffff" stroke-width="1.8" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        `,
+        iconSize: [38, 38],
+        iconAnchor: [19, 19]
+      });
+
+      myMarker = L.marker([lat, lng], { icon: icon }).addTo(officerMap);
+      myCircle = L.circle([lat, lng], {
+        radius: accuracy || 15,
+        color: '#10b981',
+        fillColor: '#10b981',
+        fillOpacity: 0.15,
+        weight: 1
+      }).addTo(officerMap);
+
+      officerMap.flyTo([lat, lng], 18, { duration: 1.0 });
+    } else {
+      myCircle.setRadius(accuracy || 15);
+
+      // Rotate pointer
+      const el = myMarker.getElement();
+      if (el) {
+        const ptr = el.querySelector('.officer-pointer-wrapper');
+        if (ptr && bearing) ptr.style.transform = `rotate(${Math.round(bearing)}deg)`;
+      }
+
+      // 60 FPS Native Smooth Marker Interpolator
+      const startLat = curOfficerLat || lat;
+      const startLng = curOfficerLng || lng;
+      const startTime = performance.now();
+      const animDuration = 1800;
+
+      if (officerMarkerGlideId) {
+        cancelAnimationFrame(officerMarkerGlideId);
+        officerMarkerGlideId = null;
+      }
+
+      function step(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(1.0, elapsed / animDuration);
+        const ease = 1 - Math.pow(1 - progress, 2);
+        const cLat = startLat + (lat - startLat) * ease;
+        const cLng = startLng + (lng - startLng) * ease;
+
+        curOfficerLat = cLat;
+        curOfficerLng = cLng;
+        myMarker.setLatLng([cLat, cLng]);
+        myCircle.setLatLng([cLat, cLng]);
+
+        if (followUserMode) {
+          officerMap.panTo([cLat, cLng], { animate: false });
+        }
+
+        if (progress < 1.0) {
+          officerMarkerGlideId = requestAnimationFrame(step);
+        } else {
+          officerMarkerGlideId = null;
+        }
+      }
+
+      officerMarkerGlideId = requestAnimationFrame(step);
+    }
+  }
+
+  // -------------------------------------------------------------
+  // Real-time MQTT Connection (Publish with retain: true)
+  // -------------------------------------------------------------
+  let mqttClient = null;
+
+  function initMQTT() {
+    const brokerUrl = 'wss://broker.emqx.io:8084/mqtt';
+    mqttClient = mqtt.connect(brokerUrl, {
+      clientId: `skl_field_${userId}_${Math.random().toString(16).substring(2, 8)}`,
+      clean: true,
+      connectTimeout: 5000,
+      reconnectPeriod: 2500,
+      keepalive: 20
+    });
+
+    mqttClient.on('connect', () => {
+      console.log('Officer connected to Real-time Broker!');
+      const syncTopic = `srikakulam_police_tracker/${roomCode}/sync_request`;
+      mqttClient.subscribe(syncTopic);
+
+      // Subscribe to Control Room remote commands
+      const controlTopic = `srikakulam_police_tracker/${roomCode}/control_command`;
+      mqttClient.subscribe(controlTopic, { qos: 1 });
+    });
+
+    mqttClient.on('message', (t, msg) => {
+      try {
+        const str = msg.toString().trim();
+        if (!str) return;
+        const payload = JSON.parse(str);
+
+        // Control Room force stop command: completely stops tracking
+        if (payload.action === 'clear_all' || (payload.action === 'clear_unit' && currentSelectedUnit && (payload.unitId === currentSelectedUnit.id || payload.unitId === currentSelectedUnit.unitId))) {
+          console.log('Remote stop command received from Control Room:', payload);
+          stopTracking();
+          alert("కంట్రోల్ రూమ్ ద్వారా మీ లైవ్ లొకేషన్ తొలగించబడింది.\n\nమీరు అవసరమైతే మరలా 'లైవ్ లొకేషన్ ప్రారంభించండి' బటన్ నొక్కి షేర్ చేసుకోవాలి.");
+          return;
+        }
+
+        if (payload.type === 'sync_request' && isTracking && lastLat !== null && lastLng !== null) {
+          publishMyLocation(lastLat, lastLng, lastSpeed, lastAccuracy, totalDistanceTraveled, lastBearing);
+        }
+      } catch (e) {}
+    });
+  }
+
+  initMQTT();
+
+  function publishMyLocation(lat, lng, speed, accuracy, distTraveled, bearing) {
+    if (!mqttClient || !mqttClient.connected || !currentSelectedUnit) return;
+
+    const unitKey = currentSelectedUnit.id;
+
+    const payload = {
+      type: 'location',
+      userId: userId,
+      unitId: unitKey,
+      category: currentSelectedUnit.category,
+      categoryKey: currentSelectedUnit.categoryKey,
+      mandal: currentSelectedUnit.mandal,
+      route: currentSelectedUnit.route,
+      unitName: currentSelectedUnit.unitName,
+      hq: currentSelectedUnit.hq,
+      officer: currentSelectedUnit.officer,
+      phone: currentSelectedUnit.phone,
+      supporting: currentSelectedUnit.supporting,
+      lat: lat,
+      lng: lng,
+      speed: speed || 0,
+      accuracy: accuracy || 10,
+      bearing: Math.round(bearing || 0),
+      isMoving: (speed || 0) >= 0.5,
+      distanceTraveled: Math.round(distTraveled || totalDistanceTraveled || 0),
+      updatesCount: updatesCount,
+      lastUpdated: Date.now(),
+      status: 'live'
+    };
+
+    // Retained subtopic for instant refresh in Control Room
+    const unitTopic = `srikakulam_police_tracker/${roomCode}/officer/${unitKey}`;
+    mqttClient.publish(unitTopic, JSON.stringify(payload), { qos: 1, retain: true });
+
+    // General broadcast
+    const generalTopic = `srikakulam_police_tracker/${roomCode}/locations`;
+    mqttClient.publish(generalTopic, JSON.stringify(payload), { qos: 0 });
+
+    const kmh = (speed || 0) > 0 ? Math.round(speed * 3.6) : 0;
+    updateMyMarkerOnMap(lat, lng, accuracy, `${currentSelectedUnit.mandal} - ${currentSelectedUnit.unitName}`, bearing, kmh > 0, kmh, currentSelectedUnit.officer, currentSelectedUnit.mandal);
+  }
+
+  // -------------------------------------------------------------
+  // Mobile Keep-Alive
+  // -------------------------------------------------------------
+  let wakeLockSentinel = null;
+  let silentAudio = null;
+  let audioContext = null;
+
+  function startBackgroundAudio() {
+    try {
+      // 1. Silent HTML5 Audio in infinite loop
+      if (!silentAudio) {
+        silentAudio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA');
+        silentAudio.loop = true;
+      }
+      silentAudio.play().catch(e => console.log('Audio note:', e));
+
+      // 2. Web Audio API continuous buffer
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!audioContext && AudioCtx) {
+          audioContext = new AudioCtx();
+          const buffer = audioContext.createBuffer(1, audioContext.sampleRate * 2, audioContext.sampleRate);
+          const source = audioContext.createBufferSource();
+          source.buffer = buffer;
+          source.loop = true;
+          source.connect(audioContext.destination);
+          source.start(0);
+        }
+        if (audioContext && audioContext.state === 'suspended') {
+          audioContext.resume();
+        }
+      } catch (e) {}
+
+      // 3. Android Foreground Media Session (Prevents OS from killing tab on HOME press)
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: 'శ్రీకాకుళం పోలీస్ లైవ్ ట్రాకింగ్',
+          artist: currentSelectedUnit ? `${currentSelectedUnit.mandal} - ${currentSelectedUnit.unitName}` : 'ఎన్నికల బందోబస్తు లైవ్',
+          album: 'Srikakulam Police Control Room'
+        });
+        navigator.mediaSession.playbackState = 'playing';
+      }
+    } catch (e) {}
+  }
+
+  function stopBackgroundAudio() {
+    if (silentAudio) {
+      try { silentAudio.pause(); } catch(e){}
+    }
+    if (audioContext) {
+      try { audioContext.close(); audioContext = null; } catch(e){}
+    }
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = 'paused';
+    }
+  }
+
+  async function acquireWakeLock() {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLockSentinel = await navigator.wakeLock.request('screen');
+      }
+    } catch (err) {}
+  }
+
+  function releaseWakeLock() {
+    if (wakeLockSentinel !== null) {
+      wakeLockSentinel.release();
+      wakeLockSentinel = null;
+    }
+  }
+
+  // Active Background Maintenance when HOME or tab switched
+  document.addEventListener('visibilitychange', () => {
+    if (isTracking) {
+      if (document.visibilityState === 'visible') {
+        acquireWakeLock();
+        startBackgroundAudio();
+        // Immediate GPS query upon returning
+        navigator.geolocation.getCurrentPosition(
+          (pos) => handleNewGpsFix(pos, 'visibility_resume'),
+          (err) => {},
+          { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+        );
+      } else {
+        // Tab hidden (HOME pressed): ensure audio & mediaSession keep playing
+        startBackgroundAudio();
+      }
+    }
+  });
+
+  let bgWorker = null;
+  function initBackgroundWorker() {
+    try {
+      const blobCode = `
+        let timer = null;
+        self.onmessage = function(e) {
+          if (e.data === 'start') {
+            if (timer) clearInterval(timer);
+            timer = setInterval(() => { self.postMessage('ping'); }, 3000);
+          } else if (e.data === 'stop') {
+            if (timer) clearInterval(timer);
+            timer = null;
+          }
+        };
+      `;
+      const blob = new Blob([blobCode], { type: 'application/javascript' });
+      bgWorker = new Worker(URL.createObjectURL(blob));
+      bgWorker.onmessage = function(e) {
+        if (e.data === 'ping' && isTracking) {
+          // When HOME button is pressed, actively query GPS and broadcast!
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => handleNewGpsFix(pos, 'bg_worker'),
+              (err) => {
+                // If temporary GPS wait, still send heartbeat to keep online status
+                if (lastLat !== null && lastLng !== null) {
+                  publishMyLocation(lastLat, lastLng, lastSpeed, lastAccuracy, totalDistanceTraveled);
+                }
+              },
+              { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+            );
+          }
+        }
+      };
+    } catch (err) {}
+  }
+  initBackgroundWorker();
+
+  // -------------------------------------------------------------
+  // Dual-Engine GPS Tracking & Movement Detection
+  // -------------------------------------------------------------
+  let watchId = null;
+  let pollInterval = null;
+  let wakeLockRenewTimer = null;
+  let isTracking = false;
+  let lastLat = null;
+  let lastLng = null;
+  let anchorLat = null;
+  let anchorLng = null;
+  let lastSpeed = 0;
+  let lastAccuracy = 10;
+  let totalDistanceTraveled = 0;
+  let updatesCount = 0;
+  let lastGpsTimestamp = 0;
+  let lastBearing = 0;
+  let lastStepTime = 0;
+
+  function handleNewGpsFix(pos, source) {
+    if (!isTracking) return;
+    const { latitude, longitude, speed, accuracy } = pos.coords;
+    const now = Date.now();
+    const timeDelta = Math.max(0.5, (now - (lastStepTime || (now - 1800))) / 1000);
+    lastGpsTimestamp = now;
+
+    // Filter weak / erratic GPS fixes (> 95m accuracy)
+    if (accuracy && accuracy > 95) {
+      return;
+    }
+
+    let isMoving = false;
+    let stepDist = 0;
+
+    if (anchorLat === null || anchorLng === null) {
+      anchorLat = latitude;
+      anchorLng = longitude;
+      lastLat = latitude;
+      lastLng = longitude;
+      lastStepTime = now;
+    } else {
+      stepDist = calculateDistanceMeters(anchorLat, anchorLng, latitude, longitude);
+      const measuredSpeed = speed || 0;
+      const computedSpeed = stepDist / timeDelta;
+
+      // ULTRA-RESPONSIVE MOVEMENT DETECTION:
+      // Even walking 1.2 meters (about 2 steps) or moving at >= 0.25 m/s (~1 km/h) triggers movement!
+      if (stepDist >= 1.2 || (measuredSpeed >= 0.25 && stepDist >= 0.8) || computedSpeed >= 0.35) {
+        isMoving = true;
+        totalDistanceTraveled += stepDist;
+        anchorLat = latitude;
+        anchorLng = longitude;
+        lastStepTime = now;
+        movementTrail.addLatLng([latitude, longitude]);
+      }
+    }
+
+    // Calculate Direction / Bearing Angle
+    if (lastLat !== null && lastLng !== null) {
+      const d = calculateDistanceMeters(lastLat, lastLng, latitude, longitude);
+      if (d >= 1.0) {
+        const rad = Math.PI / 180;
+        const y = Math.sin((longitude - lastLng) * rad) * Math.cos(latitude * rad);
+        const x = Math.cos(lastLat * rad) * Math.sin(latitude * rad) - Math.sin(lastLat * rad) * Math.cos(latitude * rad) * Math.cos((longitude - lastLng) * rad);
+        lastBearing = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+      }
+    }
+
+    lastLat = latitude;
+    lastLng = longitude;
+    const effectiveSpeed = isMoving ? (speed || (stepDist / timeDelta) || 0.8) : 0;
+    lastSpeed = effectiveSpeed;
+    lastAccuracy = accuracy || 10;
+    updatesCount++;
+
+    const kmh = isMoving ? Math.max(1, Math.round(lastSpeed * 3.6)) : 0;
+
+    // Update Cockpit UI elements
+    const elSpeed = document.getElementById('disp-speed');
+    const elAccuracy = document.getElementById('disp-accuracy');
+    const elDistance = document.getElementById('disp-distance');
+    const elUpdates = document.getElementById('disp-updates');
+    const elCoords = document.getElementById('disp-coords');
+    const elLastTime = document.getElementById('disp-last-time');
+
+    if (elSpeed) elSpeed.innerText = isMoving ? `${kmh} km/h (Moving)` : '0 km/h (Stopped)';
+    if (elAccuracy) elAccuracy.innerText = `±${Math.round(accuracy || 0)} m`;
+    if (elDistance) {
+      if (totalDistanceTraveled >= 1000) {
+        elDistance.innerText = `${(totalDistanceTraveled / 1000).toFixed(2)} km`;
+      } else {
+        elDistance.innerText = `${Math.round(totalDistanceTraveled)} m`;
+      }
+    }
+    if (elUpdates) elUpdates.innerText = `${updatesCount} సార్లు`;
+    if (elCoords) elCoords.innerText = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+    if (elLastTime) {
+      elLastTime.innerText = isMoving ? 'Moving' : 'Stopped';
+      elLastTime.style.color = isMoving ? '#34d399' : '#f59e0b';
+    }
+
+    // Broadcast update to Control Room with bearing
+    publishMyLocation(latitude, longitude, lastSpeed, accuracy, totalDistanceTraveled, lastBearing);
+  }
+
+  function startTracking() {
+    if (!currentSelectedUnit) {
+      alert("దయచేసి మీ విభాగం, మండలం మరియు టీమ్ ఎంచుకోండి!");
+      return;
+    }
+
+    if (!('geolocation' in navigator)) {
+      alert("మీ మొబైల్ బ్రౌజర్ GPS లొకేషన్ సపోర్ట్ చేయట్లేదు.");
+      return;
+    }
+
+    // Save selection in localStorage
+    localStorage.setItem('skl_last_unit_id', currentSelectedUnit.id);
+    localStorage.setItem('skl_last_category', currentSelectedUnit.category);
+    localStorage.setItem('skl_last_mandal', currentSelectedUnit.mandal);
+
+    isTracking = true;
+    totalDistanceTraveled = 0;
+    anchorLat = null;
+    anchorLng = null;
+    updatesCount = 0;
+    movementTrail.setLatLngs([]);
+
+    // UI Updates
+    document.getElementById('selection-card').style.display = 'none';
+    document.getElementById('cockpit-card').style.display = 'block';
+    document.getElementById('cockpit-desc').innerText = `[${currentSelectedUnit.category}] ${currentSelectedUnit.mandal} - ${currentSelectedUnit.unitName} లైవ్ లొకేషన్ కంట్రోల్ రూమ్‌కు పంపబడుతోంది.`;
+
+    acquireWakeLock();
+    startBackgroundAudio();
+    if (bgWorker) bgWorker.postMessage('start');
+
+    // Bridge with Native Android App Foreground Service if running inside APK
+    if (window.AndroidApp && typeof window.AndroidApp.startNativeTracking === 'function') {
+      try {
+        window.AndroidApp.startNativeTracking(
+          currentSelectedUnit.id,
+          currentSelectedUnit.category,
+          currentSelectedUnit.mandal,
+          currentSelectedUnit.unitName,
+          currentSelectedUnit.officer,
+          currentSelectedUnit.phone,
+          roomCode
+        );
+        const bgNotice = document.getElementById('cockpit-bg-notice');
+        if (bgNotice) {
+          bgNotice.style.background = 'rgba(16, 185, 129, 0.2)';
+          bgNotice.style.borderColor = '#10b981';
+          bgNotice.style.color = '#a7f3d0';
+          bgNotice.innerHTML = `
+            <div style="font-weight:700; color:#34d399; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+              <i class="fa-solid fa-circle-check" style="font-size:14px;"></i>
+              <span>ఆండ్రాయిడ్ యాప్ సర్వీస్ ఆన్‌లో ఉంది!</span>
+            </div>
+            <div>✅ మీరు HOME బటన్ ప్రెస్ చేసినా, వాట్సాప్ చూస్తున్నా లేదా స్క్రీన్ ఆఫ్ చేసినా లొకేషన్ నిరంతరం కంట్రోల్ రూమ్‌కు వెళ్తూనే ఉంటుంది.</div>
+          `;
+        }
+      } catch (err) {
+        console.warn('Native start tracking error:', err);
+      }
+    }
+
+    // 1. Immediate initial GPS fix
+    navigator.geolocation.getCurrentPosition(
+      (pos) => handleNewGpsFix(pos, 'init'),
+      (err) => console.warn('Initial GPS query warning:', err),
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 7000 }
+    );
+
+    // 2. Continuous watchPosition
+    const watchOpts = {
+      enableHighAccuracy: true,
+      maximumAge: 0, // NEVER cache
+      timeout: 8000
+    };
+
+    watchId = navigator.geolocation.watchPosition(
+      (pos) => handleNewGpsFix(pos, 'watch'),
+      (err) => {
+        console.warn('GPS Watch warning:', err);
+        if (err.code === err.PERMISSION_DENIED) {
+          alert("లొకేషన్ అనుమతి నిరాకరించబడింది. మొబైల్ సెట్టింగ్స్‌లో GPS లొకేషన్ ఆన్ చేసి పర్మిషన్ ఇవ్వండి.");
+          stopTracking();
+        }
+      },
+      watchOpts
+    );
+
+    // 3. Active Polling Pulse every 1.8 seconds for smooth movement stream
+    if (pollInterval) clearInterval(pollInterval);
+    pollInterval = setInterval(() => {
+      if (!isTracking) return;
+      navigator.geolocation.getCurrentPosition(
+        (pos) => handleNewGpsFix(pos, 'poll_pulse'),
+        (err) => {
+          // If watch hasn't fired in > 7 seconds, restart watchPosition
+          if (Date.now() - lastGpsTimestamp > 7000 && isTracking) {
+            try {
+              if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+              watchId = navigator.geolocation.watchPosition(
+                (pos) => handleNewGpsFix(pos, 'watch_restart'),
+                (e) => {},
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 6000 }
+              );
+            } catch(e) {}
+          }
+        },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 4000 }
+      );
+    }, 1800);
+
+    // 4. Periodically renew Wake Lock every 25 seconds
+    if (wakeLockRenewTimer) clearInterval(wakeLockRenewTimer);
+    wakeLockRenewTimer = setInterval(() => {
+      if (isTracking) acquireWakeLock();
+    }, 25000);
+
+    showToast("లైవ్ GPS ప్రారంభమైంది! మీరు కదులుతుంటే మ్యాప్ అప్‌డేట్ అవుతుంది.");
+  }
+
+  function stopTracking() {
+    isTracking = false;
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+    if (pollInterval !== null) {
+      clearInterval(pollInterval);
+      pollInterval = null;
+    }
+    if (wakeLockRenewTimer !== null) {
+      clearInterval(wakeLockRenewTimer);
+      wakeLockRenewTimer = null;
+    }
+    if (bgWorker) bgWorker.postMessage('stop');
+
+    releaseWakeLock();
+    stopBackgroundAudio();
+
+    // Stop Native Android App Foreground Service if running inside APK
+    if (window.AndroidApp && typeof window.AndroidApp.stopNativeTracking === 'function') {
+      try {
+        window.AndroidApp.stopNativeTracking();
+      } catch (err) {}
+    }
+
+    if (mqttClient && mqttClient.connected && currentSelectedUnit) {
+      const stoppedPayload = {
+        type: 'location',
+        userId: userId,
+        unitId: currentSelectedUnit.id,
+        category: currentSelectedUnit.category,
+        mandal: currentSelectedUnit.mandal,
+        unitName: currentSelectedUnit.unitName,
+        status: 'stopped',
+        lastUpdated: Date.now()
+      };
+      const unitTopic = `srikakulam_police_tracker/${roomCode}/officer/${currentSelectedUnit.id}`;
+      // Purge retained message on broker
+      mqttClient.publish(unitTopic, '', { qos: 1, retain: true });
+      mqttClient.publish(unitTopic, JSON.stringify(stoppedPayload), { qos: 0 });
+    }
+
+    // UI Reset
+    document.getElementById('cockpit-card').style.display = 'none';
+    document.getElementById('selection-card').style.display = 'block';
+
+    showToast("లొకేషన్ షేరింగ్ ఆపివేయబడింది");
+  }
+
+  document.getElementById('btn-start-track').addEventListener('click', startTracking);
+  document.getElementById('btn-stop-track').addEventListener('click', stopTracking);
+
+  // -------------------------------------------------------------
+  // Dynamic 3-Level Selection: Category -> Mandal -> Team
+  // -------------------------------------------------------------
+  const selCategory = document.getElementById('select-category');
+  const selMandal = document.getElementById('select-mandal');
+  const selUnit = document.getElementById('select-unit');
+
+  function initSelectionHierarchy() {
+    selCategory.addEventListener('change', () => {
+      populateMandals(selCategory.value);
+    });
+
+    selMandal.addEventListener('change', () => {
+      populateUnits(selCategory.value, selMandal.value);
+    });
+
+    selUnit.addEventListener('change', () => {
+      const selectedId = selUnit.value;
+      const unit = allUnitsData.find(u => u.id === selectedId);
+      renderUnitPreview(unit);
+    });
+
+    // Check for direct deep-link id parameter
+    if (initialParamId) {
+      const target = allUnitsData.find(u => u.id.toLowerCase() === initialParamId.toLowerCase());
+      if (target) {
+        selCategory.value = target.category;
+        populateMandals(target.category, target.mandal);
+        populateUnits(target.category, target.mandal, target.id);
+        return;
+      }
+    }
+
+    // Restore last used selection or default
+    const lastCat = initialParamCategory || localStorage.getItem('skl_last_category') || 'Route Mobiles';
+    const lastMandal = initialParamMandal || localStorage.getItem('skl_last_mandal') || '';
+    const lastUnitId = localStorage.getItem('skl_last_unit_id') || '';
+
+    selCategory.value = lastCat;
+    populateMandals(lastCat, lastMandal);
+    if (lastMandal) {
+      populateUnits(lastCat, lastMandal, lastUnitId);
+    }
+  }
+
+  function populateMandals(category, preselectMandal = '') {
+    selMandal.innerHTML = '<option value="">-- మండలం / యూనిట్ ఎంచుకోండి --</option>';
+    selUnit.innerHTML = '<option value="">-- టీమ్ ఎంచుకోండి --</option>';
+    renderUnitPreview(null);
+
+    const mandalsSet = new Set();
+    allUnitsData.filter(u => u.category === category).forEach(u => {
+      if (u.mandal) mandalsSet.add(u.mandal.trim());
+    });
+
+    const sortedMandals = Array.from(mandalsSet).sort();
+    sortedMandals.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.innerText = m;
+      selMandal.appendChild(opt);
+    });
+
+    if (preselectMandal && sortedMandals.includes(preselectMandal)) {
+      selMandal.value = preselectMandal;
+    } else if (sortedMandals.length > 0) {
+      selMandal.selectedIndex = 1;
+      populateUnits(category, selMandal.value);
+    }
+  }
+
+  function populateUnits(category, mandal, preselectUnitId = '') {
+    selUnit.innerHTML = '<option value="">-- టీమ్ / రూట్ నెంబర్ ఎంచుకోండి --</option>';
+    renderUnitPreview(null);
+
+    if (!category || !mandal) return;
+
+    const units = allUnitsData.filter(u => u.category === category && u.mandal.trim() === mandal);
+
+    units.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.id;
+      opt.innerText = `${u.unitName} (${u.officer.substring(0, 28)})`;
+      selUnit.appendChild(opt);
+    });
+
+    if (preselectUnitId && units.some(u => u.id === preselectUnitId)) {
+      selUnit.value = preselectUnitId;
+      selUnit.dispatchEvent(new Event('change'));
+    } else if (units.length > 0) {
+      selUnit.selectedIndex = 1;
+      selUnit.dispatchEvent(new Event('change'));
+    }
+  }
+
+  function renderUnitPreview(unit) {
+    currentSelectedUnit = unit;
+    if (!unit) {
+      document.getElementById('disp-officer-name').innerText = '--';
+      document.getElementById('disp-officer-phone').innerText = '--';
+      document.getElementById('disp-officer-hq').innerText = '--';
+      document.getElementById('disp-officer-supporting').innerText = '--';
+      return;
+    }
+
+    document.getElementById('disp-officer-name').innerText = unit.officer || '--';
+    document.getElementById('disp-officer-phone').innerText = unit.phone || 'N/A';
+    document.getElementById('disp-officer-hq').innerText = unit.hq || unit.mandal || '--';
+    document.getElementById('disp-officer-supporting').innerText = unit.supporting || 'N/A';
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toast-message').innerText = msg;
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2800);
+  }
+
+  // Prevent back button exit when tracking
+  window.history.pushState({ page: 'officer' }, '', window.location.href);
+  window.addEventListener('popstate', () => {
+    if (isTracking) {
+      window.history.pushState({ page: 'officer' }, '', window.location.href);
+      const confirmExit = confirm("⚠️ లొకేషన్ షేరింగ్ నడుస్తోంది!\n\nమీరు వాట్సాప్ లేదా ఇతర యాప్స్ చూడాలంటే 'Cancel' నొక్కి మీ మొబైల్ HOME బటన్ వాడండి.\n\nపూర్తిగా ఆపివేయాలనుకుంటున్నారా?");
+      if (confirmExit) stopTracking();
+    }
+  });
+
+  if (allUnitsData && allUnitsData.length > 0) {
+    initSelectionHierarchy();
+  }
+</script>
+
+</body>
+</html>
