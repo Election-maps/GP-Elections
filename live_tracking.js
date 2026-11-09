@@ -74,7 +74,7 @@ function initLiveMQTT() {
             console.log('Connected to Srikakulam Police Real-time Broker (Live Route Map)!');
             const dot = document.getElementById('live-mqtt-indicator-dot');
             const txt = document.getElementById('live-mqtt-status-text');
-            if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping inline-block';
+            if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block';
             if (txt) {
                 txt.innerText = 'Online';
                 txt.className = 'text-emerald-400 font-bold';
@@ -83,7 +83,9 @@ function initLiveMQTT() {
             // Subscribe to general locations topic and retained officer topics
             const generalTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/locations';
             const retainedTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/officer/+';
+            const controlTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/control_command';
             window.liveMqttClient.subscribe(generalTopic, { qos: 0 });
+            window.liveMqttClient.subscribe(controlTopic, { qos: 1 });
             window.liveMqttClient.subscribe(retainedTopic, { qos: 1 }, function(err) {
                 if (!err) {
                     const syncTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/sync_request';
@@ -97,10 +99,17 @@ function initLiveMQTT() {
                 const str = message.toString().trim();
                 if (!str) return;
                 const payload = JSON.parse(str);
+
+                // Handle remote clear commands
+                if (payload.action === 'clear_all') {
+                    clearAllLiveTrackingLocally();
+                    return;
+                }
+
                 const unitKey = payload.unitId || payload.id || topic.split('/').pop();
                 if (!unitKey) return;
 
-                if (payload.status === 'stopped') {
+                if (payload.status === 'stopped' || payload.action === 'clear_unit') {
                     removeLivePartyUnit(unitKey);
                 } else if (payload.latitude || payload.lat) {
                     updateLivePartyUnitOnMap(unitKey, payload);
@@ -153,15 +162,15 @@ function updateLivePartyUnitOnMap(key, data) {
 
     let unit = window.livePartyMarkers[key];
     if (!unit) {
-        // Create new marker
+        // Create new marker with compact sizing
         const icon = createLivePoliceMarkerIcon(catKey, mandal, unitName, true, isMoving, bearing, speedKmh, officer);
         const marker = L.marker([lat, lng], { icon: icon, zIndexOffset: 1000 });
         
         const circle = L.circle([lat, lng], {
-            radius: Math.max(10, accuracy),
+            radius: Math.max(8, accuracy),
             color: getLivePartyCategoryTheme(catKey).color,
             fillColor: getLivePartyCategoryTheme(catKey).color,
-            fillOpacity: 0.12,
+            fillOpacity: 0.1,
             weight: 1,
             interactive: false
         });
@@ -185,7 +194,16 @@ function updateLivePartyUnitOnMap(key, data) {
             meta: meta
         };
 
-        marker.bindPopup(function() { return buildLivePartyPopupHtml(key, unit, meta); }, { maxWidth: 360, minWidth: 260 });
+        // Bind hover tooltip for instant officer details on mouseover
+        marker.bindTooltip(function() { return buildLivePartyTooltipHtml(key, unit, meta); }, {
+            direction: 'top',
+            className: 'ps-tooltip-badge',
+            offset: [0, -16],
+            sticky: true
+        });
+
+        // Bind popup for complete details & call/whatsapp/navigation
+        marker.bindPopup(function() { return buildLivePartyPopupHtml(key, unit, meta); }, { maxWidth: 350, minWidth: 260 });
         window.livePartyMarkers[key] = unit;
 
         if (shouldShowLivePartyUnit(catKey)) {
@@ -207,12 +225,12 @@ function updateLivePartyUnitOnMap(key, data) {
         // Position update
         unit.marker.setLatLng([lat, lng]);
         unit.circle.setLatLng([lat, lng]);
-        unit.circle.setRadius(Math.max(10, accuracy));
+        unit.circle.setRadius(Math.max(8, accuracy));
 
         // Icon update
         unit.marker.setIcon(createLivePoliceMarkerIcon(catKey, mandal, unitName, true, isMoving, bearing, speedKmh, officer));
 
-        // Update popup if currently open
+        // Update popup if open
         if (unit.marker.getPopup() && unit.marker.isPopupOpen()) {
             unit.marker.setPopupContent(buildLivePartyPopupHtml(key, unit, meta));
         }
@@ -235,60 +253,61 @@ function removeLivePartyUnit(key) {
     }
 }
 
+// Compact police icon creator
 function createLivePoliceMarkerIcon(catKey, mandal, unitName, isLive, isMoving, bearing, speedKmh, rawOfficer) {
     const theme = getLivePartyCategoryTheme(catKey);
     const badgeText = catKey + ': ' + (unitName || mandal);
     const officerDisp = formatOfficerDisplay(rawOfficer, mandal);
     const officerHtml = officerDisp 
-        ? '<div class="officer-incharge-badge"><i class="fa-solid fa-user-shield text-[9px] text-yellow-300"></i><span>' + officerDisp + '</span></div>' 
+        ? '<div class="officer-incharge-badge"><i class="fa-solid fa-user-shield text-[8px] text-yellow-300"></i><span>' + officerDisp + '</span></div>' 
         : '';
 
     if (isLive && isMoving && speedKmh >= 2) {
-        // Directional top-down police cruiser SVG
+        // Directional top-down police cruiser SVG (Compact 28x28)
         return L.divIcon({
             className: 'custom-police-marker',
             html: '<div class="police-marker-container">' +
-                    '<div class="police-marker-label" style="border-color:' + theme.color + ';">' +
+                    '<div class="police-marker-label" style="border-color:' + theme.color + '; bottom: 32px; padding: 2px 6px; font-size: 9px;">' +
                         '<div class="marker-title-row">' +
                             '<span style="color:#10b981;">● </span>' +
                             '<span>' + badgeText + '</span>' +
-                            '<span class="speed-pill">' + speedKmh + ' km/h</span>' +
+                            '<span class="speed-pill" style="font-size: 8.5px; padding: 1px 3px;">' + speedKmh + 'k</span>' +
                         '</div>' +
                         officerHtml +
                     '</div>' +
-                    '<div class="vehicle-pointer-wrapper" style="transform:rotate(' + Math.round(bearing) + 'deg);">' +
-                        '<svg width="40" height="40" viewBox="0 0 40 40" fill="none" style="filter:drop-shadow(0 3px 8px rgba(0,0,0,0.65));">' +
-                            '<circle cx="20" cy="20" r="18" fill="rgba(15, 23, 42, 0.9)" stroke="#ffffff" stroke-width="2"/>' +
+                    '<div class="vehicle-pointer-wrapper" style="width: 28px; height: 28px; transform:rotate(' + Math.round(bearing) + 'deg);">' +
+                        '<svg width="28" height="28" viewBox="0 0 40 40" fill="none" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));">' +
+                            '<circle cx="20" cy="20" r="18" fill="rgba(15, 23, 42, 0.95)" stroke="#ffffff" stroke-width="2"/>' +
                             '<path d="M20 5L30 28L20 23L10 28L20 5Z" fill="' + theme.color + '" stroke="#ffffff" stroke-width="1.8" stroke-linejoin="round"/>' +
                             '<rect x="15" y="17" width="4" height="3" rx="1" fill="#ef4444" class="police-strobe-l"/>' +
                             '<rect x="21" y="17" width="4" height="3" rx="1" fill="#3b82f6" class="police-strobe-r"/>' +
                         '</svg>' +
                     '</div>' +
                   '</div>',
-            iconSize: [40, 40],
-            iconAnchor: [20, 20]
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
         });
     }
 
-    // Stationary Police Badge Pin
+    // Stationary Police Badge Pin (Compact 26x26)
     return L.divIcon({
         className: 'custom-police-marker',
         html: '<div class="police-marker-container">' +
-                '<div class="police-marker-label" style="border-color:' + theme.color + ';">' +
+                '<div class="police-marker-label" style="border-color:' + theme.color + '; bottom: 30px; padding: 2px 6px; font-size: 9px;">' +
                     '<div class="marker-title-row">' +
                         '<span style="color:#10b981;">● </span>' +
                         '<span>' + badgeText + '</span>' +
-                        '<span style="color:#94a3b8; font-size:9px; font-weight:normal;">(Stopped)</span>' +
+                        '<span style="color:#94a3b8; font-size:8px;">(Stopped)</span>' +
                     '</div>' +
                     officerHtml +
                 '</div>' +
-                '<div class="police-marker-pulse"></div>' +
-                '<div class="police-marker-pin" style="background:' + theme.color + ';">' +
+                '<div class="police-marker-pulse" style="width: 34px; height: 34px; top: -4px; left: -4px;"></div>' +
+                '<div class="police-marker-pin" style="width: 26px; height: 26px; font-size: 11px; background:' + theme.color + ';">' +
                     '<i class="fa-solid ' + theme.icon + '"></i>' +
                 '</div>' +
               '</div>',
-        iconSize: [36, 36],
-        iconAnchor: [18, 18]
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
     });
 }
 
@@ -302,14 +321,33 @@ function formatOfficerDisplay(rawOfficer, mandal) {
     return cleaned[0] || rawOfficer;
 }
 
+// Hover Tooltip: Displays officer details immediately on hover
+function buildLivePartyTooltipHtml(key, unit, meta) {
+    const theme = getLivePartyCategoryTheme(unit.catKey);
+    const speedText = unit.speedKmh > 0 ? (unit.speedKmh + ' km/h (Moving)') : '(Stopped)';
+    return '<div style="font-family:sans-serif; font-size:11px; line-height:1.35; color:#0f172a; min-width:180px;">' +
+                '<div style="font-weight:bold; color:' + theme.color + '; border-bottom:1px solid #cbd5e1; padding-bottom:3px; margin-bottom:3px; display:flex; justify-content:space-between; align-items:center;">' +
+                    '<span>[' + unit.catKey + '] ' + (unit.unitName || key) + '</span>' +
+                    '<span style="color:#10b981; font-size:9px;">● LIVE</span>' +
+                '</div>' +
+                '<div><strong>Officer:</strong> ' + (unit.officer || '-') + '</div>' +
+                (unit.phone ? '<div><strong>Phone:</strong> <span style="color:#2563eb; font-weight:bold;">' + unit.phone + '</span></div>' : '') +
+                (unit.mandal ? '<div><strong>PS:</strong> ' + unit.mandal + ' PS</div>' : '') +
+                '<div><strong>Status:</strong> <span style="font-weight:600; color:' + (unit.speedKmh > 0 ? '#16a34a' : '#d97706') + ';">' + speedText + '</span></div>' +
+            '</div>';
+}
+
 function buildLivePartyPopupHtml(key, unit, meta) {
     const theme = getLivePartyCategoryTheme(unit.catKey);
     const phone = unit.phone || meta.phone || '';
     const cleanPhone = phone.replace(/\D/g, '').slice(-10);
     
     const callBtn = cleanPhone ? '<a href="tel:' + cleanPhone + '" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-xs flex items-center gap-1 shadow-sm"><i class="fa-solid fa-phone"></i> Call</a>' : '';
-    const waBtn = cleanPhone ? '<a href="https://wa.me/91' + cleanPhone + '" target="_blank" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold text-xs flex items-center gap-1 shadow-sm"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>' : '';
+    const waBtn = cleanPhone ? '<a href="https://wa.me/91${cleanPhone}" target="_blank" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold text-xs flex items-center gap-1 shadow-sm"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>' : '';
     const navBtn = '<a href="https://www.google.com/maps/dir/?api=1&destination=' + unit.lat + ',' + unit.lng + '" target="_blank" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded font-bold text-xs flex items-center gap-1 shadow-sm"><i class="fa-solid fa-diamond-turn-right text-emerald-400"></i> Navigate</a>';
+    
+    // Control Room Clear button for single officer
+    const clearBtn = '<button type="button" onclick="clearSingleOfficer(\'' + key + '\')" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded font-bold text-xs flex items-center gap-1 shadow-sm cursor-pointer" title="కంట్రోల్ రూమ్ నుండి ఈ ట్రాకింగ్‌ను తొలగించండి"><i class="fa-solid fa-trash-can"></i> Clear</button>';
 
     const timeDiff = Math.max(0, Math.round((Date.now() - (unit.lastUpdated || Date.now())) / 1000));
     const timeAgoText = timeDiff < 60 ? (timeDiff + 's ago') : (Math.round(timeDiff / 60) + 'm ago');
@@ -343,10 +381,11 @@ function buildLivePartyPopupHtml(key, unit, meta) {
                     '<div class="col-span-2 text-slate-500 text-[10px]"><strong>Last Update:</strong> ' + timeAgoText + '</div>' +
                 '</div>' +
 
-                '<div class="flex items-center gap-1.5 pt-1 border-t border-slate-100">' +
+                '<div class="flex items-center gap-1.5 pt-1 border-t border-slate-100 flex-wrap">' +
                     callBtn +
                     waBtn +
                     navBtn +
+                    clearBtn +
                 '</div>' +
             '</div>';
 }
@@ -393,9 +432,68 @@ window.fitAllActiveLiveUnits = function() {
     if (bounds.length > 0) {
         liveMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
     } else {
-        alert('No active live units currently transmitting for selected category.');
+        alert('ప్రస్తుతం ఎంచుకున్న కేటగిరీలో లైవ్ యూనిట్లు లేవు (No active live units transmitting).');
     }
 };
+
+// Clear Single Officer tracking from Control Room
+window.clearSingleOfficer = function(key) {
+    if (!confirm("కంట్రోల్ రూమ్ నుండి ఈ అధికారి (" + key + ") లైవ్ ట్రాకింగ్‌ను పూర్తిగా తొలగించాలనుకుంటున్నారా?\n(Are you sure you want to clear tracking for this unit?)")) {
+        return;
+    }
+
+    if (window.liveMqttClient && window.liveMqttClient.connected) {
+        const controlTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/control_command';
+        const officerTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/officer/' + key;
+        const generalTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/locations';
+
+        // 1. Send stop command to officer's phone
+        window.liveMqttClient.publish(controlTopic, JSON.stringify({ action: 'clear_unit', unitId: key, timestamp: Date.now() }), { qos: 1 });
+        // 2. Purge retained message on broker
+        window.liveMqttClient.publish(officerTopic, '', { qos: 1, retain: true });
+        // 3. Broadcast stopped state
+        window.liveMqttClient.publish(generalTopic, JSON.stringify({ type: 'location', unitId: key, status: 'stopped', lastUpdated: Date.now() }), { qos: 0 });
+    }
+
+    removeLivePartyUnit(key);
+};
+
+// Clear ALL Live Tracking from Control Room
+window.clearAllLiveTracking = function() {
+    const keys = Object.keys(window.livePartyMarkers);
+    if (keys.length === 0) {
+        alert("ప్రస్తుతం ఎటువంటి లైవ్ ట్రాకింగ్ యూనిట్లు లేవు (No active live units).");
+        return;
+    }
+
+    if (!confirm("కంట్రోల్ రూమ్ నుండి అందరు అధికారుల లైవ్ ట్రాకింగ్‌ను పూర్తిగా తొలగించాలనుకుంటున్నారా?\n(Are you sure you want to clear ALL live tracking from Control Room?)")) {
+        return;
+    }
+
+    if (window.liveMqttClient && window.liveMqttClient.connected) {
+        const controlTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/control_command';
+        const generalTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/locations';
+
+        window.liveMqttClient.publish(controlTopic, JSON.stringify({ action: 'clear_all', timestamp: Date.now() }), { qos: 1 });
+
+        keys.forEach(function(k) {
+            const officerTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/officer/' + k;
+            window.liveMqttClient.publish(officerTopic, '', { qos: 1, retain: true });
+            window.liveMqttClient.publish(generalTopic, JSON.stringify({ type: 'location', unitId: k, status: 'stopped', lastUpdated: Date.now() }), { qos: 0 });
+        });
+    }
+
+    clearAllLiveTrackingLocally();
+};
+
+function clearAllLiveTrackingLocally() {
+    if (window.livePartyMarkersGroup) {
+        window.livePartyMarkersGroup.clearLayers();
+    }
+    window.livePartyMarkers = {};
+    updateLivePartyCounter();
+    localStorage.removeItem('gp_live_units_cache');
+}
 
 function updateLivePartyCounter() {
     const count = Object.keys(window.livePartyMarkers).length;

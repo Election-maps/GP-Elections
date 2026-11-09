@@ -14,14 +14,12 @@
     <!-- Leaflet CSS & JS (Deferred for fast mobile rendering) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
     <!-- MQTT.js library for real-time live synchronization -->
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <!-- Pre-loaded Forces Data (Routes, SF, SSF, QRTs, Reserve Parties) -->
     <script src="route_mobiles_data.js"></script>
     <!-- Live Forces Real-time Tracking Engine -->
     <script src="live_tracking.js"></script>
-
     <style>
         .ps-tooltip-badge {
             background-color: rgba(255, 255, 255, 0.96);
@@ -49,7 +47,6 @@
             border: none !important;
             margin: 0 !important;
         }
-
         /* Live Police Moving & Stationary Markers */
         .police-marker-container {
             position: relative;
@@ -157,7 +154,6 @@
             0% { transform: scale(0.8); opacity: 1; }
             100% { transform: scale(1.9); opacity: 0; }
         }
-
         .start-location-badge {
             background-color: #dcfce7;
             border: 1px solid #16a34a;
@@ -208,11 +204,9 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
-
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans antialiased text-xs min-h-screen flex flex-col">
-
     <!-- Top Official Police Navigation Header (CENTERED 2-TIER DESIGN) -->
     <header class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white shadow-2xl sticky top-0 z-[1100] border-b border-blue-900/40">
         <!-- Main Official Branding Block - CENTERED BALANCED CONTAINER -->
@@ -224,19 +218,14 @@
                 <div class="relative shrink-0">
                     <img src="ap_police_logo.png" alt="Andhra Pradesh Police Logo" class="h-14 sm:h-16 md:h-18 w-auto object-contain police-logo-spark" />
                 </div>
-
                 <!-- Center Divider / Vertical Line -->
                 <div class="h-12 sm:h-14 w-[1.5px] bg-gradient-to-b from-transparent via-amber-400 to-transparent hidden sm:block"></div>
-
                 <!-- Center: Official Department Titles -->
                 <div class="flex flex-col items-center justify-center px-1">
-
-
                     <!-- Main District Police Title -->
                     <h1 class="text-lg sm:text-2xl md:text-3xl font-black text-white tracking-wide leading-tight flex items-center justify-center gap-2 drop-shadow-md my-0.5">
                         <span>SRIKAKULAM DISTRICT POLICE</span>
                     </h1>
-
                     <!-- Exterior Highlighted Colored Banner for Election Cell -->
                     <div class="mt-1 px-3 sm:px-4 py-1 rounded-full bg-gradient-to-r from-blue-950 via-slate-900 to-blue-950 border border-amber-400/70 shadow-[0_0_12px_rgba(245,158,11,0.35)] flex items-center justify-center gap-2">
                         <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
@@ -246,16 +235,13 @@
                         <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
                     </div>
                 </div>
-
                 <!-- Center Divider / Vertical Line -->
                 <div class="h-12 sm:h-14 w-[1.5px] bg-gradient-to-b from-transparent via-amber-400 to-transparent hidden sm:block"></div>
-
                 <!-- Right: Srikakulam District Police Official Logo (Transparent with Spark Glow) -->
                 <div class="relative shrink-0">
                     <img src="srikakulam_police_logo.png" alt="Srikakulam District Police Logo" class="h-14 sm:h-16 md:h-18 w-auto object-contain police-logo-spark" />
                 </div>
             </div>
-
             <!-- Second Tier: CENTERED Navigation Tabs directly underneath -->
             <div class="w-full flex justify-center items-center mt-3 pt-2 border-t border-slate-800/80">
                 <nav class="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
@@ -271,7 +257,6 @@
                     <button onclick="switchTab('livemap')" id="tab-btn-livemap" class="px-3.5 py-1.5 rounded-lg font-semibold text-xs bg-slate-800/90 hover:bg-slate-700 text-slate-200 transition flex items-center gap-1.5 border border-slate-700/60 shadow-sm">
                         <i class="fa-solid fa-satellite-dish text-emerald-400"></i> Live Route Map
                     </button>
-
                     <button onclick="openAddModal()" class="px-3.5 py-1.5 rounded-lg font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center gap-1.5 shadow-sm">
                         <i class="fa-solid fa-plus"></i> Add PS
                     </button>
@@ -285,10 +270,8 @@
             </div>
         </div>
     </header>
-
     <!-- MAIN BODY CONTAINER (BALANCED EXECUTIVE WIDESCREEN) -->
     <main class="flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 py-2.5 flex flex-col">
-
         <!-- ================= TAB 1: EXECUTIVE DASHBOARD ================= -->
         <section id="tab-dashboard" class="flex-1 flex flex-col space-y-2.5">
             <!-- KPI Counters with Transparent/Translucent Tinted Category Colors -->
@@ -304,7 +287,6 @@
                     <div class="text-xl font-black text-blue-950 mt-1" id="dash-total-ps">0</div>
                     <span class="text-[10px] font-semibold text-blue-600" id="dash-ps-count">0 Police Stations</span>
                 </div>
-
                 <!-- Normal (Translucent Green) -->
                 <div class="p-3 rounded-xl shadow-sm border border-emerald-300/90 border-l-4 border-l-emerald-500 bg-gradient-to-br from-emerald-50/95 via-emerald-50/40 to-white backdrop-blur-sm transition hover:shadow-md">
                     <div class="flex items-center justify-between">
@@ -316,7 +298,6 @@
                     <div class="text-xl font-black text-emerald-800 mt-1" id="dash-normal-ps">0</div>
                     <span class="text-[10px] font-semibold text-emerald-700" id="dash-normal-pct">0% of total</span>
                 </div>
-
                 <!-- Sensitive (Translucent Amber) -->
                 <div class="p-3 rounded-xl shadow-sm border border-amber-300/90 border-l-4 border-l-amber-500 bg-gradient-to-br from-amber-50/95 via-amber-50/40 to-white backdrop-blur-sm transition hover:shadow-md">
                     <div class="flex items-center justify-between">
@@ -328,7 +309,6 @@
                     <div class="text-xl font-black text-amber-800 mt-1" id="dash-sensitive-ps">0</div>
                     <span class="text-[10px] font-semibold text-amber-700" id="dash-sensitive-pct">0% of total</span>
                 </div>
-
                 <!-- Critical (Translucent Orange) -->
                 <div class="p-3 rounded-xl shadow-sm border border-orange-300/90 border-l-4 border-l-orange-500 bg-gradient-to-br from-orange-50/95 via-orange-50/40 to-white backdrop-blur-sm transition hover:shadow-md">
                     <div class="flex items-center justify-between">
@@ -340,7 +320,6 @@
                     <div class="text-xl font-black text-orange-800 mt-1" id="dash-critical-ps">0</div>
                     <span class="text-[10px] font-semibold text-orange-700" id="dash-critical-pct">0% of total</span>
                 </div>
-
                 <!-- Hyper Sensitive (Translucent Rose) -->
                 <div class="p-3 rounded-xl shadow-sm border border-rose-300/90 border-l-4 border-l-rose-600 bg-gradient-to-br from-rose-50/95 via-rose-50/40 to-white backdrop-blur-sm transition hover:shadow-md">
                     <div class="flex items-center justify-between">
@@ -352,7 +331,6 @@
                     <div class="text-xl font-black text-rose-800 mt-1" id="dash-hypersensitive-ps">0</div>
                     <span class="text-[10px] font-semibold text-rose-700" id="dash-hypersensitive-pct">0% of total</span>
                 </div>
-
                 <!-- Total Electors (Translucent Purple) -->
                 <div class="p-3 rounded-xl shadow-sm border border-purple-200/90 bg-gradient-to-br from-purple-50/95 via-purple-50/40 to-white backdrop-blur-sm transition hover:shadow-md">
                     <div class="flex items-center justify-between">
@@ -365,9 +343,6 @@
                     <span class="text-[10px] font-semibold text-purple-700" id="dash-routes-count">0 Patrol Routes</span>
                 </div>
             </div>
-
-
-
             <!-- Police Stations Quick Master Matrix (Enlarged to fill full height down to bottom) -->
             <div id="dash-matrix-card" style="height: calc(100vh - 250px); min-height: 560px;" class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col flex-1">
                 <div class="p-3 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-2">
@@ -414,7 +389,6 @@
                 </div>
             </div>
         </section>
-
         <!-- ================= TAB 2: LIVE ELECTION ROUTE MAP ================= -->
         <section id="tab-map" class="hidden space-y-2">
             <div class="bg-white p-2.5 rounded-lg shadow-sm border border-slate-200">
@@ -454,7 +428,6 @@
                             <option value="">-- All Police Stations --</option>
                         </select>
                     </div>
-
                     <!-- Route No Filter -->
                     <div class="w-28 sm:w-32 min-w-[100px]">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Route No</label>
@@ -462,7 +435,6 @@
                             <option value="">-- All Routes --</option>
                         </select>
                     </div>
-
                     <!-- Category Filter -->
                     <div class="w-28 sm:w-32 min-w-[100px]">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Category</label>
@@ -474,7 +446,6 @@
                             <option value="HYPER SENSITIVE">Hyper Sensitive</option>
                         </select>
                     </div>
-
                     <!-- Distance Filter in Live Route Map (Matching Polling Station Report) -->
                     <div class="w-28 sm:w-32 min-w-[100px]">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Distance (PS)</label>
@@ -485,7 +456,6 @@
                             <option value="far">&gt; 12 KM (Far)</option>
                         </select>
                     </div>
-
                     <!-- Search PSL / Village -->
                     <div class="flex-1 min-w-[170px] max-w-sm">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">
@@ -501,7 +471,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- Map Layers & Visibility Toggles (Road Routes & Borders) -->
                     <div class="flex items-center gap-1.5">
                         <label class="flex items-center gap-1.5 px-2.5 py-1.5 bg-rose-50 border border-rose-300 rounded text-rose-900 font-bold text-xs cursor-pointer hover:bg-rose-100 transition shadow-2xs select-none">
@@ -513,7 +482,6 @@
                             <span>Borders</span>
                         </label>
                     </div>
-
                     <!-- Action Buttons: Reset & Routes Directory -->
                     <div class="flex items-center gap-1.5">
                         <button onclick="resetMapFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded text-xs transition border border-slate-300 flex items-center justify-center gap-1 shadow-2xs" title="Reset Filters">
@@ -524,7 +492,6 @@
                         </button>
                     </div>
                 </div>
-
                 <!-- Active Route & Journey Banner (Visible when route, PS, or village/station is searched/filtered) -->
                 <div id="active-route-banner" class="hidden mt-2 p-2.5 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border border-blue-200 rounded-lg text-blue-900 shadow-sm flex flex-wrap items-center justify-between gap-2.5">
                     <div class="flex flex-wrap items-center gap-2">
@@ -547,7 +514,6 @@
                             <span class="font-bold text-blue-950 truncate max-w-xs" id="banner-to-location">Polling Station / Village</span>
                         </div>
                     </div>
-
                     <!-- Distance & Navigation -->
                     <div class="flex flex-wrap items-center gap-2">
                         <div class="bg-rose-50 border border-rose-300 text-rose-800 px-2.5 py-0.5 rounded text-xs font-bold flex items-center gap-1.5 shadow-xs">
@@ -563,11 +529,9 @@
                     </div>
                 </div>
             </div>
-
             <!-- Leaflet Map Container -->
             <div class="relative w-full h-[calc(100vh-175px)] min-h-[500px] rounded-lg shadow-md border border-slate-200 overflow-hidden bg-slate-200">
                 <div id="main-map" class="w-full h-full"></div>
-
                 <!-- Floating Map Legend -->
                 <div class="absolute bottom-4 left-4 z-[1000] bg-white/95 backdrop-blur-sm p-2 rounded-lg shadow-lg border border-slate-200 text-[10px] space-y-1">
                     <div class="font-bold text-slate-700 border-b pb-0.5 mb-1 flex items-center justify-between gap-3">
@@ -589,9 +553,7 @@
                     <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center shadow-sm"><i class="fa-solid fa-building-columns text-[8px]"></i></span> Reserve Parties (5)</div>
                 </div>
             </div>
-
         </section>
-
         <!-- ================= TAB: LIVE ROUTE MAP ================= -->
         <section id="tab-livemap" class="hidden space-y-2">
             <!-- Live Forces & Tracker Status Bar (Routes, SF, SSF, QRTs, Reserve Parties) -->
@@ -619,7 +581,6 @@
                         <i class="fa-solid fa-building-columns text-emerald-400 mr-1"></i> Reserve (5)
                     </button>
                 </div>
-
                 <div class="flex flex-wrap items-center gap-2">
                     <div class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800/90 border border-slate-700 text-xs font-semibold">
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping inline-block" id="live-mqtt-indicator-dot"></span>
@@ -627,11 +588,12 @@
                         <span class="text-slate-400 font-normal">|</span>
                         <span class="text-slate-300">Live Active: <strong id="live-party-active-count" class="text-emerald-300">0</strong> / 364</span>
                     </div>
-
                     <button type="button" onclick="fitAllActiveLiveUnits()" class="px-2.5 py-1 rounded text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition flex items-center gap-1 shadow-sm" title="Center map on all active live moving units">
                         <i class="fa-solid fa-crosshairs"></i> Center Units
                     </button>
-
+                    <button type="button" onclick="clearAllLiveTracking()" class="px-2.5 py-1 rounded text-xs font-bold bg-rose-700 hover:bg-rose-600 text-white transition flex items-center gap-1 shadow-sm" title="à°•à°‚à°Ÿà±à°°à±‹à°²à± à°°à±‚à°®à± à°¨à±à°‚à°¡à°¿ à°®à±Šà°¤à±à°¤à°‚ à°²à±ˆà°µà± à°Ÿà±à°°à°¾à°•à°¿à°‚à°—à± à°¤à±Šà°²à°—à°¿à°‚à°šà°‚à°¡à°¿ (Clear All Live Tracking)">
+                        <i class="fa-solid fa-trash-can"></i> Clear Tracking
+                    </button>
                     <a href="SrikakulamPoliceTracker.apk" download="SrikakulamPoliceTracker.apk" class="px-3 py-1 rounded text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white transition flex items-center gap-1.5 shadow-md" title="Download Police Tracker APK for Android phones">
                         <i class="fa-brands fa-android text-emerald-200"></i> Download Tracker APK
                     </a>
@@ -660,6 +622,9 @@
                         <button type="button" onclick="setLiveMapQuickCategory('HYPER SENSITIVE')" id="live-pill-cat-hyper" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 transition">
                             Hyper Sensitive (<span id="live-cat-count-hyper">0</span>)
                         </button>
+                        <button type="button" onclick="setLiveMapQuickCategory('NONE')" id="live-pill-cat-none" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition" title="Hide all Normal, Sensitive, Critical, and Hyper Sensitive polling station pins from map">
+                            <i class="fa-solid fa-eye-slash text-slate-500 mr-1"></i> Hide PS Pins (0)
+                        </button>
                     </div>
                     <button type="button" onclick="toggleLiveMapFilterBar()" id="btn-live-filter-toggle" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 flex items-center gap-1.5 transition shadow-2xs cursor-pointer" title="Hide or Unhide Filter Controls">
                         <i class="fa-solid fa-eye-slash text-slate-500" id="icon-live-filter-toggle"></i>
@@ -674,7 +639,6 @@
                             <option value="">-- All Police Stations --</option>
                         </select>
                     </div>
-
                     <!-- Route No Filter -->
                     <div class="w-28 sm:w-32 min-w-[100px]">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Route No</label>
@@ -682,7 +646,6 @@
                             <option value="">-- All Routes --</option>
                         </select>
                     </div>
-
                     <!-- Category Filter -->
                     <div class="w-28 sm:w-32 min-w-[100px]">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Category</label>
@@ -694,7 +657,6 @@
                             <option value="HYPER SENSITIVE">Hyper Sensitive</option>
                         </select>
                     </div>
-
                     <!-- Distance Filter in Live Route Map -->
                     <div class="w-28 sm:w-32 min-w-[100px]">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Distance (PS)</label>
@@ -705,7 +667,6 @@
                             <option value="far">&gt; 12 KM (Far)</option>
                         </select>
                     </div>
-
                     <!-- Search PSL / Village -->
                     <div class="flex-1 min-w-[170px] max-w-sm">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">
@@ -721,7 +682,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- Map Layers & Visibility Toggles -->
                     <div class="flex items-center gap-1.5">
                         <label class="flex items-center gap-1.5 px-2.5 py-1.5 bg-rose-50 border border-rose-300 rounded text-rose-900 font-bold text-xs cursor-pointer hover:bg-rose-100 transition shadow-2xs select-none">
@@ -732,8 +692,11 @@
                             <input type="checkbox" id="live-toggle-borders" checked onchange="toggleLiveBorders(this.checked)" class="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer">
                             <span>Borders</span>
                         </label>
+                        <label class="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded text-slate-700 font-semibold text-xs cursor-pointer hover:bg-slate-100 transition shadow-2xs select-none" title="Toggle Polling Station Pins on/off">
+                            <input type="checkbox" id="live-toggle-pins" checked onchange="toggleLiveStationPins(this.checked)" class="w-3.5 h-3.5 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                            <span><i class="fa-solid fa-location-dot text-emerald-600 mr-0.5"></i> PS Pins</span>
+                        </label>
                     </div>
-
                     <!-- Action Buttons: Reset & Routes Directory -->
                     <div class="flex items-center gap-1.5">
                         <button onclick="resetLiveMapFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded text-xs transition border border-slate-300 flex items-center justify-center gap-1 shadow-2xs" title="Reset Filters">
@@ -747,7 +710,6 @@
                         </button>
                     </div>
                 </div>
-
                 <!-- Active Route & Journey Banner -->
                 <div id="live-active-route-banner" class="hidden mt-2 p-2.5 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border border-blue-200 rounded-lg text-blue-900 shadow-sm flex flex-wrap items-center justify-between gap-2.5">
                     <div class="flex flex-wrap items-center gap-2">
@@ -767,7 +729,6 @@
                             <span class="font-bold text-blue-950 truncate max-w-xs" id="live-banner-to-location">Polling Station / Village</span>
                         </div>
                     </div>
-
                     <div class="flex flex-wrap items-center gap-2">
                         <div class="bg-rose-50 border border-rose-300 text-rose-800 px-2.5 py-0.5 rounded text-xs font-bold flex items-center gap-1.5 shadow-xs">
                             <i class="fa-solid fa-road text-rose-600"></i>
@@ -782,17 +743,14 @@
                     </div>
                 </div>
             </div>
-
             <!-- Leaflet Map Container -->
             <div id="live-map-wrapper" class="relative w-full h-[calc(100vh-175px)] min-h-[500px] rounded-lg shadow-md border border-slate-200 overflow-hidden bg-slate-200">
                 <div id="live-map-canvas" class="w-full h-full"></div>
-
                 <!-- Floating Full Screen Control Button directly on map canvas -->
                 <button type="button" onclick="toggleLiveMapFullscreen()" id="btn-live-fullscreen-map" class="absolute top-3 right-3 z-[1000] bg-white/95 hover:bg-white text-slate-800 font-bold px-3 py-1.5 rounded-lg shadow-lg border border-slate-300 flex items-center gap-1.5 text-xs transition cursor-pointer backdrop-blur-xs hover:shadow-xl" title="Click to view full screen map">
                     <i class="fa-solid fa-expand text-indigo-600 text-sm" id="icon-live-fullscreen-map"></i>
                     <span id="txt-live-fullscreen-map">Full Screen</span>
                 </button>
-
                 <!-- Floating Map Legend -->
                 <div class="absolute bottom-4 left-4 z-[1000] bg-white/95 backdrop-blur-sm p-2 rounded-lg shadow-lg border border-slate-200 text-[10px] space-y-1">
                     <div class="font-bold text-slate-700 border-b pb-0.5 mb-1 flex items-center justify-between gap-3">
@@ -814,11 +772,7 @@
                     <div class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-full bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center shadow-sm"><i class="fa-solid fa-building-columns text-[8px]"></i></span> Reserve Parties (5)</div>
                 </div>
             </div>
-
         </section>
-
-
-
         <!-- ================= TAB 3: POLLING STATIONS REPORT (TABLE) ================= -->
         <section id="tab-report" class="hidden space-y-2.5">
             <!-- Filter Bar & Search Controls -->
@@ -846,7 +800,6 @@
                             Hyper Sensitive (<span id="cat-count-hyper">0</span>)
                         </button>
                     </div>
-
                     <!-- Column Visibility & Action Buttons -->
                     <div class="flex items-center gap-2">
                         <!-- Dynamic Column Position Editor & Visibility Menu -->
@@ -875,12 +828,10 @@
                                 </div>
                             </div>
                         </div>
-
                         <!-- Wrap Text Toggle Button -->
                         <button id="btn-toggle-wrap" onclick="toggleTableWrapText()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-2.5 py-1 rounded text-xs flex items-center gap-1 shadow-sm transition" title="Toggle Wrap Text">
                             <i class="fa-solid fa-align-left"></i> Wrap Text: ON
                         </button>
-
                         <button onclick="exportToExcel()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-2.5 py-1 rounded text-xs flex items-center gap-1 shadow-sm transition">
                             <i class="fa-solid fa-file-excel"></i> Export Excel
                         </button>
@@ -889,7 +840,6 @@
                         </button>
                     </div>
                 </div>
-
                 <!-- Row 2: Search Input, Dropdowns, and Dynamic Record Stats -->
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <div class="flex flex-wrap items-center gap-2 flex-1">
@@ -904,17 +854,14 @@
                             <div id="table-psl-suggestions" class="hidden absolute left-0 right-0 top-full mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-2xl z-[1500] max-h-72 overflow-y-auto divide-y divide-slate-100">
                             </div>
                         </div>
-
                         <!-- PS Filter -->
                         <select id="table-filter-ps" onchange="onTablePSChange(this.value)" class="border border-slate-300 rounded px-2.5 py-1.5 text-xs bg-white focus:ring-1 focus:ring-blue-500 font-medium">
                             <option value="">-- All Police Stations --</option>
                         </select>
-
                         <!-- Route Filter -->
                         <select id="table-filter-route" onchange="onTableSearch()" class="border border-slate-300 rounded px-2.5 py-1.5 text-xs bg-white focus:ring-1 focus:ring-blue-500 font-medium">
                             <option value="">-- All Routes --</option>
                         </select>
-
                         <!-- Distance Filter -->
                         <select id="table-filter-distance" onchange="onTableSearch()" class="border border-slate-300 rounded px-2.5 py-1.5 text-xs bg-white focus:ring-1 focus:ring-blue-500">
                             <option value="">-- All Distances --</option>
@@ -922,12 +869,10 @@
                             <option value="medium">6 - 12 km (Medium)</option>
                             <option value="far">&gt; 12 km (Remote)</option>
                         </select>
-
                         <button onclick="resetTableFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1.5 rounded text-xs border border-slate-300 flex items-center gap-1">
                             <i class="fa-solid fa-arrows-rotate"></i> Reset
                         </button>
                     </div>
-
                     <!-- Dynamic Live Counter Badges -->
                     <div class="flex items-center gap-2">
                         <span class="bg-blue-50 border border-blue-200 text-blue-900 font-bold px-2.5 py-1 rounded text-xs shadow-sm" id="table-record-count">
@@ -939,7 +884,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Master Data Table with Independent Columns -->
             <div class="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden">
                 <div class="overflow-x-auto max-h-[calc(100vh-280px)]">
@@ -952,7 +896,6 @@
                         </tbody>
                     </table>
                 </div>
-
                 <!-- Table Pagination Footer -->
                 <div class="p-2.5 bg-slate-50 border-t border-slate-200 flex flex-wrap justify-between items-center gap-2 text-xs">
                     <div class="flex items-center gap-2 text-slate-600">
@@ -967,14 +910,12 @@
                         </select>
                         <span id="table-page-info">Showing 1 to 50</span>
                     </div>
-
                     <div class="flex items-center gap-1" id="table-pagination-btns">
                         <!-- Pagination buttons generated dynamically -->
                     </div>
                 </div>
             </div>
         </section>
-
         <!-- ================= TAB 4: PS ROUTE WISE TRACKING ================= -->
         <section id="tab-routewise" class="hidden space-y-3">
             <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200">
@@ -985,14 +926,12 @@
                             <option value="">-- ???????? ?????? ??????? --</option>
                         </select>
                     </div>
-
                     <div class="w-48">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Select Route No</label>
                         <select id="route-tab-routeno" onchange="loadRouteWiseDetails()" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs font-semibold bg-white focus:ring-1 focus:ring-blue-500">
                             <option value="">-- ??????? PS ?? ????????? --</option>
                         </select>
                     </div>
-
                     <!-- Category Filter in PS Route Wise -->
                     <div class="w-52">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Category (Sensitivity)</label>
@@ -1004,7 +943,6 @@
                             <option value="HYPER SENSITIVE">Hyper Sensitive</option>
                         </select>
                     </div>
-
                     <div class="pt-4">
                         <button onclick="loadRouteWiseDetails()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3.5 py-1.5 rounded text-xs flex items-center gap-1.5 shadow transition">
                             <i class="fa-solid fa-location-crosshairs"></i> ?????? ????????
@@ -1012,7 +950,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Route Details & Map Layout -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
                 <!-- Left: Route Itinerary Table & Officer Info -->
@@ -1032,7 +969,6 @@
                             <div class="flex justify-between"><span class="text-slate-500">Total Electors / Voters:</span> <b id="route-total-voters">0</b></div>
                             <div class="flex justify-between"><span class="text-slate-500">Calculated Driving Path:</span> <b id="route-total-km" class="text-rose-600">-- km</b></div>
                         </div>
-
                         <!-- Sensitivity Breakdown Badges in Route Summary -->
                         <div class="pt-2 border-t border-slate-100 flex flex-wrap gap-1.5 text-[10px]">
                             <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold">?? Normal: <b id="route-count-normal">0</b></span>
@@ -1041,7 +977,6 @@
                             <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-300 font-bold">?? Hyper: <b id="route-count-hyper">0</b></span>
                         </div>
                     </div>
-
                     <!-- Step by step station itinerary -->
                     <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
                         <div class="p-2 bg-slate-50 border-b font-bold text-xs text-slate-800 flex items-center justify-between">
@@ -1053,11 +988,9 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Right: Dedicated Route Map Canvas -->
                 <div class="lg:col-span-7 bg-white p-2 rounded-lg shadow-sm border border-slate-200 relative">
                     <div class="w-full h-[540px] rounded-lg overflow-hidden border border-slate-200" id="route-map"></div>
-
                     <!-- Floating Map Legend for Route Map -->
                     <div class="absolute bottom-4 left-4 z-[1000] bg-white/95 backdrop-blur-sm p-2 rounded-lg shadow-lg border border-slate-200 text-[10px] space-y-1">
                         <div class="font-bold text-slate-700 border-b pb-0.5 mb-1 flex items-center justify-between gap-3">
@@ -1073,11 +1006,7 @@
                 </div>
             </div>
         </section>
-
-
-
     </main>
-
     <!-- ================= ALL ROUTES & VILLAGES DIRECTORY MODAL ================= -->
     <div id="all-routes-modal" class="hidden fixed inset-0 z-[2500] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3">
         <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
@@ -1094,7 +1023,6 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-
             <!-- Modal Search Input -->
             <div class="p-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
                 <div class="relative flex-1">
@@ -1105,14 +1033,12 @@
                     0 Routes
                 </span>
             </div>
-
             <!-- Scrollable Routes List -->
             <div id="routes-modal-list" class="flex-1 overflow-y-auto p-3 space-y-2.5">
                 <!-- Populated dynamically -->
             </div>
         </div>
     </div>
-
     <!-- ================= ENLARGED ROUTE DETAILS MODAL ================= -->
     <div id="enlarged-route-modal" class="hidden fixed inset-0 z-[2600] bg-slate-900/65 backdrop-blur-xs flex items-center justify-center p-3">
         <div class="bg-white rounded-xl shadow-2xl border border-slate-300 w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
@@ -1150,7 +1076,6 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-
             <!-- Route Metrics KPI Strip -->
             <div class="p-3 bg-slate-50 border-b border-slate-200 grid grid-cols-2 sm:grid-cols-6 gap-2 text-center text-xs">
                 <div class="bg-white border border-slate-200 rounded-lg p-2 shadow-2xs">
@@ -1178,7 +1103,6 @@
                     <b id="enlarged-route-hyper-count" class="text-rose-950 font-black text-sm">0</b>
                 </div>
             </div>
-
             <!-- Search Filter Inside Route -->
             <div class="px-4 py-2.5 bg-white border-b border-slate-200 flex items-center justify-between gap-3">
                 <div class="relative flex-1">
@@ -1189,12 +1113,10 @@
                     0 Villages
                 </span>
             </div>
-
             <!-- Scrollable Table / Cards Body -->
             <div class="flex-1 overflow-y-auto p-4 space-y-2" id="enlarged-route-table-body">
                 <!-- Populated dynamically -->
             </div>
-
             <!-- Modal Footer -->
             <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs">
                 <span class="text-slate-500 text-[11px]"><i class="fa-solid fa-circle-info text-blue-600 mr-1"></i>????? ???????? ?????? ?????? ????????? ?????? ? ?????????? ???? ????????.</span>
@@ -1204,7 +1126,6 @@
             </div>
         </div>
     </div>
-
     <!-- ================= ADD / EDIT POLLING STATION MODAL ================= -->
     <div id="stationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 z-[2000]">
         <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full p-4 sm:p-5 max-h-[92vh] overflow-y-auto border border-slate-300">
@@ -1216,80 +1137,64 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-
             <form id="stationForm" onsubmit="saveStation(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 <input type="hidden" id="form-id">
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Name of the Mandal / ZPTC Segment *</label>
                     <input type="text" id="form-mandal" required class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Name of the MPTC Segment</label>
                     <input type="text" id="form-mptc" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Route_no *</label>
                     <input type="text" id="form-route" required placeholder="e.g. I, II, III, 1, 2" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 font-bold text-blue-900">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Route Inchage</label>
                     <input type="text" id="form-route-incharge" placeholder="Officer Name, Phone" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Striking force Incharge</label>
                     <input type="text" id="form-striking-incharge" placeholder="Officer Name, Phone" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Special Stricking force Incharge</label>
                     <input type="text" id="form-special-striking" placeholder="Officer Name, Phone" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">QRT</label>
                     <input type="text" id="form-qrt" placeholder="Officer Name, Phone" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Name of the PS *</label>
                     <input type="text" id="form-psname" required class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 font-bold">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Code</label>
                     <input type="text" id="form-code" placeholder="e.g. 101" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 font-mono">
                 </div>
-
                 <div class="sm:col-span-2 md:col-span-3">
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Name of the Polling Station Location (PSL) *</label>
                     <input type="text" id="form-location" required class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 font-semibold">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">No. of Poliing Stations</label>
                     <input type="text" id="form-ps-count" placeholder="e.g. 1 or 2" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">No. of Voters</label>
                     <input type="number" id="form-voters" placeholder="0" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 font-bold text-purple-700">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Name & Contact No. of BLO</label>
                     <input type="text" id="form-blo" placeholder="Name, Phone" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Distance from Police Station in KMs</label>
                     <input type="text" id="form-distance" placeholder="e.g. 12" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Sensitivity *</label>
                     <select id="form-categorization" required class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs font-semibold focus:ring-1 focus:ring-blue-500 bg-white">
@@ -1299,48 +1204,39 @@
                         <option value="HYPER SENSITIVE">HYPER SENSITIVE</option>
                     </select>
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">SI</label>
                     <input type="text" id="form-si" placeholder="SI count/name" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">ASI/HC</label>
                     <input type="text" id="form-asi" placeholder="ASI/HC count/details" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">PC</label>
                     <input type="text" id="form-pc" placeholder="PC count" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">HG</label>
                     <input type="text" id="form-hg" placeholder="HG count" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Others</label>
                     <input type="text" id="form-others" placeholder="Others staff" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Latitude</label>
                     <input type="text" id="form-lat" placeholder="e.g. 18.2982" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 font-mono">
                 </div>
-
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Longitude</label>
                     <input type="text" id="form-lng" placeholder="e.g. 83.8966" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-blue-500 font-mono">
                 </div>
-
                 <div class="flex items-end">
                     <button type="button" onclick="pickCoordinatesOnMap()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1.5 rounded text-xs border border-slate-300 flex items-center justify-center gap-1 transition">
                         <i class="fa-solid fa-map-pin text-rose-600"></i> Map Coordinates Picker
                     </button>
                 </div>
-
                 <div class="sm:col-span-2 md:col-span-3 flex justify-end gap-2 pt-3 border-t">
                     <button type="button" onclick="closeModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-3 py-1.5 rounded text-xs">
                         Cancel / ????????
@@ -1352,7 +1248,6 @@
             </form>
         </div>
     </div>
-
     <!-- ================= DATA BACKUP & RESTORE MODAL ================= -->
     <div id="dataModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 z-[2000]">
         <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-4 border border-slate-300">
@@ -1374,7 +1269,6 @@
                         <i class="fa-solid fa-download"></i> Download stations.json Backup
                     </button>
                 </div>
-
                 <div class="p-2.5 bg-slate-50 rounded border border-slate-200 space-y-2">
                     <b class="text-slate-800">2. ???????? ??????? ????:</b>
                     <input type="file" id="json-upload-input" accept=".json" class="w-full text-[11px]">
@@ -1382,7 +1276,6 @@
                         <i class="fa-solid fa-upload"></i> Restore from JSON
                     </button>
                 </div>
-
                 <div class="p-2.5 bg-rose-50 rounded border border-rose-200 space-y-2">
                     <b class="text-rose-800">3. ???????? ???? ??????:</b>
                     <p class="text-rose-600 text-[11px]">????? ????????? ???????? ????? 1,329 ??????????? ?????? ?????????.</p>
@@ -1393,11 +1286,9 @@
             </div>
         </div>
     </div>
-
     <!-- Load Local Stations Dataset & Precomputed Road Routes Geometry -->
     <script src="data/stations.js"></script>
     <script defer src="data/routes_geometry.js"></script>
-
     <!-- Main Application JavaScript Logic -->
     <script>
         // Global State
@@ -1414,7 +1305,6 @@
         let tableCurrentPage = 1;
         let tablePageSize = 50;
         let tableFilteredStations = [];
-
         // Sensitivity styles & marker icons
         const SENSITIVITY_COLORS = {
             'NORMAL': { bg: '#10b981', text: '#065f46', badge: 'bg-emerald-100 text-emerald-800 border-emerald-300', iconUrl: 'NORMAL.jpeg' },
@@ -1422,17 +1312,14 @@
             'CRITICAL': { bg: '#f97316', text: '#9a3412', badge: 'bg-orange-100 text-orange-800 border-orange-300', iconUrl: 'CRITICAL.jpeg' },
             'HYPER SENSITIVE': { bg: '#e11d48', text: '#9f1239', badge: 'bg-rose-100 text-rose-800 border-rose-300', iconUrl: 'HYPER SENSITIVE.jpeg' }
         };
-
         // Initialize App on DOM Ready
         let isMainMapInitialized = false;
         let isTableRendered = false;
-
         document.addEventListener('DOMContentLoaded', async () => {
             initTableColumns();
             await initializeDataset();
             renderDashboard();
             populateDropdowns();
-
             document.addEventListener('keydown', e => {
                 if (e.key === 'Escape') {
                     if (typeof closeEnlargedRouteModal === 'function') closeEnlargedRouteModal();
@@ -1447,7 +1334,6 @@
             // Main Map is initialized strictly on-demand when the user clicks the "Live Route Map" tab!
             // This guarantees instant, lightning-fast loading on mobile phones without thread lockup.
         });
-
         function initMainMapLazy() {
             if (isMainMapInitialized) return;
             if (typeof L === 'undefined') {
@@ -1457,7 +1343,6 @@
             isMainMapInitialized = true;
             initMainMap();
         }
-
         // Initialize Data (LocalStorage -> window.INITIAL_STATIONS -> fetch fallback)
         async function initializeDataset() {
             const DATASET_VERSION = "2026-11-06_v26_force_full_refresh";
@@ -1466,7 +1351,6 @@
                 localStorage.removeItem('POLICE_ELECTION_STATIONS_DATA');
                 localStorage.setItem('POLICE_ELECTION_DATASET_VERSION', DATASET_VERSION);
             }
-
             const stored = localStorage.getItem('POLICE_ELECTION_STATIONS_DATA');
             if (stored) {
                 try {
@@ -1480,13 +1364,11 @@
                     console.error('Error parsing local storage:', e);
                 }
             }
-
             if (window.INITIAL_STATIONS && Array.isArray(window.INITIAL_STATIONS) && window.INITIAL_STATIONS.length > 0) {
                 allStations = window.INITIAL_STATIONS;
                 console.log('Loaded from stations.js:', allStations.length);
                 return;
             }
-
             try {
                 const res = await fetch('data/stations.json');
                 allStations = await res.json();
@@ -1496,7 +1378,6 @@
                 allStations = [];
             }
         }
-
         function saveDatasetLocally() {
             try {
                 localStorage.setItem('POLICE_ELECTION_STATIONS_DATA', JSON.stringify(allStations));
@@ -1504,12 +1385,8 @@
                 console.warn('Storage limit or error:', e);
             }
         }
-
-
-
         let isLiveModeActive = false;
         let userLocationMarker = null;
-
         function locateUserPosition() {
             if (!navigator.geolocation) {
                 alert("GPS Geolocation is not supported in this browser.");
@@ -1537,7 +1414,6 @@
                 { enableHighAccuracy: true, timeout: 8000 }
             );
         }
-
         // Tab Switching Logic
         function switchTab(tabId) {
             ['dashboard', 'map', 'report', 'routewise', 'livemap'].forEach(t => {
@@ -1547,7 +1423,6 @@
                     else el.classList.add('hidden');
                 }
             });
-
             // Update all navbar button highlights
             ['dashboard', 'report', 'map', 'livemap', 'routewise'].forEach(t => {
                 const btn = document.getElementById(`tab-btn-${t}`);
@@ -1561,7 +1436,6 @@
                     }
                 }
             });
-
             if (tabId === 'map') {
                 if (!isMainMapInitialized) {
                     initMainMapLazy();
@@ -1592,25 +1466,20 @@
                 renderDashboard();
             }
         }
-
         // Populate all filter dropdowns
         function populateDropdowns() {
             const psSet = new Set();
             const routeSet = new Set();
-
             allStations.forEach(s => {
                 if (s.psname) psSet.add(s.psname.trim());
                 if (s.route_no) routeSet.add(s.route_no.trim());
             });
-
             const sortedPS = Array.from(psSet).sort();
             const sortedRoutes = Array.from(routeSet).sort();
-
             // Populate Map PS
             const mapPsSelect = document.getElementById('map-filter-psname');
             const tablePsSelect = document.getElementById('table-filter-ps');
             const routeTabPsSelect = document.getElementById('route-tab-psname');
-
             // Batch generate options
             const psOptions = sortedPS.map(ps => `<option value="${ps}">${ps}</option>`).join('');
             if (mapPsSelect) mapPsSelect.innerHTML = '<option value="">-- All Police Stations --</option>' + psOptions;
@@ -1618,7 +1487,6 @@
             if (routeTabPsSelect) routeTabPsSelect.innerHTML = '<option value="">-- ???????? ?????? ??????? --</option>' + psOptions;
             const livePsSelect = document.getElementById('live-filter-psname');
             if (livePsSelect) livePsSelect.innerHTML = '<option value="">-- All Police Stations --</option>' + psOptions;
-
             // Populate Table Routes
             // Populate Live Route Map Routes with Natural Sorting
             const mapRouteSelect = document.getElementById('map-filter-route');
@@ -1633,7 +1501,6 @@
             if (tableRouteSelect) {
                 tableRouteSelect.innerHTML = '<option value="">-- All Routes --</option>' + sortedRoutes.map(r => `<option value="${r}">Route - ${r}</option>`).join('');
             }
-
             // Populate Location & Village Datalist for Search Autocomplete
             const datalist = document.getElementById('all-locations-datalist');
             if (datalist) {
@@ -1642,7 +1509,6 @@
                 
                 const prefixRegex = /^(?:m\.?p\.?p\.?\s*(?:school|special school|sp\.?\s*school|primary school|upp\.?\s*school)?[\s,]*|m\.?p\.?u\.?p\.?s?[\s,]*|z\.?p\.?h\.?s?[\s,]*|mandal parishad\s*(?:primary|upper primary)?\s*school[\s,]*|gram panchayat office[\s,]*|community hall[\s,]*|anganwadi centre[\s,]*)/i;
                 const suffixRegex = /[\s,]+(?:room|r\.no|east|west|north|south|new|old|building).*$/i;
-
                 allStations.forEach(s => {
                     const loc = (s.polling_station_location || '').trim();
                     const ps = (s.psname || '').trim();
@@ -1650,14 +1516,12 @@
                     if (loc && !locMap.has(loc)) {
                         locMap.set(loc, `${ps} PS${dist ? ' - ' + dist : ''}`);
                     }
-
                     // Extract village name
                     let v = loc.replace(prefixRegex, '').replace(suffixRegex, '').trim().replace(/^[,\s.-]+|[,\s.-]+$/g, '');
                     if (v.length >= 3) {
                         villageSet.add(v);
                     }
                 });
-
                 // Batch build datalist options in memory
                 let dlHtml = '';
                 Array.from(villageSet).sort().forEach(v => {
@@ -1669,31 +1533,26 @@
                 datalist.innerHTML = dlHtml;
             }
         }
-
         function clearMapSearch() {
             const input = document.getElementById('map-search-text');
             if (input) input.value = '';
             hideSuggestions('map-psl-suggestions');
             applyMapFilters();
         }
-
         // ================= DASHBOARD RENDERING =================
         function renderDashboard() {
             let total = allStations.length;
             let normal = 0, sensitive = 0, critical = 0, hyper = 0, voters = 0;
             const psMap = {};
             const routeSet = new Set();
-
             allStations.forEach(s => {
                 const cat = (s.categorization || 'NORMAL').trim().toUpperCase();
                 if (cat === 'HYPER SENSITIVE') hyper++;
                 else if (cat === 'CRITICAL') critical++;
                 else if (cat === 'SENSITIVE') sensitive++;
                 else normal++;
-
                 const v = parseInt(s.no_of_voters, 10);
                 if (!isNaN(v)) voters += v;
-
                 const ps = (s.psname || 'Unknown').trim();
                 if (!psMap[ps]) {
                     psMap[ps] = { total: 0, normal: 0, sensitive: 0, critical: 0, hyper: 0, voters: 0, routes: new Set() };
@@ -1703,55 +1562,42 @@
                 else if (cat === 'CRITICAL') psMap[ps].critical++;
                 else if (cat === 'SENSITIVE') psMap[ps].sensitive++;
                 else psMap[ps].normal++;
-
                 if (!isNaN(v)) psMap[ps].voters += v;
                 if (s.route_no) {
                     psMap[ps].routes.add(s.route_no.trim());
                     routeSet.add(s.route_no.trim());
                 }
             });
-
             document.getElementById('dash-total-ps').innerText = total.toLocaleString();
             document.getElementById('dash-ps-count').innerText = `${Object.keys(psMap).length} Police Stations`;
             
             document.getElementById('dash-normal-ps').innerText = normal.toLocaleString();
             document.getElementById('dash-normal-pct').innerText = total > 0 ? `${((normal/total)*100).toFixed(1)}% of total` : '0%';
-
             document.getElementById('dash-sensitive-ps').innerText = sensitive.toLocaleString();
             document.getElementById('dash-sensitive-pct').innerText = total > 0 ? `${((sensitive/total)*100).toFixed(1)}% of total` : '0%';
-
             document.getElementById('dash-critical-ps').innerText = critical.toLocaleString();
             document.getElementById('dash-critical-pct').innerText = total > 0 ? `${((critical/total)*100).toFixed(1)}% of total` : '0%';
-
             document.getElementById('dash-hypersensitive-ps').innerText = hyper.toLocaleString();
             document.getElementById('dash-hypersensitive-pct').innerText = total > 0 ? `${((hyper/total)*100).toFixed(1)}% of total` : '0%';
-
             document.getElementById('dash-total-voters').innerText = voters.toLocaleString();
             document.getElementById('dash-routes-count').innerText = `${routeSet.size} Active Patrol Routes`;
-
             // Render PS Summary Matrix
             renderPSMatrix(psMap);
         }
-
         let currentPsMap = {};
-
         function renderPSMatrix(psMap) {
             currentPsMap = psMap || currentPsMap || {};
             filterPSMatrix();
         }
-
         function filterPSMatrix() {
             const tbody = document.getElementById('dash-matrix-tbody');
             const tfoot = document.getElementById('dash-matrix-tfoot');
             if (!tbody) return;
             tbody.innerHTML = '';
-
             const q = (document.getElementById('dash-matrix-search')?.value || '').trim().toLowerCase();
             const sorted = Object.keys(currentPsMap).sort();
-
             let totStations = 0, totNormal = 0, totSens = 0, totCrit = 0, totHyp = 0, totRoutes = 0, totVoters = 0;
             let countShown = 0;
-
             let rowsHtml = '';
             sorted.forEach(ps => {
                 const info = currentPsMap[ps];
@@ -1762,10 +1608,8 @@
                 totHyp += info.hyper;
                 totRoutes += info.routes.size;
                 totVoters += info.voters;
-
                 if (q && !ps.toLowerCase().includes(q)) return;
                 countShown++;
-
                 rowsHtml += `
                     <tr class="hover:bg-blue-50/70 border-b border-slate-100 transition">
                         <td class="p-2.5 font-bold text-slate-900">${ps}</td>
@@ -1785,10 +1629,8 @@
                 `;
             });
             tbody.innerHTML = rowsHtml;
-
             const countEl = document.getElementById('dash-matrix-ps-count');
             if (countEl) countEl.innerText = `${countShown} Police Stations`;
-
             if (tfoot) {
                 tfoot.innerHTML = `
                     <tr>
@@ -1809,14 +1651,12 @@
                 `;
             }
         }
-
         function jumpToPSMap(psName) {
             switchTab('map');
             const psSelect = document.getElementById('map-filter-psname');
             psSelect.value = psName;
             onMapPSChange(psName);
         }
-
         let isMatrixExpanded = false;
         function toggleMatrixHeightMode() {
             const card = document.getElementById('dash-matrix-card');
@@ -1836,53 +1676,42 @@
                 if (icon) icon.className = 'fa-solid fa-up-right-and-down-left-from-center';
             }
         }
-
         // ================= TAB 2: LIVE LEAFLET MAP LOGIC =================
         function initMainMap() {
             if (mainMap) return;
-
             // Default centered on Srikakulam / AP region
             mainMap = L.map('main-map').setView([18.3, 83.9], 10);
-
             // Base Tile Layers
             const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '� OpenStreetMap contributors'
             }).addTo(mainMap);
-
             const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
                 maxZoom: 20,
                 subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
                 attribution: '� Google Maps Satellite'
             });
-
             const cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                 attribution: '� CARTO'
             });
-
             L.control.layers({
                 "OpenStreetMap": osm,
                 "Google Satellite Hybrid": googleHybrid,
                 "Carto Light Clean": cartoLight
             }, null, { position: 'topright' }).addTo(mainMap);
-
             // Initialize isolated layer groups (Direct crisp station pins, no cluster numbers)
             mainMarkersGroup = L.layerGroup().addTo(mainMap);
             mainRoutesGroup = L.layerGroup().addTo(mainMap);
-
             // Load Mandal Boundaries from KMZ using JSZip
             loadMandalBoundaries();
-
             // Initial render of markers
             applyMapFilters();
         }
-
         let isLoadingBorders = false;
         async function loadMandalBoundaries() {
             if (mandalBoundariesLayer || isLoadingBorders) return;
             const toggle = document.getElementById('map-toggle-borders');
             if (toggle && !toggle.checked) return;
-
             isLoadingBorders = true;
             try {
                 // Dynamically ensure JSZip and omnivore are loaded
@@ -1896,12 +1725,10 @@
                         document.head.appendChild(s);
                     });
                 };
-
                 await Promise.all([
                     loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', () => typeof JSZip !== 'undefined'),
                     loadScript('https://unpkg.com/@mapbox/leaflet-omnivore@0.3.4/leaflet-omnivore.min.js', () => typeof omnivore !== 'undefined')
                 ]);
-
                 const res = await fetch('BORDERSKL-Mandals.kmz');
                 if (!res.ok) throw new Error('KMZ not found');
                 const data = await res.arrayBuffer();
@@ -1909,7 +1736,6 @@
                 const kmlFileName = Object.keys(zip.files).find(name => name.toLowerCase().endsWith('.kml'));
                 if (!kmlFileName) throw new Error('No KML inside KMZ');
                 const kmlText = await zip.files[kmlFileName].async('string');
-
                 mandalBoundariesLayer = omnivore.kml.parse(kmlText, null, L.geoJson(null, {
                     style: function() {
                         return { color: "#2563eb", weight: 2, opacity: 0.85, fillOpacity: 0.08, interactive: false };
@@ -1918,7 +1744,6 @@
                         layer.options.interactive = false;
                     }
                 }));
-
                 if (mainMap && document.getElementById('map-toggle-borders')?.checked) {
                     mandalBoundariesLayer.addTo(mainMap);
                 }
@@ -1928,7 +1753,6 @@
                 isLoadingBorders = false;
             }
         }
-
         function toggleBorders(show) {
             if (!show) {
                 if (mandalBoundariesLayer && mainMap) mainMap.removeLayer(mandalBoundariesLayer);
@@ -1940,17 +1764,14 @@
                 }
             }
         }
-
         function toggleRoadRoutes(show) {
             if (!mainRoutesGroup || !mainMap) return;
             if (show) mainMap.addLayer(mainRoutesGroup);
             else mainMap.removeLayer(mainRoutesGroup);
         }
-
         function onMapPSChange(psname) {
             const routeSelect = document.getElementById('map-filter-route');
             if (!routeSelect) return;
-
             let optsHtml = '<option value="">-- All Routes --</option>';
             if (psname) {
                 const routesInPS = new Set();
@@ -1969,7 +1790,6 @@
             routeSelect.value = '';
             applyMapFilters();
         }
-
         function resetMapFilters() {
             document.getElementById('map-filter-psname').value = '';
             document.getElementById('map-filter-route').innerHTML = '<option value="">-- All Routes --</option>';
@@ -1977,12 +1797,10 @@
             document.getElementById('map-search-text').value = '';
             applyMapFilters();
         }
-
         function matchStationLocationSearch(s, rawQuery) {
             if (!rawQuery) return true;
             const cleanQ = rawQuery.replace(/\s*[\(\[].*$/, '').trim().toLowerCase();
             if (!cleanQ) return true;
-
             const loc = (s.polling_station_location || '').toLowerCase();
             const ps = (s.psname || '').toLowerCase();
             const mandal = (s.mandal_zptc_segment || '').toLowerCase();
@@ -1990,9 +1808,7 @@
             const code = String(s.code || '').toLowerCase();
             const staff = (s.route_staff || '').toLowerCase();
             const full = `${loc} ${ps} ${mandal} ${mptc} ${code} ${staff}`;
-
             if (full.includes(cleanQ)) return true;
-
             const tokens = cleanQ.split(/\s+/).filter(t => t.length > 0);
             if (tokens.length > 1) {
                 return tokens.every(t => full.includes(t) || (t.length >= 5 && full.includes(t.slice(0, -1))));
@@ -2004,22 +1820,17 @@
             }
             return false;
         }
-
         function applyMapFilters() {
             if (!mainMap) return;
-
             // Invalidate any in-flight asynchronous route requests
             const thisToken = ++currentMapFilterToken;
-
             const selectedPS = document.getElementById('map-filter-psname').value.trim();
             const selectedRoute = document.getElementById('map-filter-route').value.trim();
             const selectedCat = document.getElementById('map-filter-category').value.trim();
             const searchText = document.getElementById('map-search-text').value.trim();
-
             // Completely wipe previous markers & route lines across the entire district!
             if (mainMarkersGroup) mainMarkersGroup.clearLayers();
             if (mainRoutesGroup) mainRoutesGroup.clearLayers();
-
             // Strict filtering: ONLY matching stations are allowed!
             // Calculate category counts for Live Route Map pills
             let mcAll = 0, mcNormal = 0, mcSensitive = 0, mcCritical = 0, mcHyper = 0;
@@ -2036,9 +1847,7 @@
             if (document.getElementById('map-cat-count-sensitive')) document.getElementById('map-cat-count-sensitive').innerText = mcSensitive.toLocaleString();
             if (document.getElementById('map-cat-count-critical')) document.getElementById('map-cat-count-critical').innerText = mcCritical.toLocaleString();
             if (document.getElementById('map-cat-count-hyper')) document.getElementById('map-cat-count-hyper').innerText = mcHyper.toLocaleString();
-
             const distFilter = (document.getElementById('map-filter-distance')?.value || '').trim();
-
             // Strict filtering matching Polling Station Report logic
             filteredMapStations = allStations.filter(s => {
                 if (selectedPS && (s.psname || '').trim() !== selectedPS) return false;
@@ -2051,7 +1860,6 @@
                 } else if (selectedCat && cat !== selectedCat) {
                     return false;
                 }
-
                 // Distance filter
                 if (distFilter) {
                     const d = parseFloat(s.distance_from_ps_kms) || 0;
@@ -2059,48 +1867,36 @@
                     if (distFilter === 'medium' && (d <= 5 || d > 12)) return false;
                     if (distFilter === 'far' && d <= 12) return false;
                 }
-
                 if (searchText && !matchStationLocationSearch(s, searchText)) return false;
                 return true;
             });
-
             if (document.getElementById('btn-sync-map-count') && typeof tableFilteredStations !== 'undefined') {
                 document.getElementById('btn-sync-map-count').innerText = tableFilteredStations.length;
             }
-
             document.getElementById('legend-total-shown').innerText = `${filteredMapStations.length} Shown`;
-
             const routeGroups = {};
             const routeStaffInfo = {};
             const bounds = [];
-
             const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
             const shouldBindTooltip = !isTouchDevice || filteredMapStations.length <= 120;
-
             filteredMapStations.forEach((s) => {
                 const lat = parseFloat(s.latitude);
                 const lng = parseFloat(s.longitude);
-
                 if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
                     const latLng = [lat, lng];
                     bounds.push(latLng);
-
                     const cat = (s.categorization || 'NORMAL').trim().toUpperCase();
                     const markerIcon = createStationMarkerIcon(cat);
-
                     const marker = L.marker(latLng, { icon: markerIcon });
                     mainMarkersGroup.addLayer(marker);
-
                     // Tooltip (Only on desktop or when filtered to a reasonable number to preserve mobile speed)
                     if (shouldBindTooltip) {
                         const locName = s.polling_station_location || `PS Code ${s.code || ''}`;
                         const shortName = locName.length > 25 ? locName.substring(0, 25) + '...' : locName;
                         marker.bindTooltip(shortName, { direction: 'top', className: 'ps-tooltip-badge', offset: [0, -18] });
                     }
-
                     // Lazy Popup Content (created on-demand when marker is clicked)
                     marker.bindPopup(() => buildStationPopupHtml(s), { maxWidth: 440, minWidth: 320 });
-
                     // Group exclusively for this station's route
                     const rKey = `${s.psname || 'PS'}_${s.route_no || 'R'}`;
                     if (!routeGroups[rKey]) {
@@ -2129,7 +1925,6 @@
                     routeStaffInfo[rKey].stations.push(s);
                 }
             });
-
             // Update Active Route & Journey Banner (Visible when route, PS, or village/station is searched/filtered)
             const banner = document.getElementById('active-route-banner');
             if (filteredMapStations.length > 0 && (selectedPS || selectedRoute || searchText)) {
@@ -2184,18 +1979,15 @@
             } else {
                 banner.classList.add('hidden');
             }
-
             // Draw road routes whenever toggled (both for individual PS and district-wide All PS view)
             const canDrawRoutes = document.getElementById('map-toggle-routes').checked;
             if (canDrawRoutes && Object.keys(routeGroups).length > 0) {
                 drawRoadRoutesForMap(routeGroups, routeStaffInfo, thisToken);
             }
-
             // Tightly auto-zoom directly to the selected stations!
             if (bounds.length > 0) {
                 mainMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
             }
-
             // If user searched for a specific village or school and got 1 to 4 matches, auto-open popup on the first match
             if (searchText && filteredMapStations.length >= 1 && filteredMapStations.length <= 4 && bounds.length > 0) {
                 setTimeout(() => {
@@ -2207,7 +1999,6 @@
                     }
                 }, 350);
             }
-
             // Update Report Table below map
             const mapTableBtnCount = document.getElementById('map-table-shown-count');
             if (mapTableBtnCount) mapTableBtnCount.innerText = filteredMapStations.length;
@@ -2215,7 +2006,6 @@
                 renderMapReportTable();
             }
         }
-
         function createStationMarkerIcon(categorization) {
             const cat = (categorization || 'NORMAL').trim().toUpperCase();
             const config = SENSITIVITY_COLORS[cat] || SENSITIVITY_COLORS['NORMAL'];
@@ -2229,11 +2019,9 @@
             else if (cat === 'CRITICAL') letter = 'C';
             else if (cat === 'SENSITIVE') letter = 'S';
             else letter = 'N';
-
             // Alert pulse animation for Hyper Sensitive (only when zoomed or filtered to prevent mobile CPU overload)
             const shouldPulse = isHyper && (filteredMapStations.length <= 100);
             const pulseHtml = shouldPulse ? `<div style="position:absolute; top:-2px; left:-2px; width:38px; height:38px; border-radius:50%; background:#e11d48; opacity:0.35; animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>` : '';
-
             const html = `
                 <div style="position: relative; width: 34px; height: 44px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); cursor: pointer; text-align: center;">
                     ${pulseHtml}
@@ -2246,7 +2034,6 @@
                     </div>
                 </div>
             `;
-
             return L.divIcon({
                 className: 'custom-station-pin',
                 html: html,
@@ -2255,7 +2042,6 @@
                 popupAnchor: [0, -38]
             });
         }
-
         // Field keys definition for Polling Station Popup customization
         var POPUP_FIELD_KEYS = [
             { key: 'mandal_zptc', label: 'Name of the Mandal / ZPTC Segment' },
@@ -2281,7 +2067,6 @@
             { key: 'lat', label: 'Latitude' },
             { key: 'lng', label: 'Longitude' }
         ];
-
         function getPopupHiddenFields() {
             try {
                 const val = localStorage.getItem('ps_hidden_fields');
@@ -2290,13 +2075,11 @@
                 return [];
             }
         }
-
         function setPopupHiddenFields(arr) {
             try {
                 localStorage.setItem('ps_hidden_fields', JSON.stringify(arr));
             } catch(e) {}
         }
-
         function togglePopupFieldsManager(btn) {
             const popup = btn.closest('.station-popup-card');
             if (!popup) return;
@@ -2305,7 +2088,6 @@
                 drawer.classList.toggle('hidden');
             }
         }
-
         function hideSinglePopupField(key, btn) {
             let hidden = getPopupHiddenFields();
             if (!hidden.includes(key)) {
@@ -2321,7 +2103,6 @@
                 updatePopupCountsAndCheckboxes(popup, hidden);
             }
         }
-
         function toggleFieldFromCheckbox(key, isChecked, cb) {
             let hidden = getPopupHiddenFields();
             if (isChecked) {
@@ -2341,7 +2122,6 @@
                 updatePopupCountsAndCheckboxes(popup, hidden);
             }
         }
-
         function setAllPopupFieldsVisible(btn, makeAllVisible) {
             const hidden = makeAllVisible ? [] : POPUP_FIELD_KEYS.map(f => f.key);
             setPopupHiddenFields(hidden);
@@ -2354,7 +2134,6 @@
                 updatePopupCountsAndCheckboxes(popup, hidden);
             }
         }
-
         function updatePopupCountsAndCheckboxes(popup, hidden) {
             const total = POPUP_FIELD_KEYS.length;
             const hiddenCount = hidden.length;
@@ -2368,7 +2147,6 @@
                 cb.checked = !hidden.includes(k);
             });
         }
-
         function buildStationPopupHtml(station) {
             const cat = (station.categorization || 'NORMAL').trim().toUpperCase();
             const badgeClass = SENSITIVITY_COLORS[cat]?.badge || 'bg-slate-100 text-slate-800';
@@ -2380,7 +2158,6 @@
             const totalCount = POPUP_FIELD_KEYS.length;
             const hiddenCount = hidden.length;
             const visibleCount = totalCount - hiddenCount;
-
             return `
                 <div class="station-popup-card p-1 font-sans text-xs max-w-[420px]">
                     <div class="flex justify-between items-start gap-1 pb-1.5 border-b mb-1.5">
@@ -2390,7 +2167,6 @@
                         </div>
                         <span class="px-1.5 py-0.5 rounded text-[10px] font-bold border ${badgeClass} shrink-0">${cat}</span>
                     </div>
-
                     <!-- Prominent Travel Route Card (From Police Station to Polling Station) -->
                     <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded p-2 mb-2 text-xs shadow-xs">
                         <div class="flex items-center justify-between text-[10px] font-bold text-blue-900 border-b border-blue-200 pb-1 mb-1">
@@ -2412,7 +2188,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- Details Toolbar with count & Hide/Show button -->
                     <div class="flex items-center justify-between px-1.5 py-1 mb-1.5 bg-slate-100 rounded border border-slate-200 text-[11px]">
                         <div class="flex items-center gap-1">
@@ -2423,7 +2198,6 @@
                             <i class="fa-solid fa-sliders text-[9px]"></i> Hide / Show Fields
                         </button>
                     </div>
-
                     <!-- Manager Drawer inside Popup (Hidden by default) -->
                     <div class="popup-fields-manager hidden bg-slate-50 border border-slate-300 rounded p-2 mb-2 text-xs shadow-inner">
                         <div class="flex items-center justify-between pb-1.5 border-b border-slate-200 mb-1.5">
@@ -2442,7 +2216,6 @@
                             `).join('')}
                         </div>
                     </div>
-
                     <!-- Table with all 22 fields and individual quick hide buttons -->
                     <div class="max-h-72 sm:max-h-80 overflow-y-auto pr-1 mb-2 border-t border-b border-slate-200">
                         <table class="w-full text-[11px] leading-snug">
@@ -2648,7 +2421,6 @@
                             </tbody>
                         </table>
                     </div>
-
                     <div class="flex gap-1.5 pt-1 border-t">
                         <a href="${navUrl}" target="_blank" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-2 rounded text-[11px] flex items-center justify-center gap-1 shadow-sm">
                             <i class="fa-solid fa-diamond-turn-right"></i> Navigate (Google Maps)
@@ -2660,7 +2432,6 @@
                 </div>
             `;
         }
-
                 function focusStationOnMap(lat, lng, stationId) {
             if (!mainMap) return;
             const fLat = parseFloat(lat);
@@ -2675,7 +2446,6 @@
                 }
             }
         }
-
         function buildRouteVillagesPopupHtml(info, distKm) {
             const stations = info.stations || [];
             let totalVoters = 0;
@@ -2688,11 +2458,9 @@
                 else if (cat === 'SENSITIVE') nSensitive++;
                 else nNormal++;
             });
-
             const distBadge = distKm 
                 ? `${distKm} KM Road Route` 
                 : (stations.length > 0 && stations[stations.length - 1].distance_from_ps_kms ? `~${stations[stations.length - 1].distance_from_ps_kms} KM from PS` : 'Patrol Route');
-
             const rKey = `${info.ps || 'PS'}_${info.route || 'R'}`.replace(/[^a-zA-Z0-9_]/g, '_');
             window.ROUTE_MODAL_CACHE = window.ROUTE_MODAL_CACHE || {};
             window.ROUTE_MODAL_CACHE[rKey] = {
@@ -2705,7 +2473,6 @@
                 nHyper: nHyper,
                 totalVoters: totalVoters
             };
-
             let listHtml = '';
             stations.forEach((st, idx) => {
                 const cat = (st.categorization || 'NORMAL').trim().toUpperCase();
@@ -2716,7 +2483,6 @@
                                  'bg-emerald-600 text-white';
                 const distStr = st.distance_from_ps_kms ? `${st.distance_from_ps_kms} km` : '-';
                 const voters = (parseInt(st.no_of_voters, 10) || 0).toLocaleString();
-
                 listHtml += `
                     <div onclick="focusStationOnMap(${st.latitude}, ${st.longitude}, ${st.id})" class="p-2 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 transition cursor-pointer flex items-start justify-between gap-2 shadow-xs group">
                         <div class="flex items-start gap-2 min-w-0">
@@ -2743,7 +2509,6 @@
                     </div>
                 `;
             });
-
             return `
                 <div class="p-1 font-sans text-xs max-w-sm">
                     <!-- Route Header Banner -->
@@ -2780,7 +2545,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- Route Summary Badges -->
                     <div class="grid grid-cols-2 gap-1.5 mb-1.5 text-center text-[11px]">
                         <div class="bg-blue-50 border border-blue-200 rounded p-1">
@@ -2792,7 +2556,6 @@
                             <b class="text-purple-900 font-black text-xs">${totalVoters.toLocaleString()} Voters</b>
                         </div>
                     </div>
-
                     <!-- Sensitivity Category Breakdown (Requested by User) -->
                     <div class="grid grid-cols-4 gap-1 mb-2 text-center text-[10px]">
                         <div class="bg-emerald-50 border border-emerald-300 rounded p-1 shadow-2xs">
@@ -2812,7 +2575,6 @@
                             <b class="text-rose-950 font-black text-xs">${nHyper}</b>
                         </div>
                     </div>
-
                     <!-- Villages List Title -->
                     <div class="flex items-center justify-between font-bold text-slate-800 text-xs border-b pb-1 mb-1.5">
                         <span class="flex items-center gap-1 text-slate-900">
@@ -2820,7 +2582,6 @@
                         </span>
                         <span class="text-[10px] text-slate-500 font-normal">???????? ?????? ???? ??????</span>
                     </div>
-
                     <!-- Scrollable Village Stations List -->
                     <div class="max-h-64 overflow-y-auto space-y-1.5 pr-0.5">
                         ${listHtml || '<div class="text-slate-400 text-center py-2">? ???? ?? ?????? ??????? ????????? ????.</div>'}
@@ -2828,21 +2589,16 @@
                 </div>
             `;
         }
-
         // ================= ENLARGED ROUTE DETAILS MODAL LOGIC =================
         let activeEnlargedRouteKey = null;
-
         function openEnlargedRouteModal(rKey) {
             const cached = window.ROUTE_MODAL_CACHE && window.ROUTE_MODAL_CACHE[rKey];
             if (!cached) return;
             activeEnlargedRouteKey = rKey;
-
             const modal = document.getElementById('enlarged-route-modal');
             if (!modal) return;
-
             const { info, distBadge, nNormal, nSensitive, nCritical, nHyper, totalVoters } = cached;
             const stations = info.stations || [];
-
             document.getElementById('enlarged-route-tag').innerHTML = `<i class="fa-solid fa-route mr-1"></i> ROUTE ${info.route}`;
             document.getElementById('enlarged-route-dist').innerText = distBadge;
             document.getElementById('enlarged-route-ps').innerText = `${info.ps} Police Station`;
@@ -2853,32 +2609,26 @@
             if (document.getElementById('enlarged-special-striking-incharge')) {
                 document.getElementById('enlarged-special-striking-incharge').innerHTML = formatPhoneLinks(info.special_striking_force_incharge || '-');
             }
-
             document.getElementById('enlarged-route-stations-count').innerText = `${stations.length} Stations`;
             document.getElementById('enlarged-route-voters-count').innerText = `${totalVoters.toLocaleString()} Voters`;
             document.getElementById('enlarged-route-normal-count').innerText = nNormal;
             document.getElementById('enlarged-route-sensitive-count').innerText = nSensitive;
             document.getElementById('enlarged-route-critical-count').innerText = nCritical;
             document.getElementById('enlarged-route-hyper-count').innerText = nHyper;
-
             const searchInput = document.getElementById('enlarged-route-search');
             if (searchInput) searchInput.value = '';
-
             renderEnlargedRouteVillagesList(stations);
             modal.classList.remove('hidden');
         }
-
         function closeEnlargedRouteModal() {
             const modal = document.getElementById('enlarged-route-modal');
             if (modal) modal.classList.add('hidden');
             activeEnlargedRouteKey = null;
         }
-
         function filterEnlargedRouteVillages() {
             if (!activeEnlargedRouteKey) return;
             const cached = window.ROUTE_MODAL_CACHE && window.ROUTE_MODAL_CACHE[activeEnlargedRouteKey];
             if (!cached) return;
-
             const q = (document.getElementById('enlarged-route-search')?.value || '').trim().toLowerCase();
             const stations = cached.info.stations || [];
             const filtered = stations.filter(s => {
@@ -2888,22 +2638,17 @@
                 const cat = (s.categorization || '').toLowerCase();
                 return loc.includes(q) || code.includes(q) || cat.includes(q);
             });
-
             renderEnlargedRouteVillagesList(filtered);
         }
-
         function renderEnlargedRouteVillagesList(stations) {
             const container = document.getElementById('enlarged-route-table-body');
             const countEl = document.getElementById('enlarged-route-shown-count');
             if (!container) return;
-
             if (countEl) countEl.innerText = `${stations.length} Villages Shown`;
-
             if (stations.length === 0) {
                 container.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm font-semibold">?????? ???????? ???????????? (No matching villages found).</div>`;
                 return;
             }
-
             let html = `
                 <div class="overflow-x-auto rounded-lg border border-slate-200">
                     <table class="w-full text-left border-collapse text-xs">
@@ -2920,7 +2665,6 @@
                         </thead>
                         <tbody class="divide-y divide-slate-100 bg-white">
             `;
-
             stations.forEach((st, idx) => {
                 const cat = (st.categorization || 'NORMAL').trim().toUpperCase();
                 const badgeClass = SENSITIVITY_COLORS[cat]?.badge || 'bg-slate-100 text-slate-800';
@@ -2933,7 +2677,6 @@
                 const lat = parseFloat(st.latitude);
                 const lng = parseFloat(st.longitude);
                 const hasGps = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
-
                 html += `
                     <tr class="hover:bg-blue-50/60 transition">
                         <td class="p-2.5 text-center font-bold">
@@ -2970,16 +2713,13 @@
                     </tr>
                 `;
             });
-
             html += `
                         </tbody>
                     </table>
                 </div>
             `;
-
             container.innerHTML = html;
         }
-
         // Helper to resolve precomputed road geometry across Roman, Numeric, and Name variations
         function getPrecomputedRoute(ps, route) {
             if (!window.PRECOMPUTED_ROUTES) return null;
@@ -3006,7 +2746,6 @@
             }
             return null;
         }
-
         // Generate smooth Catmull-Rom spline curves through coordinates for graceful natural routing curves
         function getCurvedSplineCoords(points, numInterpolations = 14) {
             if (!points || points.length < 2) return points || [];
@@ -3030,7 +2769,6 @@
                 }
                 return curved;
             }
-
             const curved = [];
             const pts = [points[0], ...points, points[points.length - 1]];
             for (let i = 0; i < pts.length - 3; i++) {
@@ -3038,12 +2776,10 @@
                 const p1 = pts[i + 1];
                 const p2 = pts[i + 2];
                 const p3 = pts[i + 3];
-
                 for (let j = 0; j < numInterpolations; j++) {
                     const t = j / numInterpolations;
                     const t2 = t * t;
                     const t3 = t2 * t;
-
                     const lat = 0.5 * (
                         (2 * p1[0]) +
                         (-p0[0] + p2[0]) * t +
@@ -3062,26 +2798,21 @@
             curved.push(points[points.length - 1]);
             return curved;
         }
-
         // Draw Driving Paths strictly for the active token & selected route
         async function drawRoadRoutesForMap(routeGroups, routeStaffInfo, token) {
             const rKeys = Object.keys(routeGroups);
             const isManyRoutes = rKeys.length > 6;
-
             for (const rKey of rKeys) {
                 if (token !== currentMapFilterToken) return;
-
                 const coords = routeGroups[rKey];
                 const info = routeStaffInfo[rKey] || {};
                 if (!coords || coords.length < 2) continue;
-
                 // 1. First priority: Check if precomputed true road geometry exists (district-wide road network)
                 const pre = getPrecomputedRoute(info.ps, info.route) || (window.PRECOMPUTED_ROUTES && (window.PRECOMPUTED_ROUTES[rKey] || window.PRECOMPUTED_ROUTES[info.ps + '_' + info.route]));
                 if (pre && pre.coordinates) {
                     drawRoadRouteFromGeometry(pre.coordinates, pre.distKm, info, token);
                     continue;
                 }
-
                 // 2. Fallback: For selected PS or individual route, fetch full OSRM driving geometry live
                 if (!isManyRoutes) {
                     await fetchAndDrawOSRMRoute(coords, info, token);
@@ -3090,7 +2821,6 @@
                 }
             }
         }
-
         let routeCanvasRenderer = null;
         function getRouteCanvasRenderer() {
             if (!routeCanvasRenderer && mainMap) {
@@ -3098,11 +2828,9 @@
             }
             return routeCanvasRenderer;
         }
-
         function drawRoadRouteFromGeometry(roadCoords, distKm, info, token) {
             if (token !== currentMapFilterToken || !mainRoutesGroup) return;
             if (!roadCoords || roadCoords.length < 2) return;
-
             // Crisp white backing outline for maximum visibility
             const outline = L.polyline(roadCoords, {
                 color: '#ffffff',
@@ -3110,7 +2838,6 @@
                 opacity: 0.95,
                 interactive: false
             });
-
             // True police patrol red road driving line
             const polyline = L.polyline(roadCoords, {
                 color: '#dc2626',
@@ -3118,20 +2845,15 @@
                 opacity: 0.95,
                 className: 'cursor-pointer'
             });
-
             polyline.bindPopup(() => buildRouteVillagesPopupHtml(info, distKm), { maxWidth: 395, minWidth: 320, maxHeight: 460 });
             polyline.bindTooltip(`<b>Route ${info.route || ''} (${info.ps || ''} PS)</b><br><span style="font-size:10px; color:#1e3a8a;">??? ?????? ?????? - ${(info.stations || []).length} ??????? ??????</span>`, { sticky: true, className: 'ps-tooltip-badge' });
-
             mainRoutesGroup.addLayer(outline);
             mainRoutesGroup.addLayer(polyline);
         }
-
         function drawInstantRouteLine(coords, info, token) {
             if (token !== currentMapFilterToken || !mainRoutesGroup) return;
             if (coords.length < 2) return;
-
             const curvedCoords = getCurvedSplineCoords(coords);
-
             const outline = L.polyline(curvedCoords, {
                 color: '#ffffff',
                 weight: 7,
@@ -3139,7 +2861,6 @@
                 smoothFactor: 1.0,
                 interactive: false
             });
-
             const polyline = L.polyline(curvedCoords, {
                 color: '#dc2626',
                 weight: 5,
@@ -3147,35 +2868,27 @@
                 smoothFactor: 1.0,
                 className: 'cursor-pointer'
             });
-
             const popupHtml = buildRouteVillagesPopupHtml(info, null);
             polyline.bindPopup(popupHtml, { maxWidth: 395, minWidth: 320, maxHeight: 460 });
             polyline.bindTooltip(`<b>Route ${info.route || ''} (${info.ps || ''} PS)</b><br><span style="font-size:10px; color:#1e3a8a;">??? ?????? ?????? - ${(info.stations || []).length} ??????? ??????</span>`, { sticky: true, className: 'ps-tooltip-badge' });
-
             mainRoutesGroup.addLayer(outline);
             mainRoutesGroup.addLayer(polyline);
         }
-
         async function fetchAndDrawOSRMRoute(coords, info, token) {
             const coordString = coords.map(c => c[1] + ',' + c[0]).join(';');
             const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`;
-
             try {
                 const res = await fetch(url);
                 if (token !== currentMapFilterToken) return;
-
                 const data = await res.json();
                 if (data.routes && data.routes.length > 0) {
                     const routeCoords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
                     const distKm = (data.routes[0].distance / 1000).toFixed(1);
-
                     const outline = L.polyline(routeCoords, { color: '#ffffff', weight: 8, opacity: 0.9, smoothFactor: 1.0, interactive: false });
                     const polyline = L.polyline(routeCoords, { color: '#dc2626', weight: 5, opacity: 0.95, smoothFactor: 1.0, className: 'cursor-pointer' });
-
                     const popupHtml = buildRouteVillagesPopupHtml(info, distKm);
                     polyline.bindPopup(popupHtml, { maxWidth: 395, minWidth: 320, maxHeight: 460 });
                     polyline.bindTooltip(`<b>Route ${info.route} (${info.ps} PS)</b><br><span style="font-size:10px; color:#1e3a8a;">??? ?????? ???? ? ????????? ??????? ?????? ?????? (${(info.stations || []).length} ????????)</span>`, { sticky: true, className: 'ps-tooltip-badge' });
-
                     if (mainRoutesGroup && token === currentMapFilterToken) {
                         mainRoutesGroup.addLayer(outline);
                         mainRoutesGroup.addLayer(polyline);
@@ -3187,24 +2900,20 @@
                 drawInstantRouteLine(coords, info, token);
             }
         }
-
         // ================= ALL ROUTES DIRECTORY MODAL FUNCTIONS =================
         function openAllRoutesModal() {
             const modal = document.getElementById('all-routes-modal');
             if (modal) modal.classList.remove('hidden');
             renderRoutesDirectory();
         }
-
         function closeAllRoutesModal() {
             const modal = document.getElementById('all-routes-modal');
             if (modal) modal.classList.add('hidden');
         }
-
         function renderRoutesDirectory() {
             const search = (document.getElementById('routes-modal-search')?.value || '').trim().toLowerCase();
             const container = document.getElementById('routes-modal-list');
             if (!container) return;
-
             const routeMap = {};
             allStations.forEach(s => {
                 const ps = (s.psname || 'Unknown').trim();
@@ -3221,12 +2930,10 @@
                 }
                 routeMap[key].stations.push(s);
             });
-
             const routeKeys = Object.keys(routeMap).sort((a,b) => {
                 if (routeMap[a].ps !== routeMap[b].ps) return routeMap[a].ps.localeCompare(routeMap[b].ps);
                 return routeMap[a].route.localeCompare(routeMap[b].route);
             });
-
             const filteredKeys = routeKeys.filter(k => {
                 if (!search) return true;
                 const info = routeMap[k];
@@ -3236,28 +2943,23 @@
                 const villageMatch = info.stations.some(s => (s.polling_station_location || '').toLowerCase().includes(search));
                 return psMatch || rMatch || staffMatch || villageMatch;
             });
-
             const countEl = document.getElementById('routes-modal-count');
             if (countEl) countEl.innerText = `${filteredKeys.length} Routes`;
-
             container.innerHTML = '';
             if (filteredKeys.length === 0) {
                 container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs"><i class="fa-solid fa-folder-open text-2xl mb-2"></i><br>?????? ?????? ???? ???????? ???????????? (No matching routes found).</div>`;
                 return;
             }
-
             let cardsHtml = '';
             filteredKeys.forEach(k => {
                 const info = routeMap[k];
                 let totalVoters = 0;
                 info.stations.forEach(st => { totalVoters += (parseInt(st.no_of_voters, 10) || 0); });
-
                 const villagesPreview = info.stations.map((st, i) => `
                     <span class="inline-block bg-white text-slate-700 px-1.5 py-0.5 rounded text-[10px] border border-slate-200">
                         ${i+1}. ${st.polling_station_location} (${st.distance_from_ps_kms ? st.distance_from_ps_kms + 'km' : '-'})
                     </span>
                 `).join(' ');
-
                 cardsHtml += `
                     <div class="p-3 bg-slate-50 hover:bg-blue-50/50 rounded-lg border border-slate-200 hover:border-blue-300 transition shadow-xs flex flex-col gap-2">
                         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 pb-1.5">
@@ -3282,7 +2984,6 @@
                             <span>�</span>
                             <span class="font-bold text-purple-800"><i class="fa-solid fa-users mr-0.5"></i> ${totalVoters.toLocaleString()} Electors</span>
                         </div>
-
                         <div class="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
                             ${villagesPreview}
                         </div>
@@ -3291,7 +2992,6 @@
             });
             container.innerHTML = cardsHtml;
         }
-
         function selectAndZoomRoute(psName, routeNo) {
             closeAllRoutesModal();
             switchTab('map');
@@ -3304,12 +3004,10 @@
                 applyMapFilters();
             }, 200);
         }
-
         // ================= TAB 3: POLLING STATIONS REPORT (TABLE & DYNAMIC COLUMNS) =================
         let tableSortColumn = 'sno';
         let tableSortOrder = 'asc';
         let activeQuickCategory = '';
-
         // Dynamic Table Columns Configuration matching 2. ZPTC and MPTC segment.xlsx
         const TABLE_COLUMNS_DEF = {
             'col-sno': {
@@ -3483,7 +3181,6 @@
                     </td>`
             }
         };
-
         const DEFAULT_TABLE_COLUMNS_KEYS = [
             'col-sno', 'col-mandal', 'col-mptc', 'col-route',
             'col-route-incharge', 'col-striking-incharge', 'col-special-striking', 'col-qrt',
@@ -3492,11 +3189,9 @@
             'col-si', 'col-asi-hc', 'col-pc', 'col-hg', 'col-others',
             'col-lat', 'col-lng', 'col-actions'
         ];
-
         let tableColumnsOrder = [...DEFAULT_TABLE_COLUMNS_KEYS];
         let hiddenTableColumns = new Set();
         let isTableWrapText = true;
-
         function toggleTableWrapText() {
             isTableWrapText = !isTableWrapText;
             const table = document.getElementById('polling-master-table');
@@ -3522,7 +3217,6 @@
             renderTableHeaders();
             renderTable();
         }
-
         function initTableColumns() {
             try {
                 const COLS_VERSION = "2026-11-07_v12_restore_exact_order";
@@ -3531,7 +3225,6 @@
                     localStorage.removeItem('police_election_cols_hidden');
                     localStorage.setItem('police_election_cols_version', COLS_VERSION);
                 }
-
                 const savedOrder = JSON.parse(localStorage.getItem('police_election_cols_order'));
                 if (Array.isArray(savedOrder) && savedOrder.length > 0) {
                     tableColumnsOrder = savedOrder.filter(k => TABLE_COLUMNS_DEF[k]);
@@ -3556,7 +3249,6 @@
             renderTableHeaders();
             renderColumnEditorMenu();
         }
-
         function saveColumnsState() {
             try {
                 localStorage.setItem('police_election_cols_order', JSON.stringify(tableColumnsOrder));
@@ -3565,7 +3257,6 @@
                 console.error('Error saving columns state:', e);
             }
         }
-
         function moveColumnLeft(colKey, e) {
             if (e) {
                 e.stopPropagation();
@@ -3582,7 +3273,6 @@
                 renderColumnEditorMenu();
             }
         }
-
         function moveColumnRight(colKey, e) {
             if (e) {
                 e.stopPropagation();
@@ -3599,12 +3289,10 @@
                 renderColumnEditorMenu();
             }
         }
-
         function toggleColumnMenu() {
             const menu = document.getElementById('column-visibility-menu');
             if (menu) menu.classList.toggle('hidden');
         }
-
         // Close column menu when clicking outside
         document.addEventListener('click', (e) => {
             const menu = document.getElementById('column-visibility-menu');
@@ -3613,7 +3301,6 @@
                 menu.classList.add('hidden');
             }
         });
-
         function toggleColumn(colClass) {
             if (hiddenTableColumns.has(colClass)) {
                 hiddenTableColumns.delete(colClass);
@@ -3624,7 +3311,6 @@
             applyColumnVisibility();
             renderColumnEditorMenu();
         }
-
         function resetColumnsOrderAndVisibility() {
             tableColumnsOrder = [...DEFAULT_TABLE_COLUMNS_KEYS];
             hiddenTableColumns.clear();
@@ -3633,7 +3319,6 @@
             renderTable();
             renderColumnEditorMenu();
         }
-
         function applyColumnVisibility() {
             DEFAULT_TABLE_COLUMNS_KEYS.forEach(c => {
                 const isHidden = hiddenTableColumns.has(c);
@@ -3644,11 +3329,9 @@
                 });
             });
         }
-
         function renderTableHeaders() {
             const thead = document.getElementById('master-table-thead');
             if (!thead) return;
-
             let thsHtml = '';
             tableColumnsOrder.forEach((colKey, idx) => {
                 const col = TABLE_COLUMNS_DEF[colKey];
@@ -3656,7 +3339,6 @@
                 const isHidden = hiddenTableColumns.has(colKey);
                 const isFirst = idx === 0;
                 const isLast = idx === tableColumnsOrder.length - 1;
-
                 thsHtml += `
                     <th class="p-2 ${col.align} ${col.key} ${isHidden ? 'hidden' : ''} bg-slate-900 text-white font-semibold sticky top-0 z-10 shadow select-none border-r border-slate-800 last:border-r-0 align-middle">
                         <div class="flex items-center justify-between gap-1 w-full min-w-[70px]">
@@ -3677,14 +3359,11 @@
                     </th>
                 `;
             });
-
             thead.innerHTML = `<tr>${thsHtml}</tr>`;
         }
-
         function renderColumnEditorMenu() {
             const listEl = document.getElementById('columns-editor-list');
             if (!listEl) return;
-
             let itemsHtml = '';
             tableColumnsOrder.forEach((colKey, idx) => {
                 const col = TABLE_COLUMNS_DEF[colKey];
@@ -3692,7 +3371,6 @@
                 const isHidden = hiddenTableColumns.has(colKey);
                 const isFirst = idx === 0;
                 const isLast = idx === tableColumnsOrder.length - 1;
-
                 itemsHtml += `
                     <div class="flex items-center justify-between gap-1.5 py-1 px-2 rounded hover:bg-slate-100 text-xs border border-slate-100 transition">
                         <label class="flex items-center gap-2 cursor-pointer flex-1 truncate select-none">
@@ -3710,13 +3388,10 @@
                     </div>
                 `;
             });
-
             listEl.innerHTML = itemsHtml;
         }
-
         function setQuickCategory(cat) {
             activeQuickCategory = cat;
-
             // Update pill styling
             const pills = {
                 '': 'pill-cat-all',
@@ -3725,7 +3400,6 @@
                 'CRITICAL': 'pill-cat-critical',
                 'HYPER SENSITIVE': 'pill-cat-hyper'
             };
-
             for (const k in pills) {
                 const el = document.getElementById(pills[k]);
                 if (!el) continue;
@@ -3735,11 +3409,9 @@
                     el.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition';
                 }
             }
-
             tableCurrentPage = 1;
             renderTable();
         }
-
         function toggleSort(columnKey) {
             if (tableSortColumn === columnKey) {
                 tableSortOrder = tableSortOrder === 'asc' ? 'desc' : 'asc';
@@ -3749,7 +3421,6 @@
             }
             renderTable();
         }
-
         function resetTableFilters() {
             document.getElementById('table-search-input').value = '';
             const clearBtn = document.getElementById('table-search-clear');
@@ -3760,7 +3431,6 @@
             setQuickCategory('');
             onTablePSChange('');
         }
-
         function onTablePSChange(psname) {
             const routeSelect = document.getElementById('table-filter-route');
             if (routeSelect) {
@@ -3786,12 +3456,10 @@
             tableCurrentPage = 1;
             renderTable();
         }
-
         function onTableSearch() {
             tableCurrentPage = 1;
             renderTable();
         }
-
         // ================= PSL AUTOMATIC SUGGESTIONS (TABLE & MAP) =================
         function onTableSearchInput(query) {
             const clearBtn = document.getElementById('table-search-clear');
@@ -3802,7 +3470,6 @@
             onTableSearch();
             renderPslSuggestions(query, 'table-psl-suggestions', 'selectPslSuggestion');
         }
-
         function clearTableSearch() {
             const input = document.getElementById('table-search-input');
             if (input) input.value = '';
@@ -3811,14 +3478,12 @@
             hideSuggestions('table-psl-suggestions');
             onTableSearch();
         }
-
         function onTableSearchFocus() {
             const input = document.getElementById('table-search-input');
             if (input && input.value.trim().length > 0) {
                 renderPslSuggestions(input.value, 'table-psl-suggestions', 'selectPslSuggestion');
             }
         }
-
         function selectPslSuggestion(pslName) {
             const input = document.getElementById('table-search-input');
             if (input) {
@@ -3829,50 +3494,41 @@
             hideSuggestions('table-psl-suggestions');
             onTableSearch();
         }
-
         function onMapSearchInput(query) {
             applyMapFilters();
             renderPslSuggestions(query, 'map-psl-suggestions', 'selectMapPslSuggestion');
         }
-
         function onMapSearchFocus() {
             const input = document.getElementById('map-search-text');
             if (input && input.value.trim().length > 0) {
                 renderPslSuggestions(input.value, 'map-psl-suggestions', 'selectMapPslSuggestion');
             }
         }
-
         function selectMapPslSuggestion(pslName) {
             const input = document.getElementById('map-search-text');
             if (input) input.value = pslName;
             hideSuggestions('map-psl-suggestions');
             applyMapFilters();
         }
-
         function hideSuggestions(boxId) {
             const box = document.getElementById(boxId);
             if (box) box.classList.add('hidden');
         }
-
         function renderPslSuggestions(query, boxId, selectFnName) {
             const box = document.getElementById(boxId);
             if (!box) return;
-
             const q = (query || '').trim().toLowerCase();
             if (!q || q.length < 1) {
                 box.classList.add('hidden');
                 box.innerHTML = '';
                 return;
             }
-
             const matches = [];
             const seenPsl = new Set();
-
             for (let i = 0; i < allStations.length; i++) {
                 const s = allStations[i];
                 const psl = (s.polling_station_location || '').trim();
                 if (!psl) continue;
-
                 const pslLower = psl.toLowerCase();
                 if (pslLower.includes(q) && !seenPsl.has(pslLower)) {
                     seenPsl.add(pslLower);
@@ -3886,21 +3542,17 @@
                     if (matches.length >= 30) break;
                 }
             }
-
             if (matches.length === 0) {
                 box.innerHTML = `<div class="p-2.5 text-center text-xs text-slate-400">????????? PSL ???????????? (No matching PSL found)</div>`;
                 box.classList.remove('hidden');
                 return;
             }
-
             const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const regex = new RegExp(`(${escapeRegex(q)})`, 'gi');
-
             let html = `<div class="px-2.5 py-1.5 bg-slate-100 border-b border-slate-200 text-[10px] font-bold text-slate-600 uppercase flex justify-between items-center sticky top-0 z-10 shadow-xs">
                 <span class="flex items-center gap-1"><i class="fa-solid fa-list-check text-blue-600"></i> Name of the PSL (${matches.length})</span>
                 <span class="text-[9px] text-slate-400">?????? ?????? (Click to Select)</span>
             </div>`;
-
             matches.forEach(m => {
                 const highlightedPsl = m.psl.replace(regex, '<mark class="bg-amber-200 text-slate-900 font-bold px-0.5 rounded">$1</mark>');
                 const safePsl = m.psl.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -3919,11 +3571,9 @@
                     </div>
                 `;
             });
-
             box.innerHTML = html;
             box.classList.remove('hidden');
         }
-
         // Close PSL suggestions when clicking outside
         document.addEventListener('click', (e) => {
             const tableContainer = document.getElementById('table-search-container');
@@ -3935,26 +3585,22 @@
                 hideSuggestions('map-psl-suggestions');
             }
         });
-
         function changePageSize(val) {
             tablePageSize = val === 'all' ? 999999 : parseInt(val, 10);
             tableCurrentPage = 1;
             renderTable();
         }
-
         // Format phone numbers as clickable dial links
         function formatPhoneLinks(rawText) {
             if (!rawText || rawText === 'N/A' || rawText === '-') return rawText || '-';
             // Regex to find 10-digit phone numbers
             return rawText.replace(/(\b[6-9]\d{9}\b)/g, '<a href="tel:$1" class="text-blue-600 hover:text-blue-800 font-semibold underline inline-flex items-center gap-0.5"><i class="fa-solid fa-phone text-[9px]"></i>$1</a>').replace(/\n/g, '<br>');
         }
-
         function renderTable() {
             const search = (document.getElementById('table-search-input')?.value || '').trim().toLowerCase();
             const psFilter = (document.getElementById('table-filter-ps')?.value || '').trim();
             const routeFilter = (document.getElementById('table-filter-route')?.value || '').trim();
             const distFilter = (document.getElementById('table-filter-distance')?.value || '').trim();
-
             // Calculate category counts for quick pills
             let cAll = 0, cNormal = 0, cSensitive = 0, cCritical = 0, cHyper = 0;
             allStations.forEach(s => {
@@ -3965,13 +3611,11 @@
                 else if (cat === 'SENSITIVE') cSensitive++;
                 else cNormal++;
             });
-
             if (document.getElementById('cat-count-all')) document.getElementById('cat-count-all').innerText = cAll.toLocaleString();
             if (document.getElementById('cat-count-normal')) document.getElementById('cat-count-normal').innerText = cNormal.toLocaleString();
             if (document.getElementById('cat-count-sensitive')) document.getElementById('cat-count-sensitive').innerText = cSensitive.toLocaleString();
             if (document.getElementById('cat-count-critical')) document.getElementById('cat-count-critical').innerText = cCritical.toLocaleString();
             if (document.getElementById('cat-count-hyper')) document.getElementById('cat-count-hyper').innerText = cHyper.toLocaleString();
-
             // Filter Dataset
             tableFilteredStations = allStations.filter(s => {
                 if (psFilter && (s.psname || '').trim() !== psFilter) return false;
@@ -3982,7 +3626,6 @@
                     const cat = (s.categorization || 'NORMAL').trim().toUpperCase();
                     if (cat !== activeQuickCategory) return false;
                 }
-
                 // Distance filter
                 if (distFilter) {
                     const d = parseFloat(s.distance_from_ps_kms) || 0;
@@ -3990,7 +3633,6 @@
                     if (distFilter === 'medium' && (d <= 5 || d > 12)) return false;
                     if (distFilter === 'far' && d <= 12) return false;
                 }
-
                 // Search query
                 if (search) {
                     const rowText = `${s.psname || ''} ${s.mandal_zptc_segment || ''} ${s.mptc_segment || ''} ${s.polling_station_location || ''} ${s.route_staff || ''} ${s.blo_contact_no || ''} ${s.code || ''} ${s.id || ''}`.toLowerCase();
@@ -3998,16 +3640,13 @@
                 }
                 return true;
             });
-
             if (document.getElementById('btn-sync-map-count') && typeof tableFilteredStations !== 'undefined') {
                 document.getElementById('btn-sync-map-count').innerText = tableFilteredStations.length;
             }
-
             // Sorting logic
             tableFilteredStations.sort((a, b) => {
                 let valA = a[tableSortColumn];
                 let valB = b[tableSortColumn];
-
                 if (tableSortColumn === 'sno' || tableSortColumn === 'id') {
                     valA = parseInt(a.id, 10) || 0;
                     valB = parseInt(b.id, 10) || 0;
@@ -4021,12 +3660,10 @@
                     valA = (valA || '').toString().toLowerCase();
                     valB = (valB || '').toString().toLowerCase();
                 }
-
                 if (valA < valB) return tableSortOrder === 'asc' ? -1 : 1;
                 if (valA > valB) return tableSortOrder === 'asc' ? 1 : -1;
                 return 0;
             });
-
             // Update Sort Icons in Headers
             ['sno', 'id', 'mandal_zptc_segment', 'mptc_segment', 'route_no', 'psname', 'code', 'polling_station_location', 'no_of_voters', 'distance_from_ps_kms', 'categorization'].forEach(col => {
                 const iconEl = document.getElementById(`sort-icon-${col}`);
@@ -4039,29 +3676,23 @@
                     iconEl.className = 'text-[9px] text-slate-500 font-normal ml-1';
                 }
             });
-
             // Update Record Count and Voters Sum
             let currentVotersSum = 0;
             tableFilteredStations.forEach(s => { currentVotersSum += (parseInt(s.no_of_voters, 10) || 0); });
             document.getElementById('table-record-count').innerText = `Records: ${tableFilteredStations.length.toLocaleString()}`;
             document.getElementById('table-voters-sum').innerText = `${currentVotersSum.toLocaleString()} Electors`;
-
             // Pagination calculation
             const totalRecords = tableFilteredStations.length;
             const totalPages = Math.ceil(totalRecords / tablePageSize) || 1;
             if (tableCurrentPage > totalPages) tableCurrentPage = totalPages;
-
             const startIdx = (tableCurrentPage - 1) * tablePageSize;
             const endIdx = Math.min(startIdx + tablePageSize, totalRecords);
             const pageData = tableFilteredStations.slice(startIdx, endIdx);
-
             document.getElementById('table-page-info').innerText = totalRecords > 0 
                 ? `Showing ${startIdx + 1} to ${endIdx} of ${totalRecords.toLocaleString()}`
                 : 'No records found';
-
             const tbody = document.getElementById('master-table-tbody');
             if (!tbody) return;
-
             if (pageData.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="${tableColumnsOrder.length}" class="p-8 text-center text-slate-400"><i class="fa-solid fa-folder-open text-2xl mb-2"></i><br>?????? ?????????? ???????????? (No matching records found).</td></tr>`;
             } else {
@@ -4069,11 +3700,9 @@
                 pageData.forEach((s, idx) => {
                     const cat = (s.categorization || 'NORMAL').trim().toUpperCase();
                     const badgeClass = SENSITIVITY_COLORS[cat]?.badge || 'bg-slate-100 text-slate-800';
-
                     // Formatted phone numbers
                     const formattedRouteStaff = formatPhoneLinks(s.route_staff);
                     const formattedBlo = formatPhoneLinks(s.blo_contact_no);
-
                     rowsHtml += `<tr class="hover:bg-blue-50/50 border-b border-slate-100 transition-colors align-middle">`;
                     tableColumnsOrder.forEach(colKey => {
                         const colDef = TABLE_COLUMNS_DEF[colKey];
@@ -4086,20 +3715,16 @@
                 });
                 tbody.innerHTML = rowsHtml;
             }
-
             renderPaginationButtons(totalPages);
             applyColumnVisibility();
         }
-
         function renderPaginationButtons(totalPages) {
             const container = document.getElementById('table-pagination-btns');
             if (!container) return;
-
             if (totalPages <= 1) {
                 container.innerHTML = '';
                 return;
             }
-
             let btnsHtml = `
                 <button onclick="goToTablePage(1)" ${tableCurrentPage === 1 ? 'disabled class="px-2 py-1 bg-slate-100 text-slate-300 rounded cursor-not-allowed"' : 'class="px-2 py-1 bg-white hover:bg-slate-100 text-slate-700 rounded border border-slate-300" title="First Page"'}>
                     <i class="fa-solid fa-angles-left"></i>
@@ -4108,10 +3733,8 @@
                     <i class="fa-solid fa-chevron-left"></i>
                 </button>
             `;
-
             let startP = Math.max(1, tableCurrentPage - 2);
             let endP = Math.min(totalPages, tableCurrentPage + 2);
-
             for (let i = startP; i <= endP; i++) {
                 btnsHtml += `
                     <button onclick="goToTablePage(${i})" class="px-2.5 py-1 rounded border font-semibold ${i === tableCurrentPage ? 'bg-blue-600 text-white border-blue-600 font-bold shadow-sm' : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-300'}">
@@ -4119,7 +3742,6 @@
                     </button>
                 `;
             }
-
             btnsHtml += `
                 <button onclick="goToTablePage(${tableCurrentPage + 1})" ${tableCurrentPage === totalPages ? 'disabled class="px-2 py-1 bg-slate-100 text-slate-300 rounded cursor-not-allowed"' : 'class="px-2 py-1 bg-white hover:bg-slate-100 text-slate-700 rounded border border-slate-300" title="Next Page"'}>
                     <i class="fa-solid fa-chevron-right"></i>
@@ -4128,25 +3750,20 @@
                     <i class="fa-solid fa-angles-right"></i>
                 </button>
             `;
-
             container.innerHTML = btnsHtml;
         }
-
         function goToTablePage(p) {
             const totalPages = Math.ceil(tableFilteredStations.length / tablePageSize) || 1;
             if (p < 1 || p > totalPages) return;
             tableCurrentPage = p;
             renderTable();
         }
-
         function locateStationOnMap(stationId) {
             const station = allStations.find(s => s.id === stationId);
             if (!station) return;
-
             switchTab('map');
             document.getElementById('map-filter-psname').value = station.psname || '';
             onMapPSChange(station.psname || '');
-
             setTimeout(() => {
                 const lat = parseFloat(station.latitude);
                 const lng = parseFloat(station.longitude);
@@ -4156,7 +3773,6 @@
                 }
             }, 300);
         }
-
         // ================= TAB 4: PS ROUTE WISE TRACKING =================
         function initRouteMap() {
             if (typeof L === 'undefined') {
@@ -4169,13 +3785,11 @@
                     maxZoom: 19,
                     attribution: '� OpenStreetMap contributors'
                 }).addTo(routeMap);
-
                 const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
                     maxZoom: 20,
                     subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
                     attribution: '� Google Maps Satellite'
                 });
-
                 L.control.layers({
                     "OpenStreetMap": osm,
                     "Google Satellite Hybrid": googleHybrid
@@ -4184,12 +3798,10 @@
                 routeMap.invalidateSize();
             }
         }
-
         function onRouteTabPSChange(psname) {
             const routeSelect = document.getElementById('route-tab-routeno');
             if (!routeSelect) return;
             let opts = '<option value="">-- ???????? Route No --</option>';
-
             if (psname) {
                 const routesInPS = new Set();
                 allStations.filter(s => (s.psname || '').trim() === psname.trim()).forEach(s => {
@@ -4199,32 +3811,25 @@
             }
             routeSelect.innerHTML = opts;
         }
-
         function panRouteMapTo(lat, lng, idx) {
             if (!routeMap) return;
             routeMap.flyTo([lat, lng], 16, { animate: true, duration: 0.8 });
         }
-
         async function loadRouteWiseDetails() {
             initRouteMap();
-
             const selectedPS = (document.getElementById('route-tab-psname')?.value || '').trim();
             const selectedRoute = (document.getElementById('route-tab-routeno')?.value || '').trim();
             const selectedCat = (document.getElementById('route-tab-category')?.value || '').trim();
-
             if (!selectedPS || !selectedRoute) {
                 alert('?????? ?????? ??????? ????? ???? ????? ?????????.');
                 return;
             }
-
             // All stations for this specific route (to compute totals and breakdown)
             const routeStations = allStations.filter(s => (s.psname || '').trim() === selectedPS && (s.route_no || '').trim() === selectedRoute);
-
             if (routeStations.length === 0) {
                 alert('? ???? ?? ?????? ??????? ????????? ????.');
                 return;
             }
-
             // Calculate category counts for this route:
             let rNorm = 0, rSens = 0, rCrit = 0, rHyp = 0, totalVoters = 0;
             routeStations.forEach(s => {
@@ -4235,7 +3840,6 @@
                 else if (c === 'HYPER SENSITIVE') rHyp++;
                 totalVoters += (parseInt(s.no_of_voters, 10) || 0);
             });
-
             // Update Officer Header Card & Badges
             const firstStation = routeStations[0];
             document.getElementById('route-detail-badge').innerText = `ROUTE - ${selectedRoute} (${selectedPS})`;
@@ -4248,43 +3852,36 @@
             }
             document.getElementById('route-total-stations').innerText = routeStations.length;
             document.getElementById('route-total-voters').innerText = totalVoters.toLocaleString();
-
             if (document.getElementById('route-count-normal')) document.getElementById('route-count-normal').innerText = rNorm;
             if (document.getElementById('route-count-sensitive')) document.getElementById('route-count-sensitive').innerText = rSens;
             if (document.getElementById('route-count-critical')) document.getElementById('route-count-critical').innerText = rCrit;
             if (document.getElementById('route-count-hyper')) document.getElementById('route-count-hyper').innerText = rHyp;
-
             // Apply category filter if selected:
             let displayStations = routeStations;
             if (selectedCat) {
                 displayStations = routeStations.filter(s => (s.categorization || 'NORMAL').trim().toUpperCase() === selectedCat);
             }
-
             if (document.getElementById('route-shown-count')) {
                 document.getElementById('route-shown-count').innerText = `${displayStations.length} of ${routeStations.length} Stations Shown`;
             }
             if (document.getElementById('route-map-legend-count')) {
                 document.getElementById('route-map-legend-count').innerText = `${displayStations.length} Stations`;
             }
-
             // Clear existing routeMap layers (markers & polylines)
             routeMap.eachLayer(layer => {
                 if (layer instanceof L.Marker || layer instanceof L.Polyline) {
                     routeMap.removeLayer(layer);
                 }
             });
-
             // Add markers & populate itinerary list
             const latlngs = [];
             const listContainer = document.getElementById('route-stations-list');
             listContainer.innerHTML = '';
-
             if (displayStations.length === 0) {
                 listContainer.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs">? ???? ?? ????? ????? ??????? (${selectedCat}) ??????? ????????? ????.</div>`;
                 document.getElementById('route-total-km').innerText = '0.00 km';
                 return;
             }
-
             let listHtml = '';
             displayStations.forEach((s, idx) => {
                 const lat = parseFloat(s.latitude);
@@ -4295,17 +3892,13 @@
                                  cat === 'CRITICAL' ? 'bg-orange-500 text-white ring-2 ring-orange-200' :
                                  cat === 'SENSITIVE' ? 'bg-amber-500 text-white ring-2 ring-amber-200' :
                                  'bg-emerald-600 text-white ring-2 ring-emerald-200';
-
                 if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
                     latlngs.push([lat, lng]);
-
                     const marker = L.marker([lat, lng], { icon: createStationMarkerIcon(cat) }).addTo(routeMap);
                     marker.bindPopup(buildStationPopupHtml(s), { maxWidth: 440, minWidth: 320 });
-
                     const loc = s.polling_station_location || `Station #${idx+1}`;
                     marker.bindTooltip(`Station #${idx+1} [${cat}]: ${loc}`, { permanent: false, direction: 'top', className: 'ps-tooltip-badge' });
                 }
-
                 listHtml += `
                     <div onclick="panRouteMapTo(${lat}, ${lng}, ${idx + 1})" class="p-2.5 rounded-lg border border-slate-200 bg-white hover:border-blue-400 hover:shadow-md transition cursor-pointer flex items-start gap-2.5 shadow-sm">
                         <div class="w-7 h-7 rounded-full ${circleBg} flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
@@ -4331,26 +3924,22 @@
                 `;
             });
             listContainer.innerHTML = listHtml;
-
             // Check precomputed real road driving geometry first for instant loading
             const pre = getPrecomputedRoute(selectedPS, selectedRoute);
             if (pre && pre.coordinates) {
                 const routeCoords = pre.coordinates;
                 const drivingKm = pre.distKm ? `${pre.distKm} km (Real Road)` : 'Real Road';
                 document.getElementById('route-total-km').innerText = drivingKm;
-
                 L.polyline(routeCoords, { color: '#ffffff', weight: 8, opacity: 0.9, smoothFactor: 1.0 }).addTo(routeMap);
                 L.polyline(routeCoords, { color: '#dc2626', weight: 6, opacity: 1.0, smoothFactor: 1.0 }).addTo(routeMap);
                 routeMap.fitBounds(routeCoords, { padding: [40, 40] });
                         return;
                 return;
             }
-
             // Calculate OSRM Driving Distance & Route Track
             if (latlngs.length >= 2) {
                 const coordString = latlngs.map(c => c[1] + ',' + c[0]).join(';');
                 const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson&steps=true`;
-
                 try {
                     const res = await fetch(url);
                     const data = await res.json();
@@ -4359,10 +3948,8 @@
                         const routeCoords = route.geometry.coordinates.map(c => [c[1], c[0]]);
                         const drivingKm = (route.distance / 1000).toFixed(2);
                         document.getElementById('route-total-km').innerText = `${drivingKm} km (Real Road)`;
-
                         L.polyline(routeCoords, { color: '#ffffff', weight: 8, opacity: 0.9 }).addTo(routeMap);
                         L.polyline(routeCoords, { color: '#dc2626', weight: 6, opacity: 1.0 }).addTo(routeMap);
-
                         routeMap.fitBounds(routeCoords, { padding: [40, 40] });
                         return;
                     }
@@ -4378,7 +3965,6 @@
                 document.getElementById('route-total-km').innerText = '0.00 km (1 PS)';
             }
         }
-
         // ================= ADD / EDIT / DELETE MODAL LOGIC =================
         function openAddModal() {
             document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-plus text-emerald-600"></i> Add New Polling Station';
@@ -4386,11 +3972,9 @@
             document.getElementById('stationForm').reset();
             document.getElementById('stationModal').classList.remove('hidden');
         }
-
         function openEditModal(id) {
             const s = allStations.find(item => item.id === id);
             if (!s) return;
-
             document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square text-blue-600"></i> Edit Polling Station';
             document.getElementById('form-id').value = s.id;
             document.getElementById('form-mandal').value = s.mandal_zptc_segment || '';
@@ -4415,21 +3999,16 @@
             document.getElementById('form-others').value = s.others || '';
             document.getElementById('form-lat').value = s.latitude || '';
             document.getElementById('form-lng').value = s.longitude || '';
-
             document.getElementById('stationModal').classList.remove('hidden');
         }
-
         function closeModal() {
             document.getElementById('stationModal').classList.add('hidden');
         }
-
         function saveStation(e) {
             e.preventDefault();
-
             const idVal = document.getElementById('form-id').value;
             const isEdit = idVal !== '';
             const orig = isEdit ? (allStations.find(s => s.id === parseInt(idVal, 10)) || {}) : {};
-
             const stationData = {
                 ...orig,
                 id: isEdit ? parseInt(idVal, 10) : Date.now(),
@@ -4457,39 +4036,32 @@
                 latitude: document.getElementById('form-lat').value.trim(),
                 longitude: document.getElementById('form-lng').value.trim()
             };
-
             if (isEdit) {
                 const idx = allStations.findIndex(s => s.id === stationData.id);
                 if (idx !== -1) allStations[idx] = stationData;
             } else {
                 allStations.unshift(stationData);
             }
-
             saveDatasetLocally();
             closeModal();
             populateDropdowns();
             renderDashboard();
             renderTable();
             if (mainMap) applyMapFilters();
-
             alert(isEdit ? '??????? ??????? ??????? ?????????? ???????? ???????!' : '????? ??????? ??????? ?????????? ????????????!');
         }
-
         function deleteStation(id) {
             if (!confirm('? ??????? ??????? ?????????? ????????? ???????????????????????')) return;
-
             allStations = allStations.filter(s => s.id !== id);
             saveDatasetLocally();
             renderDashboard();
             renderTable();
             if (mainMap) applyMapFilters();
         }
-
         function pickCoordinatesOnMap() {
             closeModal();
             switchTab('map');
             alert('?????? ?? ???? ????????? ????????? ?????? ??????. ????????????? ???????????? ???? ???????.');
-
             const onClickCoord = function(e) {
                 mainMap.off('click', onClickCoord);
                 const lat = e.latlng.lat.toFixed(6);
@@ -4500,16 +4072,13 @@
             };
             mainMap.on('click', onClickCoord);
         }
-
         // ================= DATA BACKUP & EXCEL EXPORT =================
         function openDataModal() {
             document.getElementById('dataModal').classList.remove('hidden');
         }
-
         function closeDataModal() {
             document.getElementById('dataModal').classList.add('hidden');
         }
-
         function downloadJsonBackup() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allStations, null, 2));
             const dlAnchor = document.createElement('a');
@@ -4517,14 +4086,12 @@
             dlAnchor.setAttribute("download", `police_election_stations_${new Date().toISOString().slice(0,10)}.json`);
             dlAnchor.click();
         }
-
         function uploadJsonBackup() {
             const fileInput = document.getElementById('json-upload-input');
             if (!fileInput.files || fileInput.files.length === 0) {
                 alert('?????? JSON ???? ?? ?????????.');
                 return;
             }
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
@@ -4547,7 +4114,6 @@
             };
             reader.readAsText(fileInput.files[0]);
         }
-
         function resetDataToDefault() {
             if (!confirm('????? ????? ????????? ???????? ????? ??????????? ?????? ???????????????????')) return;
             localStorage.removeItem('POLICE_ELECTION_STATIONS_DATA');
@@ -4561,7 +4127,6 @@
             closeDataModal();
             alert('???? ?????????? ?????? ?????????.');
         }
-
         async function exportToExcel() {
             if (typeof XLSX === 'undefined') {
                 const btn = event?.currentTarget;
@@ -4582,7 +4147,6 @@
                 }
                 if (btn) btn.innerHTML = origHtml;
             }
-
             const exportData = (tableFilteredStations && tableFilteredStations.length > 0 ? tableFilteredStations : allStations).map((s, idx) => {
                 const row = {};
                 tableColumnsOrder.forEach(colKey => {
@@ -4615,7 +4179,6 @@
                 });
                 return row;
             });
-
             const ws = XLSX.utils.json_to_sheet(exportData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Polling Stations");
@@ -4624,7 +4187,6 @@
         // ================= LIVE ROUTE MAP & POLLING STATION REPORT SYNC =================
         let mapActiveQuickCategory = '';
         let isMapReportTableVisible = false;
-
         function setMapQuickCategory(cat) {
             mapActiveQuickCategory = cat;
             const pills = {
@@ -4647,7 +4209,6 @@
             if (catSelect) catSelect.value = cat;
             applyMapFilters();
         }
-
         function toggleMapReportTable() {
             const container = document.getElementById('map-stations-report-container');
             const btn = document.getElementById('toggle-map-table-btn');
@@ -4662,22 +4223,18 @@
                 if (btn) btn.innerHTML = `<i class="fa-solid fa-table-list text-indigo-600"></i> Polling Stations Table (${filteredMapStations ? filteredMapStations.length : 0})`;
             }
         }
-
         function renderMapReportTable() {
             const tbody = document.getElementById('map-report-data-tbody');
             const countEl = document.getElementById('map-report-data-count');
             const btnCountEl = document.getElementById('map-table-shown-count');
             if (!tbody) return;
-
             const stations = filteredMapStations || allStations;
             if (countEl) countEl.innerText = `${stations.length} Stations`;
             if (btnCountEl) btnCountEl.innerText = stations.length;
-
             if (stations.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="12" class="p-6 text-center text-slate-400">No matching stations found.</td></tr>';
                 return;
             }
-
             let rowsHtml = '';
             const maxRows = Math.min(stations.length, 300); // Fast responsive render
             for (let idx = 0; idx < maxRows; idx++) {
@@ -4687,7 +4244,6 @@
                 const lat = parseFloat(s.latitude);
                 const lng = parseFloat(s.longitude);
                 const dist = s.distance_from_ps_kms ? `${s.distance_from_ps_kms} KM` : '-';
-
                 rowsHtml += `
                     <tr class="hover:bg-blue-50/50 transition">
                         <td class="p-2 text-center text-slate-500 font-bold">${idx + 1}</td>
@@ -4719,7 +4275,6 @@
             }
             tbody.innerHTML = rowsHtml;
         }
-
         function syncAndOpenRouteMap() {
         window.syncAndOpenLiveRouteMap = syncAndOpenRouteMap;
             // Read active filters from Polling Stations Report
@@ -4728,31 +4283,24 @@
             const distVal = (document.getElementById('table-filter-distance')?.value || '').trim();
             const searchVal = (document.getElementById('table-search-input')?.value || '').trim();
             const catVal = activeQuickCategory || '';
-
             // Transfer to Route Map
             switchTab('map');
-
             const mapPs = document.getElementById('map-filter-psname');
             const mapRoute = document.getElementById('map-filter-route');
             const mapDist = document.getElementById('map-filter-distance');
             const mapSearch = document.getElementById('map-search-text');
-
             if (mapPs) mapPs.value = psVal;
             onMapPSChange(psVal);
-
             if (mapRoute) mapRoute.value = routeVal;
             if (mapDist) mapDist.value = distVal;
             if (mapSearch) mapSearch.value = searchVal;
             setMapQuickCategory(catVal);
-
             // Automatically open report data table under map so user sees the report data directly on Live Route Map!
             const tableContainer = document.getElementById('map-stations-report-container');
             if (tableContainer && tableContainer.classList.contains('hidden')) {
                 toggleMapReportTable();
             }
         }
-
-
         // ================= TAB: LIVE ROUTE MAP CONTROLLER =================
         let isLiveMapInitialized = false;
         let liveMap = null;
@@ -4763,7 +4311,6 @@
         let currentLiveMapFilterToken = 0;
         let liveMandalBoundariesLayer = null;
         let liveUserLocationMarker = null;
-
         function initLiveMapLazy() {
             if (isLiveMapInitialized) return;
             if (typeof L === 'undefined') {
@@ -4773,48 +4320,38 @@
             isLiveMapInitialized = true;
             initLiveMap();
         }
-
         function initLiveMap() {
             if (liveMap) return;
-
             liveMap = L.map('live-map-canvas').setView([18.3, 83.9], 10);
-
             const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '� OpenStreetMap contributors'
             }).addTo(liveMap);
-
             const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
                 maxZoom: 20,
                 subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
                 attribution: '� Google Maps Satellite'
             });
-
             const cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                 attribution: '� CARTO'
             });
-
             L.control.layers({
                 "OpenStreetMap": osm,
                 "Google Satellite Hybrid": googleHybrid,
                 "Carto Light Clean": cartoLight
             }, null, { position: 'topright' }).addTo(liveMap);
-
             liveMarkersGroup = L.layerGroup().addTo(liveMap);
             liveRoutesGroup = L.layerGroup().addTo(liveMap);
             if (typeof window.initLivePartyTracking === 'function') {
                 window.initLivePartyTracking();
             }
-
             loadLiveMandalBoundaries();
             applyLiveMapFilters();
         }
-
         async function loadLiveMandalBoundaries() {
             if (liveMandalBoundariesLayer) return;
             const toggle = document.getElementById('live-toggle-borders');
             if (toggle && !toggle.checked) return;
-
             try {
                 if (typeof omnivore !== 'undefined') {
                     const res = await fetch('BORDERSKL-Mandals.kmz');
@@ -4836,17 +4373,63 @@
                 console.error('Error loading live mandal borders:', e);
             }
         }
-
+        function createLiveStationMarkerIcon(categorization) {
+            const cat = (categorization || 'NORMAL').trim().toUpperCase();
+            const config = SENSITIVITY_COLORS[cat] || SENSITIVITY_COLORS['NORMAL'];
+            const pinColor = config.bg;
+            
+            let letter = 'N';
+            if (cat === 'HYPER SENSITIVE') letter = 'H';
+            else if (cat === 'CRITICAL') letter = 'C';
+            else if (cat === 'SENSITIVE') letter = 'S';
+            else letter = 'N';
+            const html = '<div style="position: relative; width: 20px; height: 26px; filter: drop-shadow(0 1.5px 2px rgba(0,0,0,0.3)); cursor: pointer; text-align: center;">' +
+                    '<svg width="20" height="26" viewBox="0 0 34 42" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+                        '<path d="M17 0C7.61116 0 0 7.61116 0 17C0 27.5 14.5 40.5 16.1 41.9C16.6 42.3 17.4 42.3 17.9 41.9C19.5 40.5 34 27.5 34 17C34 7.61116 26.3888 0 17 0Z" fill="' + pinColor + '" stroke="#ffffff" stroke-width="2.5"/>' +
+                        '<circle cx="17" cy="16" r="10" fill="#ffffff"/>' +
+                    '</svg>' +
+                    '<div style="position: absolute; top: 2px; left: 0; width: 20px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: ' + pinColor + '; pointer-events: none;">' +
+                        letter +
+                    '</div>' +
+                '</div>';
+            return L.divIcon({
+                className: 'custom-station-pin-live',
+                html: html,
+                iconSize: [20, 26],
+                iconAnchor: [10, 26],
+                popupAnchor: [0, -24]
+            });
+        }
+        function toggleLiveStationPins(checked) {
+            if (!liveMap) return;
+            if (checked) {
+                if (liveActiveQuickCategory === 'NONE') liveActiveQuickCategory = '';
+            } else {
+                liveActiveQuickCategory = 'NONE';
+            }
+            updateLiveCategoryPillsUI();
+            applyLiveMapFilters();
+        }
         function setLiveMapQuickCategory(cat) {
             liveActiveQuickCategory = cat;
+            const pinsToggle = document.getElementById('live-toggle-pins');
+            if (pinsToggle) {
+                pinsToggle.checked = (cat !== 'NONE');
+            }
+            updateLiveCategoryPillsUI();
+            const catDropdown = document.getElementById('live-filter-category');
+            if (catDropdown) catDropdown.value = (cat === 'NONE' ? '' : cat);
+            applyLiveMapFilters();
+        }
+        function updateLiveCategoryPillsUI() {
             const pills = [
                 { id: 'live-pill-cat-all', catVal: '' },
                 { id: 'live-pill-cat-normal', catVal: 'NORMAL' },
                 { id: 'live-pill-cat-sensitive', catVal: 'SENSITIVE' },
                 { id: 'live-pill-cat-critical', catVal: 'CRITICAL' },
-                { id: 'live-pill-cat-hyper', catVal: 'HYPER SENSITIVE' }
+                { id: 'live-pill-cat-hyper', catVal: 'HYPER SENSITIVE' },
+                { id: 'live-pill-cat-none', catVal: 'NONE' }
             ];
-
             pills.forEach(p => {
                 const el = document.getElementById(p.id);
                 if (!el) return;
@@ -4857,51 +4440,39 @@
                     else if (p.catVal === 'SENSITIVE') el.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 transition';
                     else if (p.catVal === 'CRITICAL') el.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-300 transition';
                     else if (p.catVal === 'HYPER SENSITIVE') el.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 transition';
+                    else if (p.catVal === 'NONE') el.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition';
                     else el.className = 'px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition';
                 }
             });
-
-            const catDropdown = document.getElementById('live-filter-category');
-            if (catDropdown) catDropdown.value = cat;
-
-            applyLiveMapFilters();
         }
-
         function onLiveMapPSChange(psName) {
             const routeSelect = document.getElementById('live-filter-route');
             if (!routeSelect) return;
-
             const currentRoute = routeSelect.value;
             let options = '<option value="">-- All Routes --</option>';
-
             const routes = new Set();
             allStations.forEach(s => {
                 if (!psName || (s.psname || '').trim() === psName.trim()) {
                     if (s.route_no) routes.add(s.route_no.trim());
                 }
             });
-
             const sortedRoutes = Array.from(routes).sort((a, b) => {
                 const numA = parseInt(a, 10);
                 const numB = parseInt(b, 10);
                 if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
                 return a.localeCompare(b);
             });
-
             sortedRoutes.forEach(r => {
                 options += `<option value="${r}">Route - ${r}</option>`;
             });
-
             routeSelect.innerHTML = options;
             if (routes.has(currentRoute)) {
                 routeSelect.value = currentRoute;
             } else {
                 routeSelect.value = '';
             }
-
             applyLiveMapFilters();
         }
-
         function resetLiveMapFilters() {
             setLiveMapQuickCategory('');
             document.getElementById('live-filter-psname').value = '';
@@ -4921,23 +4492,18 @@
             if (liveRouteSelect) {
                 liveRouteSelect.innerHTML = '<option value="">-- All Routes --</option>' + sortedRoutes.map(r => `<option value="${r}">Route - ${r}</option>`).join('');
             }
-
             applyLiveMapFilters();
         }
-
         function applyLiveMapFilters() {
             if (!liveMap) return;
             const thisToken = ++currentLiveMapFilterToken;
-
             const selectedPS = (document.getElementById('live-filter-psname')?.value || '').trim();
             const selectedRoute = (document.getElementById('live-filter-route')?.value || '').trim();
             const selectedCat = (document.getElementById('live-filter-category')?.value || '').trim();
             const searchText = (document.getElementById('live-search-text')?.value || '').trim();
             const distFilter = (document.getElementById('live-filter-distance')?.value || '').trim();
-
             if (liveMarkersGroup) liveMarkersGroup.clearLayers();
             if (liveRoutesGroup) liveRoutesGroup.clearLayers();
-
             let mcAll = 0, mcNormal = 0, mcSensitive = 0, mcCritical = 0, mcHyper = 0;
             allStations.forEach(s => {
                 mcAll++;
@@ -4952,61 +4518,55 @@
             if (document.getElementById('live-cat-count-sensitive')) document.getElementById('live-cat-count-sensitive').innerText = mcSensitive.toLocaleString();
             if (document.getElementById('live-cat-count-critical')) document.getElementById('live-cat-count-critical').innerText = mcCritical.toLocaleString();
             if (document.getElementById('live-cat-count-hyper')) document.getElementById('live-cat-count-hyper').innerText = mcHyper.toLocaleString();
-
             filteredLiveMapStations = allStations.filter(s => {
                 if (selectedPS && (s.psname || '').trim() !== selectedPS) return false;
                 if (selectedRoute && (s.route_no || '').trim() !== selectedRoute) return false;
-
                 const cat = (s.categorization || 'NORMAL').trim().toUpperCase();
-                if (liveActiveQuickCategory) {
+                if (liveActiveQuickCategory && liveActiveQuickCategory !== 'NONE') {
                     if (cat !== liveActiveQuickCategory) return false;
                 } else if (selectedCat && cat !== selectedCat) {
                     return false;
                 }
-
                 if (distFilter) {
                     const d = parseFloat(s.distance_from_ps_kms) || 0;
                     if (distFilter === 'near' && d > 5) return false;
                     if (distFilter === 'medium' && (d <= 5 || d > 12)) return false;
                     if (distFilter === 'far' && d <= 12) return false;
                 }
-
                 if (searchText && !matchStationLocationSearch(s, searchText)) return false;
                 return true;
             });
-
             if (document.getElementById('live-legend-total-shown')) {
-                document.getElementById('live-legend-total-shown').innerText = `${filteredLiveMapStations.length} Shown`;
+                const hidePins = (liveActiveQuickCategory === 'NONE') || (document.getElementById('live-toggle-pins') && !document.getElementById('live-toggle-pins').checked); document.getElementById('live-legend-total-shown').innerText = hidePins ? 'PS Pins Hidden' : `${filteredLiveMapStations.length} Shown`;
             }
-
             const liveRouteGroups = {};
             const liveRouteStaffInfo = {};
             const bounds = [];
             const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
             const shouldBindTooltip = !isTouchDevice || filteredLiveMapStations.length <= 120;
-
             filteredLiveMapStations.forEach((s) => {
                 const lat = parseFloat(s.latitude);
                 const lng = parseFloat(s.longitude);
-
                 if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
                     const latLng = [lat, lng];
                     bounds.push(latLng);
+                    const hideStationPins = (liveActiveQuickCategory === 'NONE') || (document.getElementById('live-toggle-pins') && !document.getElementById('live-toggle-pins').checked);
 
-                    const cat = (s.categorization || 'NORMAL').trim().toUpperCase();
-                    const markerIcon = createStationMarkerIcon(cat);
+                    if (!hideStationPins) {
+                        const cat = (s.categorization || 'NORMAL').trim().toUpperCase();
+                        const markerIcon = createLiveStationMarkerIcon(cat);
 
-                    const marker = L.marker(latLng, { icon: markerIcon });
-                    liveMarkersGroup.addLayer(marker);
+                        const marker = L.marker(latLng, { icon: markerIcon });
+                        liveMarkersGroup.addLayer(marker);
 
-                    if (shouldBindTooltip) {
-                        const locName = s.polling_station_location || `PS Code ${s.code || ''}`;
-                        const shortName = locName.length > 25 ? locName.substring(0, 25) + '...' : locName;
-                        marker.bindTooltip(shortName, { direction: 'top', className: 'ps-tooltip-badge', offset: [0, -18] });
+                        if (shouldBindTooltip) {
+                            const locName = s.polling_station_location || `PS Code ${s.code || ''}`;
+                            const shortName = locName.length > 25 ? locName.substring(0, 25) + '...' : locName;
+                            marker.bindTooltip(shortName, { direction: 'top', className: 'ps-tooltip-badge', offset: [0, -14] });
+                        }
+
+                        marker.bindPopup(() => buildStationPopupHtml(s), { maxWidth: 440, minWidth: 320 });
                     }
-
-                    marker.bindPopup(() => buildStationPopupHtml(s), { maxWidth: 440, minWidth: 320 });
-
                     // Group exclusively for this station's route (matching Route Map exactly)
                     const rKey = `${s.psname || 'PS'}_${s.route_no || 'R'}`;
                     if (!liveRouteGroups[rKey]) {
@@ -5035,16 +4595,13 @@
                     liveRouteStaffInfo[rKey].stations.push(s);
                 }
             });
-
             // Draw road routes whenever toggled (matching Route Map exactly)
             const routesChecked = document.getElementById('live-toggle-routes') ? document.getElementById('live-toggle-routes').checked : true;
             if (routesChecked && Object.keys(liveRouteGroups).length > 0) {
                 drawRoadRoutesForLiveMap(liveRouteGroups, liveRouteStaffInfo, thisToken);
             }
-
             // Update banner
             updateLiveActiveRouteBanner(selectedPS, selectedRoute, searchText, filteredLiveMapStations);
-
             // Fit bounds
             if (bounds.length > 0) {
                 if (searchText || selectedRoute) {
@@ -5053,29 +4610,23 @@
                     liveMap.fitBounds(bounds, { padding: [30, 30] });
                 }
             }
-
             // Render bottom table
             renderLiveMapReportTable(filteredLiveMapStations);
         }
-
         async function drawRoadRoutesForLiveMap(routeGroups, routeStaffInfo, token) {
             const rKeys = Object.keys(routeGroups);
             const isManyRoutes = rKeys.length > 6;
-
             for (const rKey of rKeys) {
                 if (token !== currentLiveMapFilterToken || !liveRoutesGroup) return;
-
                 const coords = routeGroups[rKey];
                 const info = routeStaffInfo[rKey] || {};
                 if (!coords || coords.length < 2) continue;
-
                 // 1. Check precomputed true road geometry
                 const pre = getPrecomputedRoute(info.ps, info.route) || (window.PRECOMPUTED_ROUTES && (window.PRECOMPUTED_ROUTES[rKey] || window.PRECOMPUTED_ROUTES[info.ps + '_' + info.route]));
                 if (pre && pre.coordinates) {
                     drawLiveRoadRouteFromGeometry(pre.coordinates, pre.distKm, info, token);
                     continue;
                 }
-
                 // 2. Full OSRM driving geometry live
                 if (!isManyRoutes) {
                     await fetchAndDrawLiveOSRMRoute(coords, info, token);
@@ -5084,38 +4635,30 @@
                 }
             }
         }
-
         function drawLiveRoadRouteFromGeometry(roadCoords, distKm, info, token) {
             if (token !== currentLiveMapFilterToken || !liveRoutesGroup) return;
             if (!roadCoords || roadCoords.length < 2) return;
-
             const outline = L.polyline(roadCoords, {
                 color: '#ffffff',
                 weight: 7,
                 opacity: 0.95,
                 interactive: false
             });
-
             const polyline = L.polyline(roadCoords, {
                 color: '#dc2626',
                 weight: 5,
                 opacity: 0.95,
                 className: 'cursor-pointer'
             });
-
             polyline.bindPopup(() => buildRouteVillagesPopupHtml(info, distKm), { maxWidth: 395, minWidth: 320, maxHeight: 460 });
             polyline.bindTooltip(`<b>Route ${info.route || ''} (${info.ps || ''} PS)</b><br><span style="font-size:10px; color:#1e3a8a;">Click to view ${(info.stations || []).length} villages list</span>`, { sticky: true, className: 'ps-tooltip-badge' });
-
             liveRoutesGroup.addLayer(outline);
             liveRoutesGroup.addLayer(polyline);
         }
-
         function drawInstantLiveRouteLine(coords, info, token) {
             if (token !== currentLiveMapFilterToken || !liveRoutesGroup) return;
             if (coords.length < 2) return;
-
             const curvedCoords = getCurvedSplineCoords(coords);
-
             const outline = L.polyline(curvedCoords, {
                 color: '#ffffff',
                 weight: 7,
@@ -5123,7 +4666,6 @@
                 smoothFactor: 1.0,
                 interactive: false
             });
-
             const polyline = L.polyline(curvedCoords, {
                 color: '#dc2626',
                 weight: 5,
@@ -5131,33 +4673,25 @@
                 smoothFactor: 1.0,
                 className: 'cursor-pointer'
             });
-
             polyline.bindPopup(() => buildRouteVillagesPopupHtml(info, null), { maxWidth: 395, minWidth: 320, maxHeight: 460 });
             polyline.bindTooltip(`<b>Route ${info.route || ''} (${info.ps || ''} PS)</b><br><span style="font-size:10px; color:#1e3a8a;">Click to view ${(info.stations || []).length} villages list</span>`, { sticky: true, className: 'ps-tooltip-badge' });
-
             liveRoutesGroup.addLayer(outline);
             liveRoutesGroup.addLayer(polyline);
         }
-
         async function fetchAndDrawLiveOSRMRoute(coords, info, token) {
             const coordString = coords.map(c => c[1] + ',' + c[0]).join(';');
             const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`;
-
             try {
                 const res = await fetch(url);
                 if (token !== currentLiveMapFilterToken) return;
-
                 const data = await res.json();
                 if (data.routes && data.routes.length > 0) {
                     const routeCoords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
                     const distKm = (data.routes[0].distance / 1000).toFixed(1);
-
                     const outline = L.polyline(routeCoords, { color: '#ffffff', weight: 8, opacity: 0.9, smoothFactor: 1.0, interactive: false });
                     const polyline = L.polyline(routeCoords, { color: '#dc2626', weight: 5, opacity: 0.95, smoothFactor: 1.0, className: 'cursor-pointer' });
-
                     polyline.bindPopup(() => buildRouteVillagesPopupHtml(info, distKm), { maxWidth: 395, minWidth: 320, maxHeight: 460 });
                     polyline.bindTooltip(`<b>Route ${info.route} (${info.ps} PS)</b><br><span style="font-size:10px; color:#1e3a8a;">Click to view ${(info.stations || []).length} villages list</span>`, { sticky: true, className: 'ps-tooltip-badge' });
-
                     if (liveRoutesGroup && token === currentLiveMapFilterToken) {
                         liveRoutesGroup.addLayer(outline);
                         liveRoutesGroup.addLayer(polyline);
@@ -5169,11 +4703,9 @@
                 drawInstantLiveRouteLine(coords, info, token);
             }
         }
-
         function updateLiveActiveRouteBanner(selectedPS, selectedRoute, searchText, stations) {
             const banner = document.getElementById('live-active-route-banner');
             if (!banner) return;
-
             if (selectedRoute || selectedPS || searchText) {
                 banner.classList.remove('hidden');
                 document.getElementById('live-banner-route-tag').innerText = selectedRoute ? `ROUTE - ${selectedRoute}` : (selectedPS || 'SEARCH');
@@ -5183,7 +4715,6 @@
                 const staff = stations.find(s => s.route_incharge || s.route_staff);
                 const staffText = staff ? (staff.route_incharge || staff.route_staff) : '-';
                 document.getElementById('live-banner-staff-details').innerText = `Route Incharge: ${staffText}`;
-
                 if (stations.length > 0) {
                     const first = stations[0];
                     const navLink = document.getElementById('live-banner-nav-link');
@@ -5193,13 +4724,11 @@
                 banner.classList.add('hidden');
             }
         }
-
         function toggleLiveMapReportTable() {
             const container = document.getElementById('live-map-stations-report-container');
             if (!container) return;
             container.classList.toggle('hidden');
         }
-
         function renderLiveMapReportTable(stations) {
             const countEl = document.getElementById('live-map-report-data-count');
             const shownCountEl = document.getElementById('live-map-table-shown-count');
@@ -5207,7 +4736,6 @@
             if (countEl) countEl.innerText = `${stations.length} Stations`;
             if (shownCountEl) shownCountEl.innerText = stations.length;
             if (!tbody) return;
-
             const maxRows = 250;
             const slice = stations.slice(0, maxRows);
             let rowsHtml = '';
@@ -5218,7 +4746,6 @@
                 const lat = parseFloat(s.latitude);
                 const lng = parseFloat(s.longitude);
                 const dist = s.distance_from_ps_kms ? `${s.distance_from_ps_kms} KM` : '-';
-
                 rowsHtml += `
                     <tr class="hover:bg-blue-50/50 transition">
                         <td class="p-2 text-center text-slate-500 font-bold">${idx + 1}</td>
@@ -5250,7 +4777,6 @@
             }
             tbody.innerHTML = rowsHtml;
         }
-
         function locateStationOnLiveMap(stationId) {
             const station = allStations.find(s => s.id == stationId);
             if (!station || !liveMap) return;
@@ -5264,7 +4790,6 @@
                     .openOn(liveMap);
             }
         }
-
         function toggleLiveRoadRoutes(checked) {
             if (!liveRoutesGroup || !liveMap) return;
             if (checked) {
@@ -5274,7 +4799,6 @@
                 if (liveMap.hasLayer(liveRoutesGroup)) liveMap.removeLayer(liveRoutesGroup);
             }
         }
-
         function toggleLiveBorders(checked) {
             if (!liveMap) return;
             if (checked) {
@@ -5286,24 +4810,20 @@
                 }
             }
         }
-
         function locateUserPositionLiveMap() {
             if (!navigator.geolocation) {
                 alert('Geolocation is not supported by your browser.');
                 return;
             }
             if (!liveMap) return;
-
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
                     const lat = pos.coords.latitude;
                     const lng = pos.coords.longitude;
                     liveMap.setView([lat, lng], 15);
-
                     if (liveUserLocationMarker) {
                         liveMap.removeLayer(liveUserLocationMarker);
                     }
-
                     const pulseIcon = L.divIcon({
                         className: 'user-gps-pulse-marker',
                         html: `
@@ -5315,7 +4835,6 @@
                         iconSize: [28, 28],
                         iconAnchor: [14, 14]
                     });
-
                     liveUserLocationMarker = L.marker([lat, lng], { icon: pulseIcon }).addTo(liveMap)
                         .bindPopup('<b>Your Live GPS Location</b><br>Accuracy: ' + Math.round(pos.coords.accuracy) + 'm')
                         .openPopup();
@@ -5326,7 +4845,6 @@
                 { enableHighAccuracy: true, timeout: 8000 }
             );
         }
-
         function onLiveMapSearchInput(val) {
             const dropdown = document.getElementById('live-psl-suggestions');
             if (!dropdown) return;
@@ -5336,7 +4854,6 @@
                 applyLiveMapFilters();
                 return;
             }
-
             const matches = [];
             allStations.forEach(s => {
                 const loc = (s.polling_station_location || '').toLowerCase();
@@ -5351,7 +4868,6 @@
                     }
                 }
             });
-
             if (matches.length === 0) {
                 dropdown.classList.add('hidden');
             } else {
@@ -5365,12 +4881,10 @@
             }
             applyLiveMapFilters();
         }
-
         function onLiveMapSearchFocus() {
             const val = document.getElementById('live-search-text')?.value;
             if (val && val.length >= 2) onLiveMapSearchInput(val);
         }
-
         function selectLiveMapSearchResult(loc) {
             const input = document.getElementById('live-search-text');
             if (input) input.value = loc;
@@ -5378,7 +4892,6 @@
             if (dropdown) dropdown.classList.add('hidden');
             applyLiveMapFilters();
         }
-
         function clearLiveMapSearch() {
             const input = document.getElementById('live-search-text');
             if (input) input.value = '';
@@ -5386,9 +4899,6 @@
             if (dropdown) dropdown.classList.add('hidden');
             applyLiveMapFilters();
         }
-
-
-
         // ================= HIDE / UNHIDE FILTER CONTROLS =================
         function toggleMapFilterBar() {
             const row = document.getElementById('map-filter-row-inputs');
@@ -5396,7 +4906,6 @@
             const icon = document.getElementById('icon-map-filter-toggle');
             const txt = document.getElementById('txt-map-filter-toggle');
             if (!row) return;
-
             const isHidden = row.classList.toggle('hidden');
             if (isHidden) {
                 if (txt) txt.innerText = 'Unhide Filters';
@@ -5417,14 +4926,12 @@
                 setTimeout(() => mainMap.invalidateSize(), 150);
             }
         }
-
         function toggleLiveMapFilterBar() {
             const row = document.getElementById('live-filter-row-inputs');
             const btn = document.getElementById('btn-live-filter-toggle');
             const icon = document.getElementById('icon-live-filter-toggle');
             const txt = document.getElementById('txt-live-filter-toggle');
             if (!row) return;
-
             const isHidden = row.classList.toggle('hidden');
             if (isHidden) {
                 if (txt) txt.innerText = 'Unhide Filters';
@@ -5445,7 +4952,6 @@
                 setTimeout(() => liveMap.invalidateSize(), 150);
             }
         }
-
     
         // ================= LIVE ROUTE MAP FULL SCREEN CONTROLLER =================
         function toggleLiveMapFullscreen() {
@@ -5453,9 +4959,7 @@
             const icon = document.getElementById('icon-live-fullscreen-map');
             const txt = document.getElementById('txt-live-fullscreen-map');
             if (!wrapper) return;
-
             const isCurrentlyFullscreen = document.fullscreenElement === wrapper || wrapper.classList.contains('live-map-fullscreen-active');
-
             if (!isCurrentlyFullscreen) {
                 if (wrapper.requestFullscreen) {
                     wrapper.requestFullscreen().catch(() => {
@@ -5468,7 +4972,6 @@
                 } else {
                     wrapper.classList.add('live-map-fullscreen-active');
                 }
-
                 if (icon) icon.className = 'fa-solid fa-compress text-rose-600 text-sm';
                 if (txt) txt.innerText = 'Exit Full Screen';
             } else {
@@ -5478,28 +4981,23 @@
                     else if (document.msExitFullscreen) document.msExitFullscreen();
                 }
                 wrapper.classList.remove('live-map-fullscreen-active');
-
                 if (icon) icon.className = 'fa-solid fa-expand text-indigo-600 text-sm';
                 if (txt) txt.innerText = 'Full Screen';
             }
-
             if (typeof liveMap !== 'undefined' && liveMap) {
                 setTimeout(() => liveMap.invalidateSize(), 100);
                 setTimeout(() => liveMap.invalidateSize(), 300);
             }
         }
-
         document.addEventListener('fullscreenchange', handleLiveMapFullscreenChange);
         document.addEventListener('webkitfullscreenchange', handleLiveMapFullscreenChange);
         document.addEventListener('mozfullscreenchange', handleLiveMapFullscreenChange);
         document.addEventListener('MSFullscreenChange', handleLiveMapFullscreenChange);
-
         function handleLiveMapFullscreenChange() {
             const wrapper = document.getElementById('live-map-wrapper');
             const icon = document.getElementById('icon-live-fullscreen-map');
             const txt = document.getElementById('txt-live-fullscreen-map');
             if (!wrapper) return;
-
             const isFullscreen = document.fullscreenElement === wrapper;
             if (!isFullscreen && !wrapper.classList.contains('live-map-fullscreen-active')) {
                 if (icon) icon.className = 'fa-solid fa-expand text-indigo-600 text-sm';
@@ -5515,4 +5013,3 @@
     </script>
 </body>
 </html>
-
