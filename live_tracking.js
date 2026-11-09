@@ -438,7 +438,7 @@ window.fitAllActiveLiveUnits = function() {
 
 // Clear Single Officer tracking from Control Room with Password Verification
 window.clearSingleOfficer = function(key) {
-    const enteredPassword = prompt('Control Room: Enter Password to clear Live Tracking for unit (' + key + '):\n[Password: Police]');
+    const enteredPassword = prompt('Control Room: Enter Password to clear Live Tracking for unit (' + key + '):');
     if (enteredPassword === null) {
         return; // User canceled
     }
@@ -470,7 +470,7 @@ window.clearAllLiveTracking = function() {
         alert('No active live units currently transmitting.');
         return;
     }
-    const enteredPassword = prompt('Control Room: Enter Password to clear ALL Live Tracking units:\n[Password: Police]');
+    const enteredPassword = prompt('Control Room: Enter Password to clear ALL Live Tracking units:');
     if (enteredPassword === null) {
         return; // User canceled
     }
