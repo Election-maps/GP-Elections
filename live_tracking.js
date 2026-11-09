@@ -436,9 +436,14 @@ window.fitAllActiveLiveUnits = function() {
     }
 };
 
-// Clear Single Officer tracking from Control Room
+// Clear Single Officer tracking from Control Room with Password Verification
 window.clearSingleOfficer = function(key) {
-    if (!confirm("కంట్రోల్ రూమ్ నుండి ఈ అధికారి (" + key + ") లైవ్ ట్రాకింగ్‌ను పూర్తిగా తొలగించాలనుకుంటున్నారా?\n(Are you sure you want to clear tracking for this unit?)")) {
+    const enteredPassword = prompt('Control Room: Enter Password to clear Live Tracking for unit (' + key + '):\n[Password: Police]');
+    if (enteredPassword === null) {
+        return; // User canceled
+    }
+    if (enteredPassword.trim().toLowerCase() !== 'police') {
+        alert('Incorrect Password! Clear tracking canceled.');
         return;
     }
 
@@ -458,15 +463,19 @@ window.clearSingleOfficer = function(key) {
     removeLivePartyUnit(key);
 };
 
-// Clear ALL Live Tracking from Control Room
+// Clear ALL Live Tracking from Control Room with Password Verification
 window.clearAllLiveTracking = function() {
     const keys = Object.keys(window.livePartyMarkers);
     if (keys.length === 0) {
-        alert("ప్రస్తుతం ఎటువంటి లైవ్ ట్రాకింగ్ యూనిట్లు లేవు (No active live units).");
+        alert('No active live units currently transmitting.');
         return;
     }
-
-    if (!confirm("కంట్రోల్ రూమ్ నుండి అందరు అధికారుల లైవ్ ట్రాకింగ్‌ను పూర్తిగా తొలగించాలనుకుంటున్నారా?\n(Are you sure you want to clear ALL live tracking from Control Room?)")) {
+    const enteredPassword = prompt('Control Room: Enter Password to clear ALL Live Tracking units:\n[Password: Police]');
+    if (enteredPassword === null) {
+        return; // User canceled
+    }
+    if (enteredPassword.trim().toLowerCase() !== 'police') {
+        alert('Incorrect Password! Clear tracking canceled.');
         return;
     }
 
