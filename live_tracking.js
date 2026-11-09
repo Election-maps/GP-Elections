@@ -545,3 +545,184 @@ function restoreLiveUnitsFromCache() {
         }
     } catch(e) {}
 }
+
+
+// ================= EXPORT LIVE & OFFLINE OFFICERS REPORT TO EXCEL =================
+window.exportLiveOfficersToExcel = async function() {
+    const btn = document.getElementById('btn-export-live-officers');
+    const origHtml = btn ? btn.innerHTML : '';
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Generating Excel...';
+
+    try {
+        if (typeof XLSX === 'undefined') {
+            await new Promise(function(resolve, reject) {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+                script.onload = resolve;
+                script.onerror = function() { reject(new Error('Network error loading XLSX')); };
+                document.head.appendChild(script);
+            });
+        }
+
+        const dataList = (window.ROUTE_MOBILES_DATA && Array.isArray(window.ROUTE_MOBILES_DATA)) ? window.ROUTE_MOBILES_DATA : [];
+        const liveMarkers = window.livePartyMarkers || {};
+
+        const processedKeys = {};
+        const allRecords = [];
+
+        dataList.forEach(function(u) {
+            const key = u.id || u.unitId;
+            processedKeys[String(key || '').trim().toLowerCase()] = true;
+
+            const liveUnit = liveMarkers[key] || 
+                             liveMarkers[String(key).toLowerCase()] || 
+                             liveMarkers[String(key).toUpperCase()] || 
+                             null;
+
+            const isOnline = !!liveUnit;
+            let speedText = '-';
+            let moveStatus = isOnline ? 'STATIONARY' : 'OFFLINE';
+            let latText = '-';
+            let lngText = '-';
+            let lastSeenText = 'Offline / Not Connected';
+            let mapsLink = '-';
+
+            if (isOnline) {
+                const speedKmh = typeof liveUnit.speedKmh !== 'undefined' ? liveUnit.speedKmh : 0;
+                speedText = speedKmh + ' KM/H';
+                moveStatus = liveUnit.isMoving || speedKmh >= 2 ? 'MOVING' : 'STATIONARY';
+                latText = liveUnit.lat ? Number(liveUnit.lat).toFixed(6) : '-';
+                lngText = liveUnit.lng ? Number(liveUnit.lng).toFixed(6) : '-';
+
+                if (liveUnit.lastUpdated) {
+                    const diffSec = Math.max(0, Math.round((Date.now() - liveUnit.lastUpdated) / 1000));
+                    lastSeenText = diffSec < 60 ? (diffSec + ' sec ago') : (Math.round(diffSec / 60) + ' min ago');
+                } else {
+                    lastSeenText = 'Online (Live)';
+                }
+
+                if (liveUnit.lat && liveUnit.lng) {
+                    mapsLink = 'https://www.google.com/maps?q=' + liveUnit.lat + ',' + liveUnit.lng;
+                }
+            }
+
+            allRecords.push({
+                isOnline: isOnline,
+                record: {
+                    'Status': isOnline ? 'ONLINE' : 'OFFLINE',
+                    'Party Category': u.category || u.categoryKey || 'Route Mobiles',
+                    'Unit Name / Route': u.unitName || u.route || '-',
+                    'Police Station / Mandal': u.mandal || '-',
+                    'Headquarters': u.hq || u.route || '-',
+                    'Officer Name & Rank': u.officer || '-',
+                    'Officer Mobile No': u.phone || '-',
+                    'Supporting Staff': u.supporting || '-',
+                    'Assigned Polling Stations': u.pollingStations || '-',
+                    'Movement Status': moveStatus,
+                    'Speed (KM/H)': speedText,
+                    'Latitude': latText,
+                    'Longitude': lngText,
+                    'Last Update Time': lastSeenText,
+                    'Live Location Link': mapsLink
+                }
+            });
+        });
+
+        // Add any active live units transmitting ad-hoc not found in the initial data
+        for (const k in liveMarkers) {
+            const cleanK = String(k || '').trim().toLowerCase();
+            if (!processedKeys[cleanK]) {
+                const liveUnit = liveMarkers[k];
+                const speedKmh = liveUnit.speedKmh || 0;
+                allRecords.push({
+                    isOnline: true,
+                    record: {
+                        'Status': 'ONLINE',
+                        'Party Category': liveUnit.catKey || 'Live Party',
+                        'Unit Name / Route': liveUnit.unitName || k,
+                        'Police Station / Mandal': liveUnit.mandal || '-',
+                        'Headquarters': '-',
+                        'Officer Name & Rank': liveUnit.officer || 'Officer',
+                        'Officer Mobile No': liveUnit.phone || '-',
+                        'Supporting Staff': '-',
+                        'Assigned Polling Stations': '-',
+                        'Movement Status': liveUnit.isMoving || speedKmh >= 2 ? 'MOVING' : 'STATIONARY',
+                        'Speed (KM/H)': speedKmh + ' KM/H',
+                        'Latitude': liveUnit.lat ? Number(liveUnit.lat).toFixed(6) : '-',
+                        'Longitude': liveUnit.lng ? Number(liveUnit.lng).toFixed(6) : '-',
+                        'Last Update Time': 'Online (Live)',
+                        'Live Location Link': liveUnit.lat && liveUnit.lng ? ('https://www.google.com/maps?q=' + liveUnit.lat + ',' + liveUnit.lng) : '-'
+                    }
+                });
+            }
+        }
+
+        // Sort so ONLINE units are at the top
+        allRecords.sort(function(a, b) {
+            if (a.isOnline === b.isOnline) return 0;
+            return a.isOnline ? -1 : 1;
+        });
+
+        const allRows = allRecords.map(function(r, idx) {
+            const item = { 'S.No': idx + 1 };
+            for (const key in r.record) item[key] = r.record[key];
+            return item;
+        });
+
+        const onlineRows = allRecords.filter(function(r) { return r.isOnline; }).map(function(r, idx) {
+            const item = { 'S.No': idx + 1 };
+            for (const key in r.record) item[key] = r.record[key];
+            return item;
+        });
+
+        const offlineRows = allRecords.filter(function(r) { return !r.isOnline; }).map(function(r, idx) {
+            const item = { 'S.No': idx + 1 };
+            for (const key in r.record) item[key] = r.record[key];
+            return item;
+        });
+
+        const wb = XLSX.utils.book_new();
+
+        const wsAll = XLSX.utils.json_to_sheet(allRows);
+        XLSX.utils.book_append_sheet(wb, wsAll, 'All Officers (' + allRows.length + ')');
+
+        const wsOnline = XLSX.utils.json_to_sheet(onlineRows.length > 0 ? onlineRows : [{ 'Message': 'No officers currently transmitting live.' }]);
+        XLSX.utils.book_append_sheet(wb, wsOnline, 'Online (' + onlineRows.length + ')');
+
+        const wsOffline = XLSX.utils.json_to_sheet(offlineRows);
+        XLSX.utils.book_append_sheet(wb, wsOffline, 'Offline (' + offlineRows.length + ')');
+
+        // Auto-fit column widths
+        [wsAll, wsOnline, wsOffline].forEach(function(ws) {
+            if (!ws['!ref']) return;
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            const colWidths = [];
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+                let maxLen = 12;
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
+                    if (cell && cell.v) {
+                        const len = String(cell.v).length;
+                        if (len > maxLen) maxLen = Math.min(len, 40);
+                    }
+                }
+                colWidths.push({ wch: maxLen + 2 });
+            }
+            ws['!cols'] = colWidths;
+        });
+
+        const now = new Date();
+        const pad = function(n) { return (n < 10 ? '0' : '') + n; };
+        const fileDate = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) + '_' + pad(now.getHours()) + '-' + pad(now.getMinutes());
+        const fileName = 'Srikakulam_Police_Officers_Status_' + fileDate + '.xlsx';
+
+        XLSX.writeFile(wb, fileName);
+
+        alert('Excel Exported Successfully!\n\nTotal Officers: ' + allRows.length + '\nOnline: ' + onlineRows.length + '\nOffline: ' + offlineRows.length + '\n\nFile: ' + fileName);
+    } catch (err) {
+        console.error('Error exporting officers excel:', err);
+        alert('Failed to export Excel report: ' + err.message);
+    } finally {
+        if (btn) btn.innerHTML = origHtml;
+    }
+};
