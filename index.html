@@ -310,21 +310,6 @@
                             Hyper Sensitive (<span id="map-cat-count-hyper">0</span>)
                         </button>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <!-- Live Mode Indicator & GPS Locate Me (Active when Live Route Map tab is selected) -->
-                        <div id="live-map-mode-indicator" class="flex items-center gap-1.5">
-                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 shadow-2xs">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                                <span>LIVE TRACKING</span>
-                            </span>
-                            <button type="button" onclick="locateUserPosition()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded text-xs flex items-center gap-1 transition shadow-xs cursor-pointer" title="Locate My Current GPS Position">
-                                <i class="fa-solid fa-crosshairs"></i> My Location
-                            </button>
-                        </div>
-                        <button type="button" onclick="toggleMapReportTable()" id="toggle-map-table-btn" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold px-2.5 py-1 rounded text-xs border border-indigo-300 flex items-center gap-1.5 transition shadow-xs cursor-pointer" title="View matching report table data under map">
-                            <i class="fa-solid fa-table-list text-indigo-600"></i> Polling Stations Table (<span id="map-table-shown-count">0</span>)
-                        </button>
-                    </div>
                 </div>
                 <div class="flex flex-wrap items-end gap-2.5">
                     <!-- Police Station Filter -->
@@ -462,42 +447,6 @@
                 </div>
             </div>
 
-            <!-- ================= SELECTED STATIONS REPORT DATA TABLE UNDER MAP ================= -->
-            <div id="map-stations-report-container" class="hidden bg-white p-3 rounded-lg shadow-sm border border-slate-200 space-y-2 mt-2">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                            <i class="fa-solid fa-table-list text-blue-600"></i> Polling Station Report Data (Matching Active Map Filter)
-                        </h3>
-                        <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded" id="map-report-data-count">0 Stations</span>
-                    </div>
-                    <button type="button" onclick="toggleMapReportTable()" class="text-slate-400 hover:text-slate-700 text-xs font-bold px-2 py-1 rounded hover:bg-slate-100 transition">
-                        <i class="fa-solid fa-xmark mr-0.5"></i> Close Table
-                    </button>
-                </div>
-                <div class="overflow-x-auto max-h-96 overflow-y-auto border border-slate-200 rounded-lg">
-                    <table class="w-full text-[11px] divide-y divide-slate-200 text-left">
-                        <thead class="bg-slate-900 text-white sticky top-0 z-10 text-[11px]">
-                            <tr>
-                                <th class="p-2 text-center w-12">S.No</th>
-                                <th class="p-2">Mandal / ZPTC</th>
-                                <th class="p-2">MPTC Segment</th>
-                                <th class="p-2 text-center">Route</th>
-                                <th class="p-2">Route Incharge</th>
-                                <th class="p-2">PS Name</th>
-                                <th class="p-2">Polling Station Location (PSL)</th>
-                                <th class="p-2 text-center">Voters</th>
-                                <th class="p-2">BLO Contact</th>
-                                <th class="p-2 text-center">Distance</th>
-                                <th class="p-2 text-center">Sensitivity</th>
-                                <th class="p-2 text-center w-16">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="map-report-data-tbody" class="divide-y divide-slate-100 bg-white">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </section>
 
         <!-- ================= TAB: LIVE ROUTE MAP ================= -->
@@ -524,21 +473,6 @@
                         </button>
                         <button type="button" onclick="setLiveMapQuickCategory('HYPER SENSITIVE')" id="live-pill-cat-hyper" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 transition">
                             Hyper Sensitive (<span id="live-cat-count-hyper">0</span>)
-                        </button>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <!-- Live Mode Indicator & GPS Locate Me -->
-                        <div id="live-map-mode-indicator-live" class="flex items-center gap-1.5">
-                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 shadow-2xs">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                                <span>LIVE TRACKING</span>
-                            </span>
-                            <button type="button" onclick="locateUserPositionLiveMap()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded text-xs flex items-center gap-1 transition shadow-xs cursor-pointer" title="Locate My Current GPS Position">
-                                <i class="fa-solid fa-crosshairs"></i> My Location
-                            </button>
-                        </div>
-                        <button type="button" onclick="toggleLiveMapReportTable()" id="toggle-live-map-table-btn" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold px-2.5 py-1 rounded text-xs border border-indigo-300 flex items-center gap-1.5 transition shadow-xs cursor-pointer" title="View matching report table data under map">
-                            <i class="fa-solid fa-table-list text-indigo-600"></i> Polling Stations Table (<span id="live-map-table-shown-count">0</span>)
                         </button>
                     </div>
                 </div>
@@ -674,42 +608,6 @@
                 </div>
             </div>
 
-            <!-- Polling Station Report Data Table Under Map -->
-            <div id="live-map-stations-report-container" class="hidden bg-white p-3 rounded-lg shadow-sm border border-slate-200 space-y-2 mt-2">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <div class="flex items-center gap-2">
-                        <h3 class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                            <i class="fa-solid fa-table-list text-emerald-600"></i> Polling Station Report Data (Matching Live Map Filter)
-                        </h3>
-                        <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded" id="live-map-report-data-count">0 Stations</span>
-                    </div>
-                    <button type="button" onclick="toggleLiveMapReportTable()" class="text-slate-400 hover:text-slate-700 text-xs font-bold px-2 py-1 rounded hover:bg-slate-100 transition">
-                        <i class="fa-solid fa-xmark mr-0.5"></i> Close Table
-                    </button>
-                </div>
-                <div class="overflow-x-auto max-h-96 overflow-y-auto border border-slate-200 rounded-lg">
-                    <table class="w-full text-[11px] divide-y divide-slate-200 text-left">
-                        <thead class="bg-slate-900 text-white sticky top-0 z-10 text-[11px]">
-                            <tr>
-                                <th class="p-2 text-center w-12">S.No</th>
-                                <th class="p-2">Mandal / ZPTC</th>
-                                <th class="p-2">MPTC Segment</th>
-                                <th class="p-2 text-center">Route</th>
-                                <th class="p-2">Route Incharge</th>
-                                <th class="p-2">PS Name</th>
-                                <th class="p-2">Polling Station Location (PSL)</th>
-                                <th class="p-2 text-center">Voters</th>
-                                <th class="p-2">BLO Contact</th>
-                                <th class="p-2 text-center">Distance</th>
-                                <th class="p-2 text-center">Sensitivity</th>
-                                <th class="p-2 text-center w-16">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="live-map-report-data-tbody" class="divide-y divide-slate-100 bg-white">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </section>
 
 
