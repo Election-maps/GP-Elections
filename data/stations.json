@@ -1,4 +1,4 @@
-[
+﻿[
     {
         "id":  1,
         "sno":  1,
@@ -24444,8 +24444,8 @@
         "pc":  "",
         "hg":  "",
         "others":  "",
-        "latitude":  "18.3100.",
-        "longitude":  "83.7470.",
+        "latitude":  "18.3100",
+        "longitude":  "83.7470",
         "route_staff":  "T. Srinivasarao, HC 1045, Ponduru PS,\n9440023925",
         "route_staff_ph_no":  "9440023925"
     },

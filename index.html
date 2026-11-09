@@ -4777,15 +4777,11 @@
                     const latLng = [lat, lng];
                     bounds.push(latLng);
 
-                    const marker = L.marker(latLng, {
-                        icon: L.divIcon({
-                            className: 'custom-station-pin',
-                            html: getStationPinHtml(s.categorization, s.route_no, s.psname),
-                            iconSize: [26, 32],
-                            iconAnchor: [13, 30],
-                            popupAnchor: [0, -28]
-                        })
-                    });
+                    const cat = (s.categorization || 'NORMAL').trim().toUpperCase();
+                    const markerIcon = createStationMarkerIcon(cat);
+
+                    const marker = L.marker(latLng, { icon: markerIcon });
+                    liveMarkersGroup.addLayer(marker);
 
                     marker.on('click', () => {
                         L.popup({ maxWidth: 440, minWidth: 320 })
@@ -4795,14 +4791,10 @@
                     });
 
                     if (shouldBindTooltip) {
-                        const cleanLocation = (s.polling_station_location || '').replace(/\s*[\(\[].*$/, '').trim();
-                        marker.bindTooltip(
-                            `<div class="ps-tooltip-badge"><b>#${s.route_no || '-'}</b> ${cleanLocation}</div>`,
-                            { permanent: false, direction: 'top', offset: [0, -26], opacity: 0.95 }
-                        );
+                        const locName = s.polling_station_location || `PS Code ${s.code || ''}`;
+                        const shortName = locName.length > 25 ? locName.substring(0, 25) + '...' : locName;
+                        marker.bindTooltip(shortName, { direction: 'top', className: 'ps-tooltip-badge', offset: [0, -18] });
                     }
-
-                    liveMarkersGroup.addLayer(marker);
                 }
             });
 
