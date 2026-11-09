@@ -588,9 +588,7 @@
                         <span class="text-slate-400 font-normal">|</span>
                         <span class="text-slate-300">Live Active: <strong id="live-party-active-count" class="text-emerald-300">0</strong> / 364</span>
                     </div>
-                    <button type="button" onclick="fitAllActiveLiveUnits()" class="px-2.5 py-1 rounded text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white transition flex items-center gap-1 shadow-sm" title="Center map on all active live moving units">
-                        <i class="fa-solid fa-crosshairs"></i> Center Units
-                    </button>
+
                     <button type="button" onclick="clearAllLiveTracking()" class="px-2.5 py-1 rounded text-xs font-bold bg-rose-700 hover:bg-rose-600 text-white transition flex items-center gap-1 shadow-sm" title="à°•à°‚à°Ÿà±à°°à±‹à°²à± à°°à±‚à°®à± à°¨à±à°‚à°¡à°¿ à°®à±Šà°¤à±à°¤à°‚ à°²à±ˆà°µà± à°Ÿà±à°°à°¾à°•à°¿à°‚à°—à± à°¤à±Šà°²à°—à°¿à°‚à°šà°‚à°¡à°¿ (Clear All Live Tracking)">
                         <i class="fa-solid fa-trash-can"></i> Clear Tracking
                     </button>
@@ -4345,29 +4343,56 @@
             loadLiveMandalBoundaries();
             applyLiveMapFilters();
         }
+        let isLoadingLiveBorders = false;
         async function loadLiveMandalBoundaries() {
-            if (liveMandalBoundariesLayer) return;
+            if (liveMandalBoundariesLayer || isLoadingLiveBorders) return;
             const toggle = document.getElementById('live-toggle-borders');
             if (toggle && !toggle.checked) return;
+            isLoadingLiveBorders = true;
             try {
-                if (typeof omnivore !== 'undefined') {
+                const loadScript = (url, check) => {
+                    if (check()) return Promise.resolve();
+                    return new Promise((resolve, reject) => {
+                        const s = document.createElement('script');
+                        s.src = url;
+                        s.onload = resolve;
+                        s.onerror = reject;
+                        document.head.appendChild(s);
+                    });
+                };
+                await Promise.all([
+                    loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', () => typeof JSZip !== 'undefined'),
+                    loadScript('https://unpkg.com/@mapbox/leaflet-omnivore@0.3.4/leaflet-omnivore.min.js', () => typeof omnivore !== 'undefined')
+                ]);
+
+                let kmlText = window.cachedSklKmlText;
+                if (!kmlText) {
                     const res = await fetch('BORDERSKL-Mandals.kmz');
-                    if (res.ok) {
-                        const data = await res.arrayBuffer();
-                        const zip = await JSZip.loadAsync(data);
-                        const kmlFile = Object.keys(zip.files).find(f => f.endsWith('.kml'));
-                        if (kmlFile) {
-                            const kmlText = await zip.files[kmlFile].async('string');
-                            const parser = new DOMParser();
-                            const kmlDom = parser.parseFromString(kmlText, 'text/xml');
-                            liveMandalBoundariesLayer = omnivore.kml.parse(kmlDom, null, L.geoJson(null, {
-                                style: { color: '#0284c7', weight: 2, opacity: 0.85, fillOpacity: 0.04, dashArray: '4, 4' }
-                            })).addTo(liveMap);
-                        }
-                    }
+                    if (!res.ok) throw new Error('KMZ not found');
+                    const data = await res.arrayBuffer();
+                    const zip = await JSZip.loadAsync(data);
+                    const kmlFileName = Object.keys(zip.files).find(name => name.toLowerCase().endsWith('.kml'));
+                    if (!kmlFileName) throw new Error('No KML inside KMZ');
+                    kmlText = await zip.files[kmlFileName].async('string');
+                    window.cachedSklKmlText = kmlText;
                 }
-            } catch(e) {
-                console.error('Error loading live mandal borders:', e);
+
+                liveMandalBoundariesLayer = omnivore.kml.parse(kmlText, null, L.geoJson(null, {
+                    style: function() {
+                        return { color: "#2563eb", weight: 2, opacity: 0.85, fillOpacity: 0.08, interactive: false };
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.options.interactive = false;
+                    }
+                }));
+
+                if (liveMap && document.getElementById('live-toggle-borders')?.checked) {
+                    liveMandalBoundariesLayer.addTo(liveMap);
+                }
+            } catch (err) {
+                console.warn('Could not load live KMZ boundary file:', err);
+            } finally {
+                isLoadingLiveBorders = false;
             }
         }
         function createLiveStationMarkerIcon(categorization) {
@@ -4799,8 +4824,13 @@
         function toggleLiveBorders(checked) {
             if (!liveMap) return;
             if (checked) {
-                if (!liveMandalBoundariesLayer) loadLiveMandalBoundaries();
-                else if (!liveMap.hasLayer(liveMandalBoundariesLayer)) liveMap.addLayer(liveMandalBoundariesLayer);
+                if (liveMandalBoundariesLayer) {
+                    if (!liveMap.hasLayer(liveMandalBoundariesLayer)) {
+                        liveMandalBoundariesLayer.addTo(liveMap);
+                    }
+                } else {
+                    loadLiveMandalBoundaries();
+                }
             } else {
                 if (liveMandalBoundariesLayer && liveMap.hasLayer(liveMandalBoundariesLayer)) {
                     liveMap.removeLayer(liveMandalBoundariesLayer);
