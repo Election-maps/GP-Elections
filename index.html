@@ -34,6 +34,22 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.25);
             white-space: nowrap;
         }
+        /* Full Screen Live Map Styles */
+        .live-map-fullscreen-active {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            min-height: 100vh !important;
+            z-index: 999999 !important;
+            border-radius: 0 !important;
+            border: none !important;
+            margin: 0 !important;
+        }
+
         /* Live Police Moving & Stationary Markers */
         .police-marker-container {
             position: relative;
@@ -726,6 +742,9 @@
                         <button onclick="openAllRoutesModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded text-xs transition flex items-center justify-center gap-1 shadow-sm whitespace-nowrap" title="View all routes & villages directory">
                             <i class="fa-solid fa-list-ol"></i> Routes
                         </button>
+                        <button type="button" onclick="toggleLiveMapFullscreen()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded text-xs transition flex items-center justify-center gap-1 shadow-sm whitespace-nowrap" title="Toggle Full Screen Live Route Map">
+                            <i class="fa-solid fa-expand"></i> Full Screen
+                        </button>
                     </div>
                 </div>
 
@@ -765,8 +784,14 @@
             </div>
 
             <!-- Leaflet Map Container -->
-            <div class="relative w-full h-[calc(100vh-175px)] min-h-[500px] rounded-lg shadow-md border border-slate-200 overflow-hidden bg-slate-200">
+            <div id="live-map-wrapper" class="relative w-full h-[calc(100vh-175px)] min-h-[500px] rounded-lg shadow-md border border-slate-200 overflow-hidden bg-slate-200">
                 <div id="live-map-canvas" class="w-full h-full"></div>
+
+                <!-- Floating Full Screen Control Button directly on map canvas -->
+                <button type="button" onclick="toggleLiveMapFullscreen()" id="btn-live-fullscreen-map" class="absolute top-3 right-3 z-[1000] bg-white/95 hover:bg-white text-slate-800 font-bold px-3 py-1.5 rounded-lg shadow-lg border border-slate-300 flex items-center gap-1.5 text-xs transition cursor-pointer backdrop-blur-xs hover:shadow-xl" title="Click to view full screen map">
+                    <i class="fa-solid fa-expand text-indigo-600 text-sm" id="icon-live-fullscreen-map"></i>
+                    <span id="txt-live-fullscreen-map">Full Screen</span>
+                </button>
 
                 <!-- Floating Map Legend -->
                 <div class="absolute bottom-4 left-4 z-[1000] bg-white/95 backdrop-blur-sm p-2 rounded-lg shadow-lg border border-slate-200 text-[10px] space-y-1">
@@ -831,7 +856,7 @@
                             <i class="fa-solid fa-map-location-dot text-amber-400"></i> View on Route Map
                         </button>
                             <button onclick="toggleColumnMenu()" class="bg-blue-50 hover:bg-blue-100 text-blue-800 font-bold px-2.5 py-1 rounded text-xs border border-blue-300 flex items-center gap-1.5 transition shadow-xs">
-                                <i class="fa-solid fa-table-columns text-blue-600"></i> Edit Columns (◀ / ▶) <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                                <i class="fa-solid fa-table-columns text-blue-600"></i> Edit Columns (? / ?) <i class="fa-solid fa-chevron-down text-[10px]"></i>
                             </button>
                             <div id="column-visibility-menu" class="hidden absolute right-0 mt-1.5 w-80 bg-white border border-slate-200 rounded-xl shadow-2xl z-[1200] p-3 text-xs space-y-2">
                                 <div class="font-bold text-slate-800 border-b pb-1.5 flex justify-between items-center">
@@ -843,7 +868,7 @@
                                     </button>
                                 </div>
                                 <p class="text-[10px] text-slate-500 leading-tight">
-                                    Move columns <b>◀ Left</b> or <b>Right ▶</b> at any moment, or toggle show/hide:
+                                    Move columns <b>? Left</b> or <b>Right ?</b> at any moment, or toggle show/hide:
                                 </p>
                                 <div class="space-y-1 max-h-72 overflow-y-auto pr-1" id="columns-editor-list">
                                     <!-- Populated dynamically by renderColumnEditorMenu() -->
@@ -920,7 +945,7 @@
                 <div class="overflow-x-auto max-h-[calc(100vh-280px)]">
                     <table class="w-full text-left border-collapse text-[11px] whitespace-normal break-words" id="polling-master-table">
                         <thead class="bg-slate-900 text-white font-semibold sticky top-0 z-10 shadow" id="master-table-thead">
-                            <!-- Populated dynamically with Left (◀) and Right (▶) reordering controls -->
+                            <!-- Populated dynamically with Left (?) and Right (?) reordering controls -->
                         </thead>
                         <tbody id="master-table-tbody" class="divide-y divide-slate-100">
                             <!-- Populated dynamically -->
@@ -957,14 +982,14 @@
                     <div class="w-56">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Select Police Station</label>
                         <select id="route-tab-psname" onchange="onRouteTabPSChange(this.value)" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs font-semibold bg-white focus:ring-1 focus:ring-blue-500">
-                            <option value="">-- సెలెక్ట్ పోలీస్ స్టేషన్ --</option>
+                            <option value="">-- ???????? ?????? ??????? --</option>
                         </select>
                     </div>
 
                     <div class="w-48">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Select Route No</label>
                         <select id="route-tab-routeno" onchange="loadRouteWiseDetails()" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs font-semibold bg-white focus:ring-1 focus:ring-blue-500">
-                            <option value="">-- ముందుగా PS ని ఎంచుకోండి --</option>
+                            <option value="">-- ??????? PS ?? ????????? --</option>
                         </select>
                     </div>
 
@@ -972,7 +997,7 @@
                     <div class="w-52">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Category (Sensitivity)</label>
                         <select id="route-tab-category" onchange="loadRouteWiseDetails()" class="w-full border border-slate-300 rounded px-2.5 py-1.5 text-xs font-semibold bg-white focus:ring-1 focus:ring-blue-500">
-                            <option value="">-- All Categories (అన్నీ) --</option>
+                            <option value="">-- All Categories (?????) --</option>
                             <option value="NORMAL">Normal</option>
                             <option value="SENSITIVE">Sensitive</option>
                             <option value="CRITICAL">Critical</option>
@@ -982,7 +1007,7 @@
 
                     <div class="pt-4">
                         <button onclick="loadRouteWiseDetails()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3.5 py-1.5 rounded text-xs flex items-center gap-1.5 shadow transition">
-                            <i class="fa-solid fa-location-crosshairs"></i> ట్రాక్ చెయ్యండి
+                            <i class="fa-solid fa-location-crosshairs"></i> ?????? ????????
                         </button>
                     </div>
                 </div>
@@ -1010,10 +1035,10 @@
 
                         <!-- Sensitivity Breakdown Badges in Route Summary -->
                         <div class="pt-2 border-t border-slate-100 flex flex-wrap gap-1.5 text-[10px]">
-                            <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold">🟢 Normal: <b id="route-count-normal">0</b></span>
-                            <span class="px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-300 font-bold">🟡 Sensitive: <b id="route-count-sensitive">0</b></span>
-                            <span class="px-2 py-0.5 rounded bg-orange-50 text-orange-800 border border-orange-300 font-bold">🟠 Critical: <b id="route-count-critical">0</b></span>
-                            <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-300 font-bold">🔴 Hyper: <b id="route-count-hyper">0</b></span>
+                            <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300 font-bold">?? Normal: <b id="route-count-normal">0</b></span>
+                            <span class="px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-300 font-bold">?? Sensitive: <b id="route-count-sensitive">0</b></span>
+                            <span class="px-2 py-0.5 rounded bg-orange-50 text-orange-800 border border-orange-300 font-bold">?? Critical: <b id="route-count-critical">0</b></span>
+                            <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-300 font-bold">?? Hyper: <b id="route-count-hyper">0</b></span>
                         </div>
                     </div>
 
@@ -1024,7 +1049,7 @@
                             <span class="text-[10px] text-slate-500" id="route-shown-count">0 Stations Shown</span>
                         </div>
                         <div class="overflow-y-auto max-h-[380px] p-2 space-y-2" id="route-stations-list">
-                            <p class="text-slate-400 text-center py-6 text-xs">దయచేసి పోలీస్ స్టేషన్ మరియు రూట్ నంబర్ ఎంచుకోండి.</p>
+                            <p class="text-slate-400 text-center py-6 text-xs">?????? ?????? ??????? ????? ???? ????? ?????????.</p>
                         </div>
                     </div>
                 </div>
@@ -1061,9 +1086,9 @@
                 <div>
                     <h3 class="font-bold text-sm flex items-center gap-2">
                         <i class="fa-solid fa-route text-amber-400"></i>
-                        <span>District Police Patrol Routes & Villages (రూట్లు & గ్రామాల డైరెక్టరీ)</span>
+                        <span>District Police Patrol Routes & Villages (?????? & ??????? ?????????)</span>
                     </h3>
-                    <p class="text-[11px] text-blue-200 mt-0.5">ఏదైనా రూట్ ఎంచుకుంటే మ్యాప్‌పై ఆ రూట్‌లోని గ్రామాల పూర్తి వివరాలు కనిపిస్తాయి.</p>
+                    <p class="text-[11px] text-blue-200 mt-0.5">????? ???? ????????? ????????? ? ????????? ??????? ?????? ??????? ???????????.</p>
                 </div>
                 <button onclick="closeAllRoutesModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition text-sm">
                     <i class="fa-solid fa-xmark"></i>
@@ -1158,7 +1183,7 @@
             <div class="px-4 py-2.5 bg-white border-b border-slate-200 flex items-center justify-between gap-3">
                 <div class="relative flex-1">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="text" id="enlarged-route-search" oninput="filterEnlargedRouteVillages()" placeholder="ఈ రూట్ లోని గ్రామం లేదా పాఠశాల పేరును వెతకండి (Search Village / School in this route)..." class="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 bg-white">
+                    <input type="text" id="enlarged-route-search" oninput="filterEnlargedRouteVillages()" placeholder="? ???? ???? ?????? ???? ?????? ?????? ??????? (Search Village / School in this route)..." class="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 bg-white">
                 </div>
                 <span id="enlarged-route-shown-count" class="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1.5 rounded border border-slate-200 whitespace-nowrap">
                     0 Villages
@@ -1172,7 +1197,7 @@
 
             <!-- Modal Footer -->
             <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs">
-                <span class="text-slate-500 text-[11px]"><i class="fa-solid fa-circle-info text-blue-600 mr-1"></i>ఏదైనా గ్రామంపై క్లిక్ చేస్తే మ్యాప్‌పై నేరుగా ఆ లొకేషన్‌కు జూమ్ అవుతుంది.</span>
+                <span class="text-slate-500 text-[11px]"><i class="fa-solid fa-circle-info text-blue-600 mr-1"></i>????? ???????? ?????? ?????? ????????? ?????? ? ?????????? ???? ????????.</span>
                 <button onclick="closeEnlargedRouteModal()" class="px-4 py-1.5 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded-lg transition shadow-xs cursor-pointer">
                     Close
                 </button>
@@ -1318,7 +1343,7 @@
 
                 <div class="sm:col-span-2 md:col-span-3 flex justify-end gap-2 pt-3 border-t">
                     <button type="button" onclick="closeModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-3 py-1.5 rounded text-xs">
-                        Cancel / మూసివేయి
+                        Cancel / ????????
                     </button>
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-1.5 rounded text-xs shadow">
                         <i class="fa-solid fa-floppy-disk mr-1"></i> Save Polling Station
@@ -1340,18 +1365,18 @@
                 </button>
             </div>
             <div class="space-y-3 text-xs">
-                <p class="text-slate-600">మీరు నమోదు చేసిన మార్పులు మీ బ్రౌజర్ లోకల్ స్టోరేజ్ (LocalStorage) లో సురక్షితంగా సేవ్ అవుతాయి.</p>
+                <p class="text-slate-600">???? ????? ????? ???????? ?? ??????? ????? ???????? (LocalStorage) ?? ??????????? ???? ???????.</p>
                 
                 <div class="p-2.5 bg-slate-50 rounded border border-slate-200 space-y-2">
-                    <b class="text-slate-800">1. డౌన్‌లోడ్ బ్యాకప్ (JSON File):</b>
-                    <p class="text-slate-500 text-[11px]">తాజా డేటాను డౌన్‌లోడ్ చేసి GitHub లో భద్రపరచండి.</p>
+                    <b class="text-slate-800">1. ????????? ??????? (JSON File):</b>
+                    <p class="text-slate-500 text-[11px]">???? ?????? ????????? ???? GitHub ?? ??????????.</p>
                     <button onclick="downloadJsonBackup()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded text-xs flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-download"></i> Download stations.json Backup
                     </button>
                 </div>
 
                 <div class="p-2.5 bg-slate-50 rounded border border-slate-200 space-y-2">
-                    <b class="text-slate-800">2. అప్‌లోడ్ బ్యాకప్ ఫైల్:</b>
+                    <b class="text-slate-800">2. ???????? ??????? ????:</b>
                     <input type="file" id="json-upload-input" accept=".json" class="w-full text-[11px]">
                     <button onclick="uploadJsonBackup()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded text-xs flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-upload"></i> Restore from JSON
@@ -1359,8 +1384,8 @@
                 </div>
 
                 <div class="p-2.5 bg-rose-50 rounded border border-rose-200 space-y-2">
-                    <b class="text-rose-800">3. ఒరిజినల్ డేటా రీసెట్:</b>
-                    <p class="text-rose-600 text-[11px]">అన్ని మార్పులను తొలగించి మొదటి 1,329 రికార్డులకు రీసెట్ చేస్తుంది.</p>
+                    <b class="text-rose-800">3. ???????? ???? ??????:</b>
+                    <p class="text-rose-600 text-[11px]">????? ????????? ???????? ????? 1,329 ??????????? ?????? ?????????.</p>
                     <button onclick="resetDataToDefault()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1.5 rounded text-xs flex items-center justify-center gap-1.5">
                         <i class="fa-solid fa-triangle-exclamation"></i> Reset to Default (1329 Records)
                     </button>
@@ -1413,6 +1438,10 @@
                     if (typeof closeEnlargedRouteModal === 'function') closeEnlargedRouteModal();
                     if (typeof closeAllRoutesModal === 'function') closeAllRoutesModal();
                     if (typeof closeModal === 'function') closeModal();
+                    const liveWrap = document.getElementById('live-map-wrapper');
+                    if (liveWrap && liveWrap.classList.contains('live-map-fullscreen-active')) {
+                        toggleLiveMapFullscreen();
+                    }
                 }
             });
             // Main Map is initialized strictly on-demand when the user clicks the "Live Route Map" tab!
@@ -1586,7 +1615,7 @@
             const psOptions = sortedPS.map(ps => `<option value="${ps}">${ps}</option>`).join('');
             if (mapPsSelect) mapPsSelect.innerHTML = '<option value="">-- All Police Stations --</option>' + psOptions;
             if (tablePsSelect) tablePsSelect.innerHTML = '<option value="">-- All Police Stations --</option>' + psOptions;
-            if (routeTabPsSelect) routeTabPsSelect.innerHTML = '<option value="">-- సెలెక్ట్ పోలీస్ స్టేషన్ --</option>' + psOptions;
+            if (routeTabPsSelect) routeTabPsSelect.innerHTML = '<option value="">-- ???????? ?????? ??????? --</option>' + psOptions;
             const livePsSelect = document.getElementById('live-filter-psname');
             if (livePsSelect) livePsSelect.innerHTML = '<option value="">-- All Police Stations --</option>' + psOptions;
 
@@ -1818,17 +1847,17 @@
             // Base Tile Layers
             const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
-                attribution: '© OpenStreetMap contributors'
+                attribution: '� OpenStreetMap contributors'
             }).addTo(mainMap);
 
             const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
                 maxZoom: 20,
                 subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-                attribution: '© Google Maps Satellite'
+                attribution: '� Google Maps Satellite'
             });
 
             const cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                attribution: '© CARTO'
+                attribution: '� CARTO'
             });
 
             L.control.layers({
@@ -2365,16 +2394,16 @@
                     <!-- Prominent Travel Route Card (From Police Station to Polling Station) -->
                     <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded p-2 mb-2 text-xs shadow-xs">
                         <div class="flex items-center justify-between text-[10px] font-bold text-blue-900 border-b border-blue-200 pb-1 mb-1">
-                            <span><i class="fa-solid fa-route text-blue-600 mr-1"></i> TRAVEL ROUTE (ప్రయాణ మార్గం)</span>
+                            <span><i class="fa-solid fa-route text-blue-600 mr-1"></i> TRAVEL ROUTE (?????? ??????)</span>
                             <span class="bg-blue-600 text-white px-1.5 py-0.5 rounded text-[10px] font-mono font-bold">${distDisplay}</span>
                         </div>
                         <div class="space-y-1">
                             <div class="flex items-start gap-1.5 text-slate-800 text-[11px]">
-                                <span class="text-rose-600 font-bold shrink-0">🚩 FROM:</span>
+                                <span class="text-rose-600 font-bold shrink-0">?? FROM:</span>
                                 <span class="font-bold text-slate-900">${station.psname || 'Police Station'} Police Station</span>
                             </div>
                             <div class="flex items-start gap-1.5 text-slate-800 text-[11px]">
-                                <span class="text-emerald-700 font-bold shrink-0">🎯 TO:</span>
+                                <span class="text-emerald-700 font-bold shrink-0">?? TO:</span>
                                 <span class="font-bold text-blue-950">${station.polling_station_location || 'Polling Station'}</span>
                             </div>
                             <div class="flex items-center justify-between pt-1 text-[10px] text-slate-600 border-t border-blue-100">
@@ -2727,7 +2756,7 @@
                                 <span class="text-[10px] font-bold bg-amber-400 text-slate-950 px-2 py-0.5 rounded shadow-xs">
                                     ${distBadge}
                                 </span>
-                                <button onclick="openEnlargedRouteModal('${rKey}')" title="పెద్దగా చూడండి (Enlarge View)" class="bg-white text-red-700 hover:bg-amber-300 hover:text-slate-950 px-2 py-0.5 rounded text-[10px] font-black tracking-wide shadow-xs flex items-center gap-1 transition cursor-pointer">
+                                <button onclick="openEnlargedRouteModal('${rKey}')" title="??????? ?????? (Enlarge View)" class="bg-white text-red-700 hover:bg-amber-300 hover:text-slate-950 px-2 py-0.5 rounded text-[10px] font-black tracking-wide shadow-xs flex items-center gap-1 transition cursor-pointer">
                                     <i class="fa-solid fa-up-right-and-down-left-from-center text-[9px]"></i> Enlarge
                                 </button>
                             </div>
@@ -2787,14 +2816,14 @@
                     <!-- Villages List Title -->
                     <div class="flex items-center justify-between font-bold text-slate-800 text-xs border-b pb-1 mb-1.5">
                         <span class="flex items-center gap-1 text-slate-900">
-                            <i class="fa-solid fa-list-check text-rose-600"></i> రూట్ లోని గ్రామాలు (${stations.length} Villages):
+                            <i class="fa-solid fa-list-check text-rose-600"></i> ???? ???? ???????? (${stations.length} Villages):
                         </span>
-                        <span class="text-[10px] text-slate-500 font-normal">గ్రామంపై క్లిక్ చేసి చూడండి</span>
+                        <span class="text-[10px] text-slate-500 font-normal">???????? ?????? ???? ??????</span>
                     </div>
 
                     <!-- Scrollable Village Stations List -->
                     <div class="max-h-64 overflow-y-auto space-y-1.5 pr-0.5">
-                        ${listHtml || '<div class="text-slate-400 text-center py-2">ఈ రూట్ లో ఎలాంటి పోలింగ్ స్టేషన్లు లేవు.</div>'}
+                        ${listHtml || '<div class="text-slate-400 text-center py-2">? ???? ?? ?????? ??????? ????????? ????.</div>'}
                     </div>
                 </div>
             `;
@@ -2871,7 +2900,7 @@
             if (countEl) countEl.innerText = `${stations.length} Villages Shown`;
 
             if (stations.length === 0) {
-                container.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm font-semibold">ఎలాంటి గ్రామాలు కనుగొనబడలేదు (No matching villages found).</div>`;
+                container.innerHTML = `<div class="p-8 text-center text-slate-400 text-sm font-semibold">?????? ???????? ???????????? (No matching villages found).</div>`;
                 return;
             }
 
@@ -3091,7 +3120,7 @@
             });
 
             polyline.bindPopup(() => buildRouteVillagesPopupHtml(info, distKm), { maxWidth: 395, minWidth: 320, maxHeight: 460 });
-            polyline.bindTooltip(`<b>Route ${info.route || ''} (${info.ps || ''} PS)</b><br><span style="font-size:10px; color:#1e3a8a;">🖱️ క్లిక్ చేయండి - ${(info.stations || []).length} గ్రామాల జాబితా</span>`, { sticky: true, className: 'ps-tooltip-badge' });
+            polyline.bindTooltip(`<b>Route ${info.route || ''} (${info.ps || ''} PS)</b><br><span style="font-size:10px; color:#1e3a8a;">??? ?????? ?????? - ${(info.stations || []).length} ??????? ??????</span>`, { sticky: true, className: 'ps-tooltip-badge' });
 
             mainRoutesGroup.addLayer(outline);
             mainRoutesGroup.addLayer(polyline);
@@ -3121,7 +3150,7 @@
 
             const popupHtml = buildRouteVillagesPopupHtml(info, null);
             polyline.bindPopup(popupHtml, { maxWidth: 395, minWidth: 320, maxHeight: 460 });
-            polyline.bindTooltip(`<b>Route ${info.route || ''} (${info.ps || ''} PS)</b><br><span style="font-size:10px; color:#1e3a8a;">🖱️ క్లిక్ చేయండి - ${(info.stations || []).length} గ్రామాల జాబితా</span>`, { sticky: true, className: 'ps-tooltip-badge' });
+            polyline.bindTooltip(`<b>Route ${info.route || ''} (${info.ps || ''} PS)</b><br><span style="font-size:10px; color:#1e3a8a;">??? ?????? ?????? - ${(info.stations || []).length} ??????? ??????</span>`, { sticky: true, className: 'ps-tooltip-badge' });
 
             mainRoutesGroup.addLayer(outline);
             mainRoutesGroup.addLayer(polyline);
@@ -3145,7 +3174,7 @@
 
                     const popupHtml = buildRouteVillagesPopupHtml(info, distKm);
                     polyline.bindPopup(popupHtml, { maxWidth: 395, minWidth: 320, maxHeight: 460 });
-                    polyline.bindTooltip(`<b>Route ${info.route} (${info.ps} PS)</b><br><span style="font-size:10px; color:#1e3a8a;">🖱️ క్లిక్ చేసి ఈ రూట్‌లోని గ్రామాల లిస్ట్ చూడండి (${(info.stations || []).length} గ్రామాలు)</span>`, { sticky: true, className: 'ps-tooltip-badge' });
+                    polyline.bindTooltip(`<b>Route ${info.route} (${info.ps} PS)</b><br><span style="font-size:10px; color:#1e3a8a;">??? ?????? ???? ? ????????? ??????? ?????? ?????? (${(info.stations || []).length} ????????)</span>`, { sticky: true, className: 'ps-tooltip-badge' });
 
                     if (mainRoutesGroup && token === currentMapFilterToken) {
                         mainRoutesGroup.addLayer(outline);
@@ -3213,7 +3242,7 @@
 
             container.innerHTML = '';
             if (filteredKeys.length === 0) {
-                container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs"><i class="fa-solid fa-folder-open text-2xl mb-2"></i><br>ఎలాంటి రూట్లు లేదా గ్రామాలు కనుగొనబడలేదు (No matching routes found).</div>`;
+                container.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs"><i class="fa-solid fa-folder-open text-2xl mb-2"></i><br>?????? ?????? ???? ???????? ???????????? (No matching routes found).</div>`;
                 return;
             }
 
@@ -3250,7 +3279,7 @@
                         
                         <div class="flex flex-wrap items-center gap-2 text-[10px] text-slate-600">
                             <span class="font-bold text-blue-800"><i class="fa-solid fa-building-flag mr-0.5"></i> ${info.stations.length} Polling Stations</span>
-                            <span>•</span>
+                            <span>�</span>
                             <span class="font-bold text-purple-800"><i class="fa-solid fa-users mr-0.5"></i> ${totalVoters.toLocaleString()} Electors</span>
                         </div>
 
@@ -3632,16 +3661,16 @@
                     <th class="p-2 ${col.align} ${col.key} ${isHidden ? 'hidden' : ''} bg-slate-900 text-white font-semibold sticky top-0 z-10 shadow select-none border-r border-slate-800 last:border-r-0 align-middle">
                         <div class="flex items-center justify-between gap-1 w-full min-w-[70px]">
                             <!-- Move Left Button -->
-                            <button onclick="moveColumnLeft('${col.key}', event)" title="Move column left (◀)" class="p-1 rounded text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition shrink-0 ${isFirst ? 'opacity-0 pointer-events-none' : 'opacity-80 hover:opacity-100'}">
+                            <button onclick="moveColumnLeft('${col.key}', event)" title="Move column left (?)" class="p-1 rounded text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition shrink-0 ${isFirst ? 'opacity-0 pointer-events-none' : 'opacity-80 hover:opacity-100'}">
                                 <i class="fa-solid fa-chevron-left text-[10px]"></i>
                             </button>
                             <!-- Column Title / Sort -->
                             <div class="flex-1 flex items-center justify-center gap-1 cursor-pointer hover:text-blue-300 transition py-0.5 px-0.5" ${col.sortKey ? `onclick="toggleSort('${col.sortKey}')"` : ''}>
                                 <span class="font-bold text-[11px] ${isTableWrapText ? 'whitespace-normal break-words leading-tight text-center' : 'whitespace-nowrap'}">${col.label}</span>
-                                ${col.sortKey ? `<span id="sort-icon-${col.sortKey}" class="text-[9px] text-slate-400 shrink-0">↕</span>` : ''}
+                                ${col.sortKey ? `<span id="sort-icon-${col.sortKey}" class="text-[9px] text-slate-400 shrink-0">?</span>` : ''}
                             </div>
                             <!-- Move Right Button -->
-                            <button onclick="moveColumnRight('${col.key}', event)" title="Move column right (▶)" class="p-1 rounded text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition shrink-0 ${isLast ? 'opacity-0 pointer-events-none' : 'opacity-80 hover:opacity-100'}">
+                            <button onclick="moveColumnRight('${col.key}', event)" title="Move column right (?)" class="p-1 rounded text-slate-400 hover:text-amber-300 hover:bg-slate-800 transition shrink-0 ${isLast ? 'opacity-0 pointer-events-none' : 'opacity-80 hover:opacity-100'}">
                                 <i class="fa-solid fa-chevron-right text-[10px]"></i>
                             </button>
                         </div>
@@ -3671,10 +3700,10 @@
                             <span class="truncate ${isHidden ? 'text-slate-400 line-through' : 'font-semibold text-slate-800'}">${col.label}</span>
                         </label>
                         <div class="flex items-center gap-1 shrink-0">
-                            <button onclick="moveColumnLeft('${col.key}', event)" title="Move Left (◀)" class="px-2 py-0.5 bg-slate-200 hover:bg-blue-600 hover:text-white rounded text-[10px] font-bold transition ${isFirst ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}" ${isFirst ? 'disabled' : ''}>
+                            <button onclick="moveColumnLeft('${col.key}', event)" title="Move Left (?)" class="px-2 py-0.5 bg-slate-200 hover:bg-blue-600 hover:text-white rounded text-[10px] font-bold transition ${isFirst ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}" ${isFirst ? 'disabled' : ''}>
                                 <i class="fa-solid fa-arrow-left"></i> Left
                             </button>
-                            <button onclick="moveColumnRight('${col.key}', event)" title="Move Right (▶)" class="px-2 py-0.5 bg-slate-200 hover:bg-blue-600 hover:text-white rounded text-[10px] font-bold transition ${isLast ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}" ${isLast ? 'disabled' : ''}>
+                            <button onclick="moveColumnRight('${col.key}', event)" title="Move Right (?)" class="px-2 py-0.5 bg-slate-200 hover:bg-blue-600 hover:text-white rounded text-[10px] font-bold transition ${isLast ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}" ${isLast ? 'disabled' : ''}>
                                 Right <i class="fa-solid fa-arrow-right"></i>
                             </button>
                         </div>
@@ -3859,7 +3888,7 @@
             }
 
             if (matches.length === 0) {
-                box.innerHTML = `<div class="p-2.5 text-center text-xs text-slate-400">మ్యాచింగ్ PSL కనుగొనబడలేదు (No matching PSL found)</div>`;
+                box.innerHTML = `<div class="p-2.5 text-center text-xs text-slate-400">????????? PSL ???????????? (No matching PSL found)</div>`;
                 box.classList.remove('hidden');
                 return;
             }
@@ -3869,7 +3898,7 @@
 
             let html = `<div class="px-2.5 py-1.5 bg-slate-100 border-b border-slate-200 text-[10px] font-bold text-slate-600 uppercase flex justify-between items-center sticky top-0 z-10 shadow-xs">
                 <span class="flex items-center gap-1"><i class="fa-solid fa-list-check text-blue-600"></i> Name of the PSL (${matches.length})</span>
-                <span class="text-[9px] text-slate-400">క్లిక్ చేయండి (Click to Select)</span>
+                <span class="text-[9px] text-slate-400">?????? ?????? (Click to Select)</span>
             </div>`;
 
             matches.forEach(m => {
@@ -3883,9 +3912,9 @@
                         </div>
                         <div class="text-[10px] text-slate-500 mt-1 flex flex-wrap items-center gap-2">
                             <span class="font-bold text-slate-700">${m.psname} PS</span>
-                            <span>•</span>
+                            <span>�</span>
                             <span class="bg-blue-100 text-blue-800 px-1.5 py-0.2 rounded font-semibold text-[9px]">Route ${m.route_no}</span>
-                            ${m.code ? `<span>•</span><span class="font-mono text-[9px] text-slate-600">Code: ${m.code}</span>` : ''}
+                            ${m.code ? `<span>�</span><span class="font-mono text-[9px] text-slate-600">Code: ${m.code}</span>` : ''}
                         </div>
                     </div>
                 `;
@@ -4003,10 +4032,10 @@
                 const iconEl = document.getElementById(`sort-icon-${col}`);
                 if (!iconEl) return;
                 if (tableSortColumn === col) {
-                    iconEl.innerHTML = tableSortOrder === 'asc' ? '▲' : '▼';
+                    iconEl.innerHTML = tableSortOrder === 'asc' ? '?' : '?';
                     iconEl.className = 'text-[10px] text-blue-400 font-bold ml-1';
                 } else {
-                    iconEl.innerHTML = '↕';
+                    iconEl.innerHTML = '?';
                     iconEl.className = 'text-[9px] text-slate-500 font-normal ml-1';
                 }
             });
@@ -4034,7 +4063,7 @@
             if (!tbody) return;
 
             if (pageData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${tableColumnsOrder.length}" class="p-8 text-center text-slate-400"><i class="fa-solid fa-folder-open text-2xl mb-2"></i><br>ఎలాంటి రికార్డులు కనుగొనబడలేదు (No matching records found).</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="${tableColumnsOrder.length}" class="p-8 text-center text-slate-400"><i class="fa-solid fa-folder-open text-2xl mb-2"></i><br>?????? ?????????? ???????????? (No matching records found).</td></tr>`;
             } else {
                 let rowsHtml = '';
                 pageData.forEach((s, idx) => {
@@ -4138,13 +4167,13 @@
                 routeMap = L.map('route-map').setView([18.3, 83.9], 10);
                 const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
-                    attribution: '© OpenStreetMap contributors'
+                    attribution: '� OpenStreetMap contributors'
                 }).addTo(routeMap);
 
                 const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
                     maxZoom: 20,
                     subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-                    attribution: '© Google Maps Satellite'
+                    attribution: '� Google Maps Satellite'
                 });
 
                 L.control.layers({
@@ -4159,14 +4188,14 @@
         function onRouteTabPSChange(psname) {
             const routeSelect = document.getElementById('route-tab-routeno');
             if (!routeSelect) return;
-            let opts = '<option value="">-- సెలెక్ట్ Route No --</option>';
+            let opts = '<option value="">-- ???????? Route No --</option>';
 
             if (psname) {
                 const routesInPS = new Set();
                 allStations.filter(s => (s.psname || '').trim() === psname.trim()).forEach(s => {
                     if (s.route_no) routesInPS.add(s.route_no.trim());
                 });
-                opts += Array.from(routesInPS).sort().map(r => `<option value="${r}">రూట్ - ${r}</option>`).join('');
+                opts += Array.from(routesInPS).sort().map(r => `<option value="${r}">???? - ${r}</option>`).join('');
             }
             routeSelect.innerHTML = opts;
         }
@@ -4184,7 +4213,7 @@
             const selectedCat = (document.getElementById('route-tab-category')?.value || '').trim();
 
             if (!selectedPS || !selectedRoute) {
-                alert('దయచేసి పోలీస్ స్టేషన్ మరియు రూట్ నంబర్ ఎంచుకోండి.');
+                alert('?????? ?????? ??????? ????? ???? ????? ?????????.');
                 return;
             }
 
@@ -4192,7 +4221,7 @@
             const routeStations = allStations.filter(s => (s.psname || '').trim() === selectedPS && (s.route_no || '').trim() === selectedRoute);
 
             if (routeStations.length === 0) {
-                alert('ఈ రూట్ లో ఎలాంటి పోలింగ్ స్టేషన్లు లేవు.');
+                alert('? ???? ?? ?????? ??????? ????????? ????.');
                 return;
             }
 
@@ -4251,7 +4280,7 @@
             listContainer.innerHTML = '';
 
             if (displayStations.length === 0) {
-                listContainer.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs">ఈ రూట్ లో ఎంపిక చేసిన కేటగిరీ (${selectedCat}) పోలింగ్ స్టేషన్లు లేవు.</div>`;
+                listContainer.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs">? ???? ?? ????? ????? ??????? (${selectedCat}) ??????? ????????? ????.</div>`;
                 document.getElementById('route-total-km').innerText = '0.00 km';
                 return;
             }
@@ -4443,11 +4472,11 @@
             renderTable();
             if (mainMap) applyMapFilters();
 
-            alert(isEdit ? 'పోలింగ్ స్టేషన్ వివరాలు విజయవంతంగా అప్‌డేట్ అయ్యాయి!' : 'కొత్త పోలింగ్ స్టేషన్ విజయవంతంగా జోడించబడింది!');
+            alert(isEdit ? '??????? ??????? ??????? ?????????? ???????? ???????!' : '????? ??????? ??????? ?????????? ????????????!');
         }
 
         function deleteStation(id) {
-            if (!confirm('ఈ పోలింగ్ స్టేషన్ రికార్డును ఖచ్చితంగా తొలగించాలనుకుంటున్నారా?')) return;
+            if (!confirm('? ??????? ??????? ?????????? ????????? ???????????????????????')) return;
 
             allStations = allStations.filter(s => s.id !== id);
             saveDatasetLocally();
@@ -4459,7 +4488,7 @@
         function pickCoordinatesOnMap() {
             closeModal();
             switchTab('map');
-            alert('మ్యాప్ పై మీకు కావాల్సిన ప్రదేశంలో క్లిక్ చేయండి. కోఆర్డినేట్స్ ఆటోమేటిక్‌గా కాపీ అవుతాయి.');
+            alert('?????? ?? ???? ????????? ????????? ?????? ??????. ????????????? ???????????? ???? ???????.');
 
             const onClickCoord = function(e) {
                 mainMap.off('click', onClickCoord);
@@ -4492,7 +4521,7 @@
         function uploadJsonBackup() {
             const fileInput = document.getElementById('json-upload-input');
             if (!fileInput.files || fileInput.files.length === 0) {
-                alert('దయచేసి JSON ఫైల్ ను ఎంచుకోండి.');
+                alert('?????? JSON ???? ?? ?????????.');
                 return;
             }
 
@@ -4508,19 +4537,19 @@
                         renderTable();
                         if (mainMap) applyMapFilters();
                         closeDataModal();
-                        alert(`${allStations.length} రికార్డులు విజయవంతంగా లోడ్ చేయబడ్డాయి!`);
+                        alert(`${allStations.length} ?????????? ?????????? ???? ??????????!`);
                     } else {
-                        alert('చెల్లని JSON ఫైల్ ఫార్మాట్.');
+                        alert('??????? JSON ???? ????????.');
                     }
                 } catch(err) {
-                    alert('JSON ఫైల్ చదవడంలో లోపం: ' + err.message);
+                    alert('JSON ???? ??????? ????: ' + err.message);
                 }
             };
             reader.readAsText(fileInput.files[0]);
         }
 
         function resetDataToDefault() {
-            if (!confirm('అన్ని లోకల్ మార్పులను తొలగించి మొదటి రికార్డులకు రీసెట్ చేయాలనుకుంటున్నారా?')) return;
+            if (!confirm('????? ????? ????????? ???????? ????? ??????????? ?????? ???????????????????')) return;
             localStorage.removeItem('POLICE_ELECTION_STATIONS_DATA');
             if (window.INITIAL_STATIONS) {
                 allStations = window.INITIAL_STATIONS;
@@ -4530,7 +4559,7 @@
             renderTable();
             if (mainMap) applyMapFilters();
             closeDataModal();
-            alert('డేటా విజయవంతంగా రీసెట్ చేయబడింది.');
+            alert('???? ?????????? ?????? ?????????.');
         }
 
         async function exportToExcel() {
@@ -4547,7 +4576,7 @@
                         document.head.appendChild(script);
                     });
                 } catch (err) {
-                    alert('Excel లైబ్రరీ లోడ్ చేయడంలో లోపం ఏర్పడింది: ' + err.message);
+                    alert('Excel ??????? ???? ??????? ???? ?????????: ' + err.message);
                     if (btn) btn.innerHTML = origHtml;
                     return;
                 }
@@ -4752,17 +4781,17 @@
 
             const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
-                attribution: '© OpenStreetMap contributors'
+                attribution: '� OpenStreetMap contributors'
             }).addTo(liveMap);
 
             const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
                 maxZoom: 20,
                 subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
-                attribution: '© Google Maps Satellite'
+                attribution: '� Google Maps Satellite'
             });
 
             const cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                attribution: '© CARTO'
+                attribution: '� CARTO'
             });
 
             L.control.layers({
@@ -5417,6 +5446,73 @@
             }
         }
 
+    
+        // ================= LIVE ROUTE MAP FULL SCREEN CONTROLLER =================
+        function toggleLiveMapFullscreen() {
+            const wrapper = document.getElementById('live-map-wrapper');
+            const icon = document.getElementById('icon-live-fullscreen-map');
+            const txt = document.getElementById('txt-live-fullscreen-map');
+            if (!wrapper) return;
+
+            const isCurrentlyFullscreen = document.fullscreenElement === wrapper || wrapper.classList.contains('live-map-fullscreen-active');
+
+            if (!isCurrentlyFullscreen) {
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen().catch(() => {
+                        wrapper.classList.add('live-map-fullscreen-active');
+                    });
+                } else if (wrapper.webkitRequestFullscreen) {
+                    wrapper.webkitRequestFullscreen();
+                } else if (wrapper.msRequestFullscreen) {
+                    wrapper.msRequestFullscreen();
+                } else {
+                    wrapper.classList.add('live-map-fullscreen-active');
+                }
+
+                if (icon) icon.className = 'fa-solid fa-compress text-rose-600 text-sm';
+                if (txt) txt.innerText = 'Exit Full Screen';
+            } else {
+                if (document.fullscreenElement) {
+                    if (document.exitFullscreen) document.exitFullscreen();
+                    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                    else if (document.msExitFullscreen) document.msExitFullscreen();
+                }
+                wrapper.classList.remove('live-map-fullscreen-active');
+
+                if (icon) icon.className = 'fa-solid fa-expand text-indigo-600 text-sm';
+                if (txt) txt.innerText = 'Full Screen';
+            }
+
+            if (typeof liveMap !== 'undefined' && liveMap) {
+                setTimeout(() => liveMap.invalidateSize(), 100);
+                setTimeout(() => liveMap.invalidateSize(), 300);
+            }
+        }
+
+        document.addEventListener('fullscreenchange', handleLiveMapFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleLiveMapFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleLiveMapFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleLiveMapFullscreenChange);
+
+        function handleLiveMapFullscreenChange() {
+            const wrapper = document.getElementById('live-map-wrapper');
+            const icon = document.getElementById('icon-live-fullscreen-map');
+            const txt = document.getElementById('txt-live-fullscreen-map');
+            if (!wrapper) return;
+
+            const isFullscreen = document.fullscreenElement === wrapper;
+            if (!isFullscreen && !wrapper.classList.contains('live-map-fullscreen-active')) {
+                if (icon) icon.className = 'fa-solid fa-expand text-indigo-600 text-sm';
+                if (txt) txt.innerText = 'Full Screen';
+            } else if (isFullscreen) {
+                if (icon) icon.className = 'fa-solid fa-compress text-rose-600 text-sm';
+                if (txt) txt.innerText = 'Exit Full Screen';
+            }
+            if (typeof liveMap !== 'undefined' && liveMap) {
+                setTimeout(() => liveMap.invalidateSize(), 150);
+            }
+        }
     </script>
 </body>
 </html>
+
