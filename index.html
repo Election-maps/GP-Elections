@@ -4773,6 +4773,8 @@
                 document.getElementById('live-legend-total-shown').innerText = `${filteredLiveMapStations.length} Shown`;
             }
 
+            const liveRouteGroups = {};
+            const liveRouteStaffInfo = {};
             const bounds = [];
             const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
             const shouldBindTooltip = !isTouchDevice || filteredLiveMapStations.length <= 120;
@@ -4791,25 +4793,47 @@
                     const marker = L.marker(latLng, { icon: markerIcon });
                     liveMarkersGroup.addLayer(marker);
 
-                    marker.on('click', () => {
-                        L.popup({ maxWidth: 440, minWidth: 320 })
-                            .setLatLng(latLng)
-                            .setContent(buildStationPopupHtml(s))
-                            .openOn(liveMap);
-                    });
-
                     if (shouldBindTooltip) {
                         const locName = s.polling_station_location || `PS Code ${s.code || ''}`;
                         const shortName = locName.length > 25 ? locName.substring(0, 25) + '...' : locName;
                         marker.bindTooltip(shortName, { direction: 'top', className: 'ps-tooltip-badge', offset: [0, -18] });
                     }
+
+                    marker.bindPopup(() => buildStationPopupHtml(s), { maxWidth: 440, minWidth: 320 });
+
+                    // Group exclusively for this station's route (matching Route Map exactly)
+                    const rKey = `${s.psname || 'PS'}_${s.route_no || 'R'}`;
+                    if (!liveRouteGroups[rKey]) {
+                        liveRouteGroups[rKey] = [];
+                        liveRouteStaffInfo[rKey] = {
+                            route_incharge: s.route_incharge || s.route_staff || '',
+                            striking_force_incharge: s.striking_force_incharge || '',
+                            special_striking_force_incharge: s.special_striking_force_incharge || '',
+                            staff: s.route_incharge || s.route_staff || 'Not Assigned',
+                            staff_phone: s.route_staff_ph_no || '',
+                            ps: s.psname || '',
+                            route: s.route_no || '',
+                            stations: []
+                        };
+                    }
+                    if (s.route_incharge && !liveRouteStaffInfo[rKey].route_incharge) {
+                        liveRouteStaffInfo[rKey].route_incharge = s.route_incharge;
+                    }
+                    if (s.striking_force_incharge && !liveRouteStaffInfo[rKey].striking_force_incharge) {
+                        liveRouteStaffInfo[rKey].striking_force_incharge = s.striking_force_incharge;
+                    }
+                    if (s.special_striking_force_incharge && !liveRouteStaffInfo[rKey].special_striking_force_incharge) {
+                        liveRouteStaffInfo[rKey].special_striking_force_incharge = s.special_striking_force_incharge;
+                    }
+                    liveRouteGroups[rKey].push(latLng);
+                    liveRouteStaffInfo[rKey].stations.push(s);
                 }
             });
 
-            // Draw road routes if checked
-            const routesChecked = document.getElementById('live-toggle-routes')?.checked ?? true;
-            if (routesChecked) {
-                renderLiveRoadRoutes(filteredLiveMapStations, thisToken);
+            // Draw road routes whenever toggled (matching Route Map exactly)
+            const routesChecked = document.getElementById('live-toggle-routes') ? document.getElementById('live-toggle-routes').checked : true;
+            if (routesChecked && Object.keys(liveRouteGroups).length > 0) {
+                drawRoadRoutesForLiveMap(liveRouteGroups, liveRouteStaffInfo, thisToken);
             }
 
             // Update banner
@@ -4828,34 +4852,116 @@
             renderLiveMapReportTable(filteredLiveMapStations);
         }
 
-        function renderLiveRoadRoutes(stations, token) {
-            if (!liveRoutesGroup || !liveMap) return;
-            const routesToDraw = {};
+        async function drawRoadRoutesForLiveMap(routeGroups, routeStaffInfo, token) {
+            const rKeys = Object.keys(routeGroups);
+            const isManyRoutes = rKeys.length > 6;
 
-            stations.forEach(s => {
-                const ps = (s.psname || '').trim();
-                const r = (s.route_no || '').trim();
-                if (!ps || !r) return;
-                const key = `${ps}__${r}`;
-                if (!routesToDraw[key]) routesToDraw[key] = [];
-                const lat = parseFloat(s.latitude);
-                const lng = parseFloat(s.longitude);
-                if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-                    routesToDraw[key].push([lat, lng]);
+            for (const rKey of rKeys) {
+                if (token !== currentLiveMapFilterToken || !liveRoutesGroup) return;
+
+                const coords = routeGroups[rKey];
+                const info = routeStaffInfo[rKey] || {};
+                if (!coords || coords.length < 2) continue;
+
+                // 1. Check precomputed true road geometry
+                const pre = getPrecomputedRoute(info.ps, info.route) || (window.PRECOMPUTED_ROUTES && (window.PRECOMPUTED_ROUTES[rKey] || window.PRECOMPUTED_ROUTES[info.ps + '_' + info.route]));
+                if (pre && pre.coordinates) {
+                    drawLiveRoadRouteFromGeometry(pre.coordinates, pre.distKm, info, token);
+                    continue;
                 }
+
+                // 2. Full OSRM driving geometry live
+                if (!isManyRoutes) {
+                    await fetchAndDrawLiveOSRMRoute(coords, info, token);
+                } else {
+                    drawInstantLiveRouteLine(coords, info, token);
+                }
+            }
+        }
+
+        function drawLiveRoadRouteFromGeometry(roadCoords, distKm, info, token) {
+            if (token !== currentLiveMapFilterToken || !liveRoutesGroup) return;
+            if (!roadCoords || roadCoords.length < 2) return;
+
+            const outline = L.polyline(roadCoords, {
+                color: '#ffffff',
+                weight: 7,
+                opacity: 0.95,
+                interactive: false
             });
 
-            // Draw driving route polylines
-            Object.keys(routesToDraw).forEach(key => {
-                const pts = routesToDraw[key];
-                if (pts.length < 2) return;
-                const poly = L.polyline(pts, {
-                    color: '#dc2626',
-                    weight: 3.5,
-                    opacity: 0.85,
-                    dashArray: '6, 6'
-                }).addTo(liveRoutesGroup);
+            const polyline = L.polyline(roadCoords, {
+                color: '#dc2626',
+                weight: 5,
+                opacity: 0.95,
+                className: 'cursor-pointer'
             });
+
+            polyline.bindPopup(() => buildRouteVillagesPopupHtml(info, distKm), { maxWidth: 395, minWidth: 320, maxHeight: 460 });
+            polyline.bindTooltip(`<b>Route ${info.route || ''} (${info.ps || ''} PS)</b><br><span style="font-size:10px; color:#1e3a8a;">Click to view ${(info.stations || []).length} villages list</span>`, { sticky: true, className: 'ps-tooltip-badge' });
+
+            liveRoutesGroup.addLayer(outline);
+            liveRoutesGroup.addLayer(polyline);
+        }
+
+        function drawInstantLiveRouteLine(coords, info, token) {
+            if (token !== currentLiveMapFilterToken || !liveRoutesGroup) return;
+            if (coords.length < 2) return;
+
+            const curvedCoords = getCurvedSplineCoords(coords);
+
+            const outline = L.polyline(curvedCoords, {
+                color: '#ffffff',
+                weight: 7,
+                opacity: 0.9,
+                smoothFactor: 1.0,
+                interactive: false
+            });
+
+            const polyline = L.polyline(curvedCoords, {
+                color: '#dc2626',
+                weight: 5,
+                opacity: 0.95,
+                smoothFactor: 1.0,
+                className: 'cursor-pointer'
+            });
+
+            polyline.bindPopup(() => buildRouteVillagesPopupHtml(info, null), { maxWidth: 395, minWidth: 320, maxHeight: 460 });
+            polyline.bindTooltip(`<b>Route ${info.route || ''} (${info.ps || ''} PS)</b><br><span style="font-size:10px; color:#1e3a8a;">Click to view ${(info.stations || []).length} villages list</span>`, { sticky: true, className: 'ps-tooltip-badge' });
+
+            liveRoutesGroup.addLayer(outline);
+            liveRoutesGroup.addLayer(polyline);
+        }
+
+        async function fetchAndDrawLiveOSRMRoute(coords, info, token) {
+            const coordString = coords.map(c => c[1] + ',' + c[0]).join(';');
+            const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`;
+
+            try {
+                const res = await fetch(url);
+                if (token !== currentLiveMapFilterToken) return;
+
+                const data = await res.json();
+                if (data.routes && data.routes.length > 0) {
+                    const routeCoords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+                    const distKm = (data.routes[0].distance / 1000).toFixed(1);
+
+                    const outline = L.polyline(routeCoords, { color: '#ffffff', weight: 8, opacity: 0.9, smoothFactor: 1.0, interactive: false });
+                    const polyline = L.polyline(routeCoords, { color: '#dc2626', weight: 5, opacity: 0.95, smoothFactor: 1.0, className: 'cursor-pointer' });
+
+                    polyline.bindPopup(() => buildRouteVillagesPopupHtml(info, distKm), { maxWidth: 395, minWidth: 320, maxHeight: 460 });
+                    polyline.bindTooltip(`<b>Route ${info.route} (${info.ps} PS)</b><br><span style="font-size:10px; color:#1e3a8a;">Click to view ${(info.stations || []).length} villages list</span>`, { sticky: true, className: 'ps-tooltip-badge' });
+
+                    if (liveRoutesGroup && token === currentLiveMapFilterToken) {
+                        liveRoutesGroup.addLayer(outline);
+                        liveRoutesGroup.addLayer(polyline);
+                    }
+                } else {
+                    drawInstantLiveRouteLine(coords, info, token);
+                }
+            } catch(e) {
+                drawInstantLiveRouteLine(coords, info, token);
+            }
         }
 
         function updateLiveActiveRouteBanner(selectedPS, selectedRoute, searchText, stations) {
