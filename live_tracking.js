@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Live Forces Real-time Tracking (Routes, SF, SSF, QRTs, Reserve Parties)
  * Exclusively active on "Live Route Map" tab (liveMap)
  * Srikakulam District Police
@@ -736,7 +736,6 @@ window.exportLiveOfficersToExcel = async function() {
     }
 };
 
-
 // =============================================================
 // Live Officer Messages & SOS Alert System for Control Room
 // =============================================================
@@ -836,7 +835,7 @@ function handleIncomingOfficerMessage(payload) {
     const categoryKey = (payload.categoryKey || meta.categoryKey || 'RM').toUpperCase();
     const lat = parseFloat(payload.latitude || payload.lat || 0);
     const lng = parseFloat(payload.longitude || payload.lng || 0);
-    const priority = (payload.priority || (msgText.toLowerCase().includes('emergency') || msgText.includes('à°…à°¤à±à°¯à°µà°¸à°°à°‚') || msgText.includes('sos') ? 'URGENT' : 'NORMAL')).toUpperCase();
+    const priority = (payload.priority || (msgText.toLowerCase().includes('emergency') || msgText.toLowerCase().includes('sos') ? 'URGENT' : 'NORMAL')).toUpperCase();
     const timestamp = payload.timestamp || Date.now();
 
     // Prevent duplicate spam packets within 3 seconds
@@ -902,7 +901,7 @@ window.showLiveOfficerToast = function(msg) {
     let actionsHtml = '';
     if (msg.lat && msg.lng) {
         actionsHtml += `<button type="button" onclick="locateOfficerOnLiveMap(${msg.lat}, ${msg.lng}, '${escapeHtml(msg.unitName)}', '${escapeHtml(msg.officer)}', '${escapeHtml(msg.phone)}', '${escapeHtml(msg.message)}')" class="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1 shadow cursor-pointer transition">
-            <i class="fa-solid fa-location-crosshairs text-blue-200"></i> Map à°²à±‹ à°šà±‚à°¡à°‚à°¡à°¿ (Locate)
+            <i class="fa-solid fa-location-crosshairs text-blue-200"></i> Locate on Map
         </button>`;
     }
 
@@ -911,7 +910,7 @@ window.showLiveOfficerToast = function(msg) {
             <i class="fa-solid fa-phone"></i> Call
         </a>`;
         actionsHtml += `<a href="https://wa.me/91${msg.phone}" target="_blank" class="px-2.5 py-1 rounded bg-green-700 hover:bg-green-600 text-white font-bold text-xs flex items-center gap-1 shadow transition">
-            <i class="fa-brands fa-whatsapp"></i> Chat
+            <i class="fa-brands fa-whatsapp"></i> WhatsApp
         </a>`;
     }
 
@@ -936,7 +935,7 @@ window.showLiveOfficerToast = function(msg) {
                 ${msg.phone ? `<span class="text-xs text-amber-300 font-normal">(${escapeHtml(msg.phone)})</span>` : ''}
             </div>
             <div class="text-xs text-slate-300 mt-0.5 font-medium">
-                ${escapeHtml(msg.unitName)} ${msg.mandal ? 'â€¢ ' + escapeHtml(msg.mandal) : ''}
+                ${escapeHtml(msg.unitName)} ${msg.mandal ? '| ' + escapeHtml(msg.mandal) : ''}
             </div>
             <div class="mt-2 p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs font-semibold text-amber-200 leading-relaxed">
                 "${escapeHtml(msg.message)}"
@@ -975,7 +974,7 @@ window.locateOfficerOnLiveMap = function(lat, lng, unitName, officer, phone, mes
     const nLat = parseFloat(lat);
     const nLng = parseFloat(lng);
     if (isNaN(nLat) || isNaN(nLng) || nLat === 0 || nLng === 0) {
-        alert('à°ˆ à°…à°§à°¿à°•à°¾à°°à°¿ à°¨à±à°‚à°¡à°¿ GPS à°²à±Šà°•à±‡à°·à°¨à± à°µà°¿à°µà°°à°¾à°²à± à°…à°‚à°¦à°²à±‡à°¦à±.\n(GPS Coordinates not available for this officer message yet).');
+        alert('GPS coordinates are not available for this officer message yet.');
         return;
     }
 
@@ -1029,7 +1028,7 @@ window.locateOfficerOnLiveMap = function(lat, lng, unitName, officer, phone, mes
             </div>
             <div style="display: flex; gap: 6px; margin-top: 6px;">
                 ${safePhone ? `<a href="tel:${safePhone}" style="flex:1; text-align:center; background:#2563eb; color:white; padding:5px 8px; border-radius:5px; text-decoration:none; font-size:11px; font-weight:bold;"><i class="fa-solid fa-phone"></i> Call</a>` : ''}
-                ${safePhone ? `<a href="https://wa.me/91${safePhone}" target="_blank" style="flex:1; text-align:center; background:#16a34a; color:white; padding:5px 8px; border-radius:5px; text-decoration:none; font-size:11px; font-weight:bold;"><i class="fa-brands fa-whatsapp"></i> Chat</a>` : ''}
+                ${safePhone ? `<a href="https://wa.me/91${safePhone}" target="_blank" style="flex:1; text-align:center; background:#16a34a; color:white; padding:5px 8px; border-radius:5px; text-decoration:none; font-size:11px; font-weight:bold;"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>` : ''}
             </div>
         </div>
     `;
@@ -1065,7 +1064,7 @@ window.closeOfficerMessagesModal = function() {
 };
 
 window.clearOfficerMessages = function() {
-    if (!confirm('à°•à°‚à°Ÿà±à°°à±‹à°²à± à°°à±‚à°®à±â€Œà°²à±‹ à°‰à°¨à±à°¨ à°…à°¨à±à°¨à°¿ à°†à°«à±€à°¸à°°à± à°®à±†à°¸à±‡à°œà± à°µà°¿à°µà°°à°¾à°²à°¨à± à°¤à±Šà°²à°—à°¿à°‚à°šà°¾à°²à°¾?\n(Are you sure you want to clear all officer messages history?)')) {
+    if (!confirm('Are you sure you want to clear all officer messages history?')) {
         return;
     }
     window.liveOfficerMessages = [];
@@ -1124,8 +1123,8 @@ window.renderOfficerMessagesList = function() {
         container.innerHTML = `
             <div class="text-center py-12 text-slate-400">
                 <i class="fa-regular fa-message text-4xl mb-3 text-slate-300"></i>
-                <div class="font-bold text-sm text-slate-600">à°¸à°‚à°¦à±‡à°¶à°¾à°²à± à°²à±‡à°µà± (No Messages Found)</div>
-                <div class="text-xs text-slate-400 mt-1">à°†à°«à±€à°¸à°°à±à°²à± à°®à±Šà°¬à±ˆà°²à± à°¯à°¾à°ªà± à°¦à±à°µà°¾à°°à°¾ à°ªà°‚à°ªà±‡ à°¸à°‚à°¦à±‡à°¶à°¾à°²à± à°‡à°•à±à°•à°¡ à°•à°¨à°¿à°ªà°¿à°¸à±à°¤à°¾à°¯à°¿.</div>
+                <div class="font-bold text-sm text-slate-600">No Messages Found</div>
+                <div class="text-xs text-slate-400 mt-1">Messages sent by field officers via mobile app will appear here in real-time.</div>
             </div>
         `;
         return;
@@ -1136,7 +1135,7 @@ window.renderOfficerMessagesList = function() {
         const cardBorder = isUrgent ? 'border-rose-400 bg-rose-50/40' : 'border-slate-200 bg-white';
         const badgeTag = isUrgent
             ? '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-600 text-white tracking-wide uppercase shadow-xs animate-pulse">ðŸš¨ URGENT SOS</span>'
-            : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">ðŸ—³ï¸ UPDATE</span>';
+            : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">ðŸ—³ï¸ ROUTINE UPDATE</span>';
 
         const timeStr = formatMessageTime(m.timestamp);
 
@@ -1144,7 +1143,7 @@ window.renderOfficerMessagesList = function() {
         if (m.lat && m.lng) {
             locateBtn = `
                 <button type="button" onclick="locateOfficerOnLiveMap(${m.lat}, ${m.lng}, '${escapeHtml(m.unitName)}', '${escapeHtml(m.officer)}', '${escapeHtml(m.phone)}', '${escapeHtml(m.message)}')" class="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1 shadow-xs cursor-pointer transition">
-                    <i class="fa-solid fa-location-crosshairs text-blue-200"></i> Map à°²à±‹ à°šà±‚à°ªà°¿à°‚à°šà±
+                    <i class="fa-solid fa-location-crosshairs text-blue-200"></i> Locate on Map
                 </button>
             `;
         }
@@ -1156,7 +1155,7 @@ window.renderOfficerMessagesList = function() {
                     <i class="fa-solid fa-phone"></i> Call
                 </a>
                 <a href="https://wa.me/91${m.phone}" target="_blank" class="px-2.5 py-1 rounded bg-green-700 hover:bg-green-600 text-white font-bold text-xs flex items-center gap-1 shadow-xs transition">
-                    <i class="fa-brands fa-whatsapp"></i> Chat
+                    <i class="fa-brands fa-whatsapp"></i> WhatsApp
                 </a>
             `;
         }
@@ -1176,7 +1175,7 @@ window.renderOfficerMessagesList = function() {
                 <div class="text-xs text-slate-500 mb-2 flex items-center gap-1.5">
                     <i class="fa-solid fa-building-shield text-slate-400"></i>
                     <strong>${escapeHtml(m.unitName)}</strong>
-                    ${m.mandal ? `<span>â€¢ Mandal: ${escapeHtml(m.mandal)}</span>` : ''}
+                    ${m.mandal ? `<span>| Mandal: ${escapeHtml(m.mandal)}</span>` : ''}
                 </div>
                 <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold leading-relaxed mb-2.5">
                     ${escapeHtml(m.message)}
