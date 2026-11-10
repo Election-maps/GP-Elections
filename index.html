@@ -1077,6 +1077,74 @@
             </div>
         </div>
     </div>
+    <!-- ================= CONTROL ROOM TO OFFICER QUICK REPLY MODAL ================= -->
+    <div id="control-reply-modal" class="hidden fixed inset-0 z-[2800] bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-300 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-4 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-300 text-base">
+                        <i class="fa-solid fa-reply"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-white">Reply to Officer</h3>
+                        <p class="text-[11px] text-blue-200" id="reply-modal-officer-info">Officer Name - Duty Unit</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeControlReplyModal()" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-4 space-y-3 bg-slate-50">
+                <!-- Original Officer Message Quote -->
+                <div class="bg-white border border-slate-200 rounded-lg p-2.5 shadow-2xs">
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1">
+                        <i class="fa-solid fa-quote-left text-blue-500"></i> Officer's Message:
+                    </div>
+                    <div id="reply-modal-original-msg" class="text-xs font-semibold text-slate-800 leading-relaxed italic">
+                        -
+                    </div>
+                </div>
+
+                <!-- Quick Preset Replies -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1.5">Quick Responses:</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                        <button type="button" onclick="setControlQuickReply('Acknowledged. Noted in Control Room log.')" class="text-left p-2 rounded-lg bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-900 border border-slate-200 hover:border-blue-300 text-[11px] font-medium transition cursor-pointer">
+                            <i class="fa-solid fa-check text-emerald-600 mr-1"></i> Acknowledged & Noted
+                        </button>
+                        <button type="button" onclick="setControlQuickReply('Striking Force / QRT dispatched to your location immediately.')" class="text-left p-2 rounded-lg bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-900 border border-slate-200 hover:border-rose-300 text-[11px] font-medium transition cursor-pointer">
+                            <i class="fa-solid fa-shield-halved text-rose-600 mr-1"></i> Force Dispatched
+                        </button>
+                        <button type="button" onclick="setControlQuickReply('Please call Control Room on phone immediately.')" class="text-left p-2 rounded-lg bg-white hover:bg-amber-50 text-slate-700 hover:text-amber-900 border border-slate-200 hover:border-amber-300 text-[11px] font-medium transition cursor-pointer">
+                            <i class="fa-solid fa-phone text-amber-600 mr-1"></i> Call Control Room
+                        </button>
+                        <button type="button" onclick="setControlQuickReply('Situation noted. Continue peaceful patrolling.')" class="text-left p-2 rounded-lg bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-900 border border-slate-200 hover:border-emerald-300 text-[11px] font-medium transition cursor-pointer">
+                            <i class="fa-solid fa-circle-check text-blue-600 mr-1"></i> Continue Patrolling
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Custom Reply Input -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Custom Reply to Officer:</label>
+                    <textarea id="control-reply-input" rows="3" placeholder="Type instructions or message to send back to officer's phone..." class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs font-medium focus:ring-1 focus:ring-blue-500 resize-none"></textarea>
+                </div>
+            </div>
+
+            <!-- Footer with Actions -->
+            <div class="p-3 bg-white border-t border-slate-200 flex items-center justify-between">
+                <button type="button" onclick="closeControlReplyModal()" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+                    Cancel
+                </button>
+                <button type="button" onclick="submitControlReply()" id="btn-submit-control-reply" class="px-4 py-2 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-1.5 shadow transition cursor-pointer">
+                    <i class="fa-solid fa-paper-plane"></i> Send Reply to Officer
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ================= ALL ROUTES & VILLAGES DIRECTORY MODAL ================= -->
     <div id="all-routes-modal" class="hidden fixed inset-0 z-[2500] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3">
         <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">

@@ -914,6 +914,10 @@ window.showLiveOfficerToast = function(msg) {
         </a>`;
     }
 
+    actionsHtml += `<button type="button" onclick="openControlReplyModal('${escapeHtml(msg.unitId)}', '${escapeHtml(msg.officer)}', '${escapeHtml(msg.unitName)}', '${escapeHtml(msg.phone)}', '${escapeHtml(msg.message)}')" class="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1 shadow cursor-pointer transition">
+        <i class="fa-solid fa-reply"></i> Reply
+    </button>`;
+
     toast.className = `absolute top-4 left-1/2 -translate-x-1/2 z-[2000] max-w-lg w-[94%] sm:w-auto min-w-[340px] bg-slate-950/95 text-white p-3.5 rounded-xl shadow-2xl border-2 ${borderColor} backdrop-blur-md transition-all duration-300 block`;
 
     toast.innerHTML = `
@@ -1180,10 +1184,27 @@ window.renderOfficerMessagesList = function() {
                 <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold leading-relaxed mb-2.5">
                     ${escapeHtml(m.message)}
                 </div>
+                ${(function() {
+                    if (!m.replies || !m.replies.length) return '';
+                    return m.replies.map(function(r) {
+                        return `
+                            <div class="mb-2 pl-3 border-l-2 border-indigo-500 bg-indigo-50/80 p-2 rounded-r-lg text-xs text-indigo-950 font-medium">
+                                <div class="flex items-center justify-between text-[10px] text-indigo-600 font-bold mb-0.5">
+                                    <span><i class="fa-solid fa-reply mr-1"></i> Control Room Reply:</span>
+                                    <span class="text-slate-400 font-normal">${formatMessageTime(r.timestamp)}</span>
+                                </div>
+                                <div class="font-semibold text-slate-800">"${escapeHtml(r.message)}"</div>
+                            </div>
+                        `;
+                    }).join('');
+                })()}
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <div class="flex flex-wrap items-center gap-1.5">
                         ${locateBtn}
                         ${contactBtns}
+                        <button type="button" onclick="openControlReplyModal('${escapeHtml(m.unitId)}', '${escapeHtml(m.officer)}', '${escapeHtml(m.unitName)}', '${escapeHtml(m.phone)}', '${escapeHtml(m.message)}')" class="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1 shadow-xs cursor-pointer transition">
+                            <i class="fa-solid fa-reply"></i> Reply
+                        </button>
                     </div>
                     ${m.lat && m.lng ? `<span class="text-[10px] text-slate-400 font-mono">GPS: ${Number(m.lat).toFixed(5)}, ${Number(m.lng).toFixed(5)}</span>` : '<span class="text-[10px] text-slate-400">No GPS coords</span>'}
                 </div>
@@ -1210,3 +1231,112 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
 }
+
+// =============================================================
+// Control Room to Officer Reply Handlers
+// =============================================================
+let activeReplyTarget = null;
+
+window.openControlReplyModal = function(unitId, officer, unitName, phone, originalMsg) {
+    activeReplyTarget = {
+        unitId: unitId || '',
+        officer: officer || 'Police Officer',
+        unitName: unitName || 'Duty Force',
+        phone: phone || '',
+        originalMsg: originalMsg || ''
+    };
+
+    const modal = document.getElementById('control-reply-modal');
+    const infoEl = document.getElementById('reply-modal-officer-info');
+    const origEl = document.getElementById('reply-modal-original-msg');
+    const inputEl = document.getElementById('control-reply-input');
+
+    if (infoEl) infoEl.innerText = `${activeReplyTarget.officer} ${activeReplyTarget.phone ? '(' + activeReplyTarget.phone + ')' : ''} | ${activeReplyTarget.unitName}`;
+    if (origEl) origEl.innerText = `"${activeReplyTarget.originalMsg}"`;
+    if (inputEl) inputEl.value = '';
+
+    if (modal) modal.classList.remove('hidden');
+    if (inputEl) setTimeout(() => inputEl.focus(), 150);
+};
+
+window.closeControlReplyModal = function() {
+    const modal = document.getElementById('control-reply-modal');
+    if (modal) modal.classList.add('hidden');
+    activeReplyTarget = null;
+};
+
+window.setControlQuickReply = function(text) {
+    const inputEl = document.getElementById('control-reply-input');
+    if (inputEl) inputEl.value = text;
+};
+
+window.submitControlReply = function() {
+    if (!activeReplyTarget) return;
+
+    const inputEl = document.getElementById('control-reply-input');
+    const replyText = (inputEl ? inputEl.value : '').trim();
+    if (!replyText) {
+        alert('Please enter or select a reply message to send.');
+        return;
+    }
+
+    if (!window.liveMqttClient || !window.liveMqttClient.connected) {
+        alert('Control Room MQTT is currently offline. Please wait for reconnection.');
+        return;
+    }
+
+    const btn = document.getElementById('btn-submit-control-reply');
+    const origHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+        btn.disabled = true;
+    }
+
+    const replyPacket = {
+        type: 'control_reply',
+        replyId: 'rep_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        unitId: activeReplyTarget.unitId,
+        officer: activeReplyTarget.officer,
+        replyMessage: replyText,
+        sentBy: 'Police Control Room',
+        timestamp: Date.now()
+    };
+
+    const generalReplyTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/control_reply';
+    const specificReplyTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/reply/' + activeReplyTarget.unitId;
+
+    try {
+        window.liveMqttClient.publish(generalReplyTopic, JSON.stringify(replyPacket), { qos: 1 });
+        if (activeReplyTarget.unitId) {
+            window.liveMqttClient.publish(specificReplyTopic, JSON.stringify(replyPacket), { qos: 1 });
+        }
+
+        // Store reply inside the matching officer message thread
+        if (Array.isArray(window.liveOfficerMessages)) {
+            const found = window.liveOfficerMessages.find(function(m) {
+                return (m.unitId && m.unitId === activeReplyTarget.unitId) || (m.officer === activeReplyTarget.officer);
+            });
+            if (found) {
+                if (!found.replies) found.replies = [];
+                found.replies.push({
+                    message: replyText,
+                    timestamp: Date.now()
+                });
+                try {
+                    localStorage.setItem('gp_officer_messages', JSON.stringify(window.liveOfficerMessages));
+                } catch (e) {}
+            }
+        }
+
+        alert('âœ… Reply sent successfully to ' + activeReplyTarget.officer + '!\n\nMessage: "' + replyText + '"');
+        closeControlReplyModal();
+        renderOfficerMessagesList();
+    } catch (e) {
+        alert('Failed to send reply: ' + e.message);
+    } finally {
+        if (btn) {
+            btn.innerHTML = origHtml;
+            btn.disabled = false;
+        }
+    }
+};
