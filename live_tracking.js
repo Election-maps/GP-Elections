@@ -896,7 +896,7 @@ window.showLiveOfficerToast = function(msg) {
     const isUrgent = msg.priority === 'URGENT';
     const badgeColor = isUrgent ? 'bg-rose-600 text-white animate-pulse' : 'bg-amber-500 text-slate-950';
     const borderColor = isUrgent ? 'border-rose-500 ring-2 ring-rose-500/50' : 'border-amber-400';
-    const tagText = isUrgent ? 'ðŸš¨ EMERGENCY SOS ALERT' : 'ðŸ”” OFFICER LIVE MESSAGE';
+    const tagText = isUrgent ? '<i class="fa-solid fa-triangle-exclamation mr-1 text-rose-400"></i> EMERGENCY SOS ALERT' : '<i class="fa-solid fa-bell mr-1 text-amber-300"></i> OFFICER LIVE MESSAGE';
 
     let actionsHtml = '';
     if (msg.lat && msg.lng) {
@@ -1134,8 +1134,8 @@ window.renderOfficerMessagesList = function() {
         const isUrgent = m.priority === 'URGENT';
         const cardBorder = isUrgent ? 'border-rose-400 bg-rose-50/40' : 'border-slate-200 bg-white';
         const badgeTag = isUrgent
-            ? '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-600 text-white tracking-wide uppercase shadow-xs animate-pulse">ðŸš¨ URGENT SOS</span>'
-            : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">ðŸ—³ï¸ ROUTINE UPDATE</span>';
+            ? '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-600 text-white tracking-wide uppercase shadow-xs animate-pulse"><i class="fa-solid fa-triangle-exclamation mr-1"></i> URGENT SOS</span>'
+            : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> ROUTINE UPDATE</span>';
 
         const timeStr = formatMessageTime(m.timestamp);
 
