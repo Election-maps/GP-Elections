@@ -1328,7 +1328,7 @@ window.submitControlReply = function() {
             }
         }
 
-        alert('âœ… Reply sent successfully to ' + activeReplyTarget.officer + '!\n\nMessage: "' + replyText + '"');
+        alert('Reply sent successfully to ' + activeReplyTarget.officer + '!\n\nMessage: "' + replyText + '"');
         closeControlReplyModal();
         renderOfficerMessagesList();
     } catch (e) {
