@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Live Forces Real-time Tracking (Routes, SF, SSF, QRTs, Reserve Parties)
  * Exclusively active on "Live Route Map" tab (liveMap)
  * Srikakulam District Police
@@ -51,6 +51,7 @@ window.initLivePartyTracking = function() {
     }
 
     restoreLiveUnitsFromCache();
+    initOfficerMessagesStorage();
     initLiveMQTT();
 };
 
@@ -84,6 +85,8 @@ function initLiveMQTT() {
             const generalTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/locations';
             const retainedTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/officer/+';
             const controlTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/control_command';
+            const officerMsgTopic = 'srikakulam_police_tracker/' + LIVE_ROOM_CODE + '/officer_messages';
+            window.liveMqttClient.subscribe(officerMsgTopic, { qos: 1 });
             window.liveMqttClient.subscribe(generalTopic, { qos: 0 });
             window.liveMqttClient.subscribe(controlTopic, { qos: 1 });
             window.liveMqttClient.subscribe(retainedTopic, { qos: 1 }, function(err) {
@@ -104,6 +107,12 @@ function initLiveMQTT() {
                 if (payload.action === 'clear_all') {
                     clearAllLiveTrackingLocally();
                     return;
+                }
+
+                // Handle incoming officer messages / SOS alerts
+                if (topic.indexOf('/officer_messages') !== -1 || payload.type === 'officer_message' || (payload.message && typeof payload.message === 'string' && payload.message.trim())) {
+                    handleIncomingOfficerMessage(payload);
+                    if (!payload.latitude && !payload.lat) return;
                 }
 
                 const unitKey = payload.unitId || payload.id || topic.split('/').pop();
@@ -726,3 +735,479 @@ window.exportLiveOfficersToExcel = async function() {
         if (btn) btn.innerHTML = origHtml;
     }
 };
+
+
+// =============================================================
+// Live Officer Messages & SOS Alert System for Control Room
+// =============================================================
+
+window.liveOfficerMessages = [];
+window.currentOfficerMsgFilter = 'ALL';
+let liveOfficerToastTimer = null;
+
+function initOfficerMessagesStorage() {
+    try {
+        const raw = localStorage.getItem('gp_officer_messages');
+        if (raw) {
+            window.liveOfficerMessages = JSON.parse(raw);
+        } else {
+            window.liveOfficerMessages = [];
+        }
+    } catch (e) {
+        window.liveOfficerMessages = [];
+    }
+    updateOfficerMessageBadge();
+}
+
+function updateOfficerMessageBadge() {
+    const badge = document.getElementById('live-msg-badge');
+    const bellIcon = document.getElementById('icon-msg-bell');
+    if (!badge) return;
+
+    const unreadCount = (window.liveOfficerMessages || []).filter(function(m) { return !m.read; }).length;
+    badge.innerText = unreadCount;
+    if (unreadCount > 0) {
+        badge.className = 'px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-xs animate-pulse';
+        if (bellIcon) bellIcon.className = 'fa-solid fa-bell text-amber-300 animate-bounce';
+    } else {
+        badge.className = 'px-1.5 py-0.2 rounded-full text-[10px] font-black bg-slate-600 text-slate-200 shadow-xs';
+        if (bellIcon) bellIcon.className = 'fa-solid fa-bell text-slate-300';
+    }
+}
+
+function playOfficerAudioAlert(isUrgent) {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+
+        if (isUrgent) {
+            // High-pitched 3-cycle emergency police siren sound
+            for (let i = 0; i < 3; i++) {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                const startTime = now + (i * 0.45);
+                osc.frequency.setValueAtTime(750, startTime);
+                osc.frequency.exponentialRampToValueAtTime(1400, startTime + 0.22);
+                osc.frequency.exponentialRampToValueAtTime(750, startTime + 0.44);
+
+                gain.gain.setValueAtTime(0.35, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.44);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + 0.45);
+            }
+        } else {
+            // Pleasant high-two-tone notification chime
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, now);
+            osc.frequency.setValueAtTime(880, now + 0.16);
+
+            gain.gain.setValueAtTime(0.28, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.55);
+        }
+    } catch (e) {
+        console.log('Audio notification prevented by browser policy:', e);
+    }
+}
+
+function handleIncomingOfficerMessage(payload) {
+    if (!payload || !payload.message) return;
+    const msgText = String(payload.message).trim();
+    if (!msgText) return;
+
+    const unitKey = payload.unitId || payload.id || '';
+    const meta = getPartyUnitMeta(unitKey) || {};
+    const officer = payload.officer || payload.name || meta.officer || 'Police Officer';
+    const phone = payload.phone || meta.phone || '';
+    const unitName = payload.unitName || meta.unitName || unitKey || 'Duty Unit';
+    const mandal = payload.mandal || meta.mandal || '';
+    const categoryKey = (payload.categoryKey || meta.categoryKey || 'RM').toUpperCase();
+    const lat = parseFloat(payload.latitude || payload.lat || 0);
+    const lng = parseFloat(payload.longitude || payload.lng || 0);
+    const priority = (payload.priority || (msgText.toLowerCase().includes('emergency') || msgText.includes('à°…à°¤à±à°¯à°µà°¸à°°à°‚') || msgText.includes('sos') ? 'URGENT' : 'NORMAL')).toUpperCase();
+    const timestamp = payload.timestamp || Date.now();
+
+    // Prevent duplicate spam packets within 3 seconds
+    const isDuplicate = (window.liveOfficerMessages || []).some(function(m) {
+        return m.unitId === unitKey && m.message === msgText && Math.abs(m.timestamp - timestamp) < 3000;
+    });
+    if (isDuplicate) return;
+
+    const msgObj = {
+        id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+        unitId: unitKey,
+        unitName: unitName,
+        categoryKey: categoryKey,
+        mandal: mandal,
+        officer: officer,
+        phone: phone,
+        message: msgText,
+        priority: priority,
+        lat: isNaN(lat) ? 0 : lat,
+        lng: isNaN(lng) ? 0 : lng,
+        timestamp: timestamp,
+        read: false
+    };
+
+    if (!Array.isArray(window.liveOfficerMessages)) window.liveOfficerMessages = [];
+    window.liveOfficerMessages.unshift(msgObj);
+    if (window.liveOfficerMessages.length > 150) {
+        window.liveOfficerMessages = window.liveOfficerMessages.slice(0, 150);
+    }
+
+    try {
+        localStorage.setItem('gp_officer_messages', JSON.stringify(window.liveOfficerMessages));
+    } catch (e) {}
+
+    // Audio & Badge
+    playOfficerAudioAlert(priority === 'URGENT');
+    updateOfficerMessageBadge();
+
+    // Show floating banner toast on Live Route Map
+    showLiveOfficerToast(msgObj);
+
+    // If modal is currently open, re-render the list
+    const modal = document.getElementById('officer-messages-modal');
+    if (modal && !modal.classList.contains('hidden')) {
+        renderOfficerMessagesList();
+    }
+}
+
+window.showLiveOfficerToast = function(msg) {
+    const toast = document.getElementById('live-officer-alert-toast');
+    if (!toast) return;
+
+    if (liveOfficerToastTimer) {
+        clearTimeout(liveOfficerToastTimer);
+        liveOfficerToastTimer = null;
+    }
+
+    const isUrgent = msg.priority === 'URGENT';
+    const badgeColor = isUrgent ? 'bg-rose-600 text-white animate-pulse' : 'bg-amber-500 text-slate-950';
+    const borderColor = isUrgent ? 'border-rose-500 ring-2 ring-rose-500/50' : 'border-amber-400';
+    const tagText = isUrgent ? 'ðŸš¨ EMERGENCY SOS ALERT' : 'ðŸ”” OFFICER LIVE MESSAGE';
+
+    let actionsHtml = '';
+    if (msg.lat && msg.lng) {
+        actionsHtml += `<button type="button" onclick="locateOfficerOnLiveMap(${msg.lat}, ${msg.lng}, '${escapeHtml(msg.unitName)}', '${escapeHtml(msg.officer)}', '${escapeHtml(msg.phone)}', '${escapeHtml(msg.message)}')" class="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1 shadow cursor-pointer transition">
+            <i class="fa-solid fa-location-crosshairs text-blue-200"></i> Map à°²à±‹ à°šà±‚à°¡à°‚à°¡à°¿ (Locate)
+        </button>`;
+    }
+
+    if (msg.phone) {
+        actionsHtml += `<a href="tel:${msg.phone}" class="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1 shadow transition">
+            <i class="fa-solid fa-phone"></i> Call
+        </a>`;
+        actionsHtml += `<a href="https://wa.me/91${msg.phone}" target="_blank" class="px-2.5 py-1 rounded bg-green-700 hover:bg-green-600 text-white font-bold text-xs flex items-center gap-1 shadow transition">
+            <i class="fa-brands fa-whatsapp"></i> Chat
+        </a>`;
+    }
+
+    toast.className = `absolute top-4 left-1/2 -translate-x-1/2 z-[2000] max-w-lg w-[94%] sm:w-auto min-w-[340px] bg-slate-950/95 text-white p-3.5 rounded-xl shadow-2xl border-2 ${borderColor} backdrop-blur-md transition-all duration-300 block`;
+
+    toast.innerHTML = `
+        <div class="flex items-start justify-between gap-2 border-b border-slate-800 pb-2 mb-2">
+            <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-black tracking-wide uppercase ${badgeColor}">
+                    ${tagText}
+                </span>
+                <span class="text-[11px] text-slate-400 font-semibold">Just now</span>
+            </div>
+            <button type="button" onclick="closeLiveOfficerToast()" class="text-slate-400 hover:text-white text-base leading-none p-1 cursor-pointer">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="mb-2">
+            <div class="font-bold text-white text-sm flex items-center gap-1.5">
+                <i class="fa-solid fa-user-shield text-blue-400"></i>
+                <span>${escapeHtml(msg.officer)}</span>
+                ${msg.phone ? `<span class="text-xs text-amber-300 font-normal">(${escapeHtml(msg.phone)})</span>` : ''}
+            </div>
+            <div class="text-xs text-slate-300 mt-0.5 font-medium">
+                ${escapeHtml(msg.unitName)} ${msg.mandal ? 'â€¢ ' + escapeHtml(msg.mandal) : ''}
+            </div>
+            <div class="mt-2 p-2 bg-slate-900 border border-slate-700 rounded-lg text-xs font-semibold text-amber-200 leading-relaxed">
+                "${escapeHtml(msg.message)}"
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-1.5 pt-1">
+            <div class="flex items-center gap-1.5">
+                ${actionsHtml}
+            </div>
+            <button type="button" onclick="openOfficerMessagesModal(); closeLiveOfficerToast();" class="text-xs text-slate-400 hover:text-slate-200 underline decoration-dotted font-medium">
+                View All (${(window.liveOfficerMessages || []).length})
+            </button>
+        </div>
+    `;
+
+    liveOfficerToastTimer = setTimeout(function() {
+        closeLiveOfficerToast();
+    }, isUrgent ? 22000 : 15000);
+};
+
+window.closeLiveOfficerToast = function() {
+    const toast = document.getElementById('live-officer-alert-toast');
+    if (toast) toast.classList.add('hidden');
+    if (liveOfficerToastTimer) {
+        clearTimeout(liveOfficerToastTimer);
+        liveOfficerToastTimer = null;
+    }
+};
+
+window.locateOfficerOnLiveMap = function(lat, lng, unitName, officer, phone, message) {
+    if (typeof liveMap === 'undefined' || !liveMap) {
+        alert('Live Route Map is not ready yet.');
+        return;
+    }
+
+    const nLat = parseFloat(lat);
+    const nLng = parseFloat(lng);
+    if (isNaN(nLat) || isNaN(nLng) || nLat === 0 || nLng === 0) {
+        alert('à°ˆ à°…à°§à°¿à°•à°¾à°°à°¿ à°¨à±à°‚à°¡à°¿ GPS à°²à±Šà°•à±‡à°·à°¨à± à°µà°¿à°µà°°à°¾à°²à± à°…à°‚à°¦à°²à±‡à°¦à±.\n(GPS Coordinates not available for this officer message yet).');
+        return;
+    }
+
+    if (typeof switchTab === 'function') {
+        switchTab('livemap');
+    }
+
+    closeOfficerMessagesModal();
+    closeLiveOfficerToast();
+
+    liveMap.flyTo([nLat, nLng], 16, {
+        animate: true,
+        duration: 1.2
+    });
+
+    if (window._officerSosPulseLayer) {
+        try { liveMap.removeLayer(window._officerSosPulseLayer); } catch (e) {}
+    }
+
+    const pulseIcon = L.divIcon({
+        className: 'officer-sos-pulse-container',
+        html: `
+            <div style="position:relative; width:44px; height:44px; display:flex; align-items:center; justify-content:center;">
+                <div style="position:absolute; width:100%; height:100%; border-radius:50%; background:rgba(239, 68, 68, 0.4); animation: ping 1.2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+                <div style="position:absolute; width:34px; height:34px; border-radius:50%; background:#ef4444; border:2.5px solid #ffffff; box-shadow: 0 4px 14px rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; color:white; font-size:15px;">
+                    <i class="fa-solid fa-bullhorn"></i>
+                </div>
+            </div>
+        `,
+        iconSize: [44, 44],
+        iconAnchor: [22, 22]
+    });
+
+    window._officerSosPulseLayer = L.marker([nLat, nLng], { icon: pulseIcon, zIndexOffset: 2500 }).addTo(liveMap);
+
+    const safeOfficer = escapeHtml(officer || 'Police Officer');
+    const safeUnit = escapeHtml(unitName || 'Duty Force');
+    const safeMsg = escapeHtml(message || '');
+    const safePhone = escapeHtml(phone || '');
+
+    const popupHtml = `
+        <div style="font-family: inherit; font-size: 12px; line-height: 1.4; min-width: 210px; max-width: 280px; padding: 2px;">
+            <div style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: white; padding: 5px 8px; border-radius: 6px; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
+                <span style="display:flex; align-items:center; gap:5px;"><i class="fa-solid fa-triangle-exclamation"></i> Officer Alert</span>
+                <span style="font-size:10px; opacity:0.9;">Live GPS</span>
+            </div>
+            <div style="font-weight: 800; color: #0f172a; font-size: 13px;">${safeOfficer}</div>
+            <div style="color: #64748b; font-size: 11px; margin-bottom: 4px;">${safeUnit}</div>
+            <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; padding: 6px 8px; border-radius: 6px; margin: 6px 0; color: #1e293b; font-weight: 600;">
+                "${safeMsg}"
+            </div>
+            <div style="display: flex; gap: 6px; margin-top: 6px;">
+                ${safePhone ? `<a href="tel:${safePhone}" style="flex:1; text-align:center; background:#2563eb; color:white; padding:5px 8px; border-radius:5px; text-decoration:none; font-size:11px; font-weight:bold;"><i class="fa-solid fa-phone"></i> Call</a>` : ''}
+                ${safePhone ? `<a href="https://wa.me/91${safePhone}" target="_blank" style="flex:1; text-align:center; background:#16a34a; color:white; padding:5px 8px; border-radius:5px; text-decoration:none; font-size:11px; font-weight:bold;"><i class="fa-brands fa-whatsapp"></i> Chat</a>` : ''}
+            </div>
+        </div>
+    `;
+
+    window._officerSosPulseLayer.bindPopup(popupHtml, { autoPan: true, closeButton: true }).openPopup();
+
+    setTimeout(function() {
+        if (window._officerSosPulseLayer) {
+            try { liveMap.removeLayer(window._officerSosPulseLayer); } catch (e) {}
+            window._officerSosPulseLayer = null;
+        }
+    }, 25000);
+};
+
+window.openOfficerMessagesModal = function() {
+    const modal = document.getElementById('officer-messages-modal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+
+    if (Array.isArray(window.liveOfficerMessages)) {
+        window.liveOfficerMessages.forEach(function(m) { m.read = true; });
+        try {
+            localStorage.setItem('gp_officer_messages', JSON.stringify(window.liveOfficerMessages));
+        } catch (e) {}
+    }
+    updateOfficerMessageBadge();
+    renderOfficerMessagesList();
+};
+
+window.closeOfficerMessagesModal = function() {
+    const modal = document.getElementById('officer-messages-modal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.clearOfficerMessages = function() {
+    if (!confirm('à°•à°‚à°Ÿà±à°°à±‹à°²à± à°°à±‚à°®à±â€Œà°²à±‹ à°‰à°¨à±à°¨ à°…à°¨à±à°¨à°¿ à°†à°«à±€à°¸à°°à± à°®à±†à°¸à±‡à°œà± à°µà°¿à°µà°°à°¾à°²à°¨à± à°¤à±Šà°²à°—à°¿à°‚à°šà°¾à°²à°¾?\n(Are you sure you want to clear all officer messages history?)')) {
+        return;
+    }
+    window.liveOfficerMessages = [];
+    try {
+        localStorage.removeItem('gp_officer_messages');
+    } catch (e) {}
+    updateOfficerMessageBadge();
+    renderOfficerMessagesList();
+};
+
+window.setOfficerMessageFilter = function(filter) {
+    window.currentOfficerMsgFilter = filter || 'ALL';
+    ['all', 'urgent', 'normal'].forEach(function(f) {
+        const btn = document.getElementById('btn-msg-tab-' + f);
+        if (btn) {
+            if (f.toUpperCase() === window.currentOfficerMsgFilter) {
+                btn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow transition';
+            } else {
+                btn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition';
+            }
+        }
+    });
+    renderOfficerMessagesList();
+};
+
+window.renderOfficerMessagesList = function() {
+    const container = document.getElementById('officer-messages-list');
+    const searchInput = document.getElementById('search-officer-messages');
+    if (!container) return;
+
+    const searchTerm = (searchInput ? searchInput.value : '').trim().toLowerCase();
+    const filter = window.currentOfficerMsgFilter || 'ALL';
+
+    const allMsgs = Array.isArray(window.liveOfficerMessages) ? window.liveOfficerMessages : [];
+
+    const filtered = allMsgs.filter(function(m) {
+        if (filter === 'URGENT' && m.priority !== 'URGENT') return false;
+        if (filter === 'NORMAL' && m.priority === 'URGENT') return false;
+
+        if (searchTerm) {
+            const haystack = (m.officer + ' ' + m.unitName + ' ' + m.mandal + ' ' + m.phone + ' ' + m.message).toLowerCase();
+            if (haystack.indexOf(searchTerm) === -1) return false;
+        }
+        return true;
+    });
+
+    const totalUrgent = allMsgs.filter(function(m) { return m.priority === 'URGENT'; }).length;
+    const countBadgeAll = document.getElementById('msg-count-all');
+    const countBadgeUrgent = document.getElementById('msg-count-urgent');
+    const countBadgeNormal = document.getElementById('msg-count-normal');
+    if (countBadgeAll) countBadgeAll.innerText = allMsgs.length;
+    if (countBadgeUrgent) countBadgeUrgent.innerText = totalUrgent;
+    if (countBadgeNormal) countBadgeNormal.innerText = allMsgs.length - totalUrgent;
+
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-12 text-slate-400">
+                <i class="fa-regular fa-message text-4xl mb-3 text-slate-300"></i>
+                <div class="font-bold text-sm text-slate-600">à°¸à°‚à°¦à±‡à°¶à°¾à°²à± à°²à±‡à°µà± (No Messages Found)</div>
+                <div class="text-xs text-slate-400 mt-1">à°†à°«à±€à°¸à°°à±à°²à± à°®à±Šà°¬à±ˆà°²à± à°¯à°¾à°ªà± à°¦à±à°µà°¾à°°à°¾ à°ªà°‚à°ªà±‡ à°¸à°‚à°¦à±‡à°¶à°¾à°²à± à°‡à°•à±à°•à°¡ à°•à°¨à°¿à°ªà°¿à°¸à±à°¤à°¾à°¯à°¿.</div>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = filtered.map(function(m) {
+        const isUrgent = m.priority === 'URGENT';
+        const cardBorder = isUrgent ? 'border-rose-400 bg-rose-50/40' : 'border-slate-200 bg-white';
+        const badgeTag = isUrgent
+            ? '<span class="px-2 py-0.5 rounded text-[10px] font-black bg-rose-600 text-white tracking-wide uppercase shadow-xs animate-pulse">ðŸš¨ URGENT SOS</span>'
+            : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">ðŸ—³ï¸ UPDATE</span>';
+
+        const timeStr = formatMessageTime(m.timestamp);
+
+        let locateBtn = '';
+        if (m.lat && m.lng) {
+            locateBtn = `
+                <button type="button" onclick="locateOfficerOnLiveMap(${m.lat}, ${m.lng}, '${escapeHtml(m.unitName)}', '${escapeHtml(m.officer)}', '${escapeHtml(m.phone)}', '${escapeHtml(m.message)}')" class="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center gap-1 shadow-xs cursor-pointer transition">
+                    <i class="fa-solid fa-location-crosshairs text-blue-200"></i> Map à°²à±‹ à°šà±‚à°ªà°¿à°‚à°šà±
+                </button>
+            `;
+        }
+
+        let contactBtns = '';
+        if (m.phone) {
+            contactBtns = `
+                <a href="tel:${m.phone}" class="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1 shadow-xs transition">
+                    <i class="fa-solid fa-phone"></i> Call
+                </a>
+                <a href="https://wa.me/91${m.phone}" target="_blank" class="px-2.5 py-1 rounded bg-green-700 hover:bg-green-600 text-white font-bold text-xs flex items-center gap-1 shadow-xs transition">
+                    <i class="fa-brands fa-whatsapp"></i> Chat
+                </a>
+            `;
+        }
+
+        return `
+            <div class="rounded-xl border ${cardBorder} p-3.5 shadow-sm hover:shadow-md transition">
+                <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-2 mb-2">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        ${badgeTag}
+                        <span class="font-black text-slate-800 text-sm">${escapeHtml(m.officer)}</span>
+                        ${m.phone ? `<span class="text-xs text-blue-600 font-semibold">(${escapeHtml(m.phone)})</span>` : ''}
+                    </div>
+                    <span class="text-[11px] text-slate-400 font-medium shrink-0 flex items-center gap-1">
+                        <i class="fa-regular fa-clock"></i> ${timeStr}
+                    </span>
+                </div>
+                <div class="text-xs text-slate-500 mb-2 flex items-center gap-1.5">
+                    <i class="fa-solid fa-building-shield text-slate-400"></i>
+                    <strong>${escapeHtml(m.unitName)}</strong>
+                    ${m.mandal ? `<span>â€¢ Mandal: ${escapeHtml(m.mandal)}</span>` : ''}
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold leading-relaxed mb-2.5">
+                    ${escapeHtml(m.message)}
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                        ${locateBtn}
+                        ${contactBtns}
+                    </div>
+                    ${m.lat && m.lng ? `<span class="text-[10px] text-slate-400 font-mono">GPS: ${Number(m.lat).toFixed(5)}, ${Number(m.lng).toFixed(5)}</span>` : '<span class="text-[10px] text-slate-400">No GPS coords</span>'}
+                </div>
+            </div>
+        `;
+    }).join('');
+};
+
+function formatMessageTime(ts) {
+    if (!ts) return '';
+    const diff = Math.floor((Date.now() - ts) / 1000);
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    const d = new Date(ts);
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', ' + d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}

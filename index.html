@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -587,6 +587,12 @@
                         <span class="text-slate-300">Live Active: <strong id="live-party-active-count" class="text-emerald-300">0</strong> / 364</span>
                     </div>
 
+                    <button type="button" onclick="openOfficerMessagesModal()" id="btn-officer-messages" class="relative px-2.5 py-1 rounded text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center gap-1.5 shadow-sm cursor-pointer" title="View messages sent by Officers to Control Room">
+                        <i class="fa-solid fa-bell text-amber-300" id="icon-msg-bell"></i>
+                        <span>Messages</span>
+                        <span id="live-msg-badge" class="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-slate-600 text-slate-200 shadow-xs">0</span>
+                    </button>
+
                     <button type="button" onclick="exportLiveOfficersToExcel()" id="btn-export-live-officers" class="px-2.5 py-1 rounded text-xs font-bold bg-teal-600 hover:bg-teal-500 text-white transition flex items-center gap-1 shadow-sm cursor-pointer" title="Export Online & Offline Officers Live Status List to Excel">
                         <i class="fa-solid fa-file-excel"></i> Export Excel
                     </button>
@@ -743,6 +749,8 @@
             <!-- Leaflet Map Container -->
             <div id="live-map-wrapper" class="relative w-full h-[calc(100vh-175px)] min-h-[500px] rounded-lg shadow-md border border-slate-200 overflow-hidden bg-slate-200">
                 <div id="live-map-canvas" class="w-full h-full"></div>
+                <!-- Floating Real-time Officer SOS / Alert Toast -->
+                <div id="live-officer-alert-toast" class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-[2000] max-w-lg w-[94%] sm:w-auto min-w-[340px] bg-slate-950/95 text-white p-3.5 rounded-xl shadow-2xl border-2 border-rose-500 backdrop-blur-md transition-all duration-300"></div>
                 <!-- Floating Full Screen Control Button directly on map canvas -->
                 <button type="button" onclick="toggleLiveMapFullscreen()" id="btn-live-fullscreen-map" class="absolute top-3 right-3 z-[1000] bg-white/95 hover:bg-white text-slate-800 font-bold px-3 py-1.5 rounded-lg shadow-lg border border-slate-300 flex items-center gap-1.5 text-xs transition cursor-pointer backdrop-blur-xs hover:shadow-xl" title="Click to view full screen map">
                     <i class="fa-solid fa-expand text-indigo-600 text-sm" id="icon-live-fullscreen-map"></i>
@@ -1004,6 +1012,71 @@
             </div>
         </section>
     </main>
+    <!-- ================= OFFICER MESSAGES & SOS CONTROL ROOM MODAL ================= -->
+    <div id="officer-messages-modal" class="hidden fixed inset-0 z-[2700] bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-300 w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white p-4 flex items-center justify-between border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400 text-lg shadow-inner">
+                        <i class="fa-solid fa-tower-broadcast"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-base font-black text-white leading-tight">à°•à°‚à°Ÿà±à°°à±‹à°²à± à°°à±‚à°®à± à°¸à°‚à°¦à±‡à°¶à°¾à°²à± (Officer Messages)</h3>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                                Live Room
+                            </span>
+                        </div>
+                        <div class="text-xs text-slate-400 mt-0.5">à°•à±à°·à±‡à°¤à±à°°à°¸à±à°¥à°¾à°¯à°¿ à°…à°§à°¿à°•à°¾à°°à±à°² à°¨à±à°‚à°¡à°¿ à°µà°šà±à°šà±‡ SOS & à°…à°¤à±à°¯à°µà°¸à°° à°¸à°‚à°¦à±‡à°¶à°¾à°²à±</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="clearOfficerMessages()" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-700/50 flex items-center gap-1 transition cursor-pointer" title="Clear message history">
+                        <i class="fa-solid fa-trash-can"></i> Clear History
+                    </button>
+                    <button type="button" onclick="closeOfficerMessagesModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer text-base">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter & Search Bar -->
+            <div class="p-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5">
+                    <button type="button" id="btn-msg-tab-all" onclick="setOfficerMessageFilter('ALL')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow transition">
+                        All (<span id="msg-count-all">0</span>)
+                    </button>
+                    <button type="button" id="btn-msg-tab-urgent" onclick="setOfficerMessageFilter('URGENT')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition">
+                        ðŸš¨ SOS / Urgent (<span id="msg-count-urgent">0</span>)
+                    </button>
+                    <button type="button" id="btn-msg-tab-normal" onclick="setOfficerMessageFilter('NORMAL')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition">
+                        ðŸ—³ï¸ Routine (<span id="msg-count-normal">0</span>)
+                    </button>
+                </div>
+                <div class="relative w-full sm:w-64">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="search-officer-messages" oninput="renderOfficerMessagesList()" placeholder="Search officer, mandal, unit..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 font-medium">
+                </div>
+            </div>
+
+            <!-- Scrollable Messages List Container -->
+            <div id="officer-messages-list" class="flex-1 overflow-y-auto p-3.5 space-y-3 min-h-[240px] max-h-[60vh] bg-slate-50/50">
+                <!-- Dynamically rendered -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-3 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span class="font-medium">Live MQTT Connection â€¢ SrikakulamPolice</span>
+                </div>
+                <button type="button" onclick="closeOfficerMessagesModal()" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-800 transition cursor-pointer">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
     <!-- ================= ALL ROUTES & VILLAGES DIRECTORY MODAL ================= -->
     <div id="all-routes-modal" class="hidden fixed inset-0 z-[2500] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3">
         <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
