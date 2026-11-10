@@ -674,12 +674,12 @@
                         </select>
                     </div>
                     <!-- Search PSL / Village -->
-                    <div class="min-w-[140px] max-w-[210px] flex-1 shrink-0">
+                    <div class="flex-1 min-w-[170px] max-w-sm flex-1 shrink-0">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase mb-0.5">
                             <i class="fa-solid fa-magnifying-glass text-blue-600 mr-0.5"></i> Search Village / School
                         </label>
                         <div class="relative w-full" id="live-map-search-container">
-                            <input type="text" id="live-search-text" oninput="onLiveMapSearchInput(this.value)" onfocus="onLiveMapSearchFocus()" placeholder="Type PSL..." autocomplete="off" class="w-full border border-slate-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-500 pr-6 bg-white">
+                            <input type="text" id="live-search-text" oninput="onLiveMapSearchInput(this.value)" onfocus="onLiveMapSearchFocus()" placeholder="Type PSL (e.g. MPP School)..." autocomplete="off" class="w-full border border-slate-300 rounded px-2.5 py-1 text-xs focus:ring-1 focus:ring-blue-500 pr-7 bg-white">
                             <button type="button" onclick="clearLiveMapSearch()" class="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs cursor-pointer" title="Clear">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
@@ -3722,6 +3722,10 @@
             if (mapContainer && !mapContainer.contains(e.target)) {
                 hideSuggestions('map-psl-suggestions');
             }
+            const liveMapContainer = document.getElementById('live-map-search-container');
+            if (liveMapContainer && !liveMapContainer.contains(e.target)) {
+                hideSuggestions('live-psl-suggestions');
+            }
         });
         function changePageSize(val) {
             tablePageSize = val === 'all' ? 999999 : parseInt(val, 10);
@@ -4770,13 +4774,24 @@
             // Fit bounds
             if (bounds.length > 0) {
                 if (searchText || selectedRoute) {
-                    liveMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+                    liveMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
                 } else if (selectedPS) {
                     liveMap.fitBounds(bounds, { padding: [30, 30] });
                 }
             }
             // Render bottom table
             renderLiveMapReportTable(filteredLiveMapStations);
+            // Auto-open station popup on Live Map when specific village or school is searched
+            if (searchText && filteredLiveMapStations.length >= 1 && filteredLiveMapStations.length <= 4 && bounds.length > 0) {
+                setTimeout(() => {
+                    const first = filteredLiveMapStations[0];
+                    const fLat = parseFloat(first.latitude);
+                    const fLng = parseFloat(first.longitude);
+                    if (!isNaN(fLat) && !isNaN(fLng) && liveMap) {
+                        L.popup({ maxWidth: 440, minWidth: 320 }).setLatLng([fLat, fLng]).setContent(buildStationPopupHtml(first)).openOn(liveMap);
+                    }
+                }, 350);
+            }
         }
         async function drawRoadRoutesForLiveMap(routeGroups, routeStaffInfo, token) {
             const rKeys = Object.keys(routeGroups);
@@ -4871,20 +4886,51 @@
         function updateLiveActiveRouteBanner(selectedPS, selectedRoute, searchText, stations) {
             const banner = document.getElementById('live-active-route-banner');
             if (!banner) return;
-            if (selectedRoute || selectedPS || searchText) {
+            if (stations && stations.length > 0 && (selectedRoute || selectedPS || searchText)) {
                 banner.classList.remove('hidden');
-                document.getElementById('live-banner-route-tag').innerText = selectedRoute ? `ROUTE - ${selectedRoute}` : (selectedPS || 'SEARCH');
-                document.getElementById('live-banner-from-ps').innerText = selectedPS || 'District Police HQ';
-                document.getElementById('live-banner-to-location').innerText = stations.length > 0 ? (stations[0].polling_station_location || 'Stations') : 'Selected Area';
-                
-                const staff = stations.find(s => s.route_incharge || s.route_staff);
-                const staffText = staff ? (staff.route_incharge || staff.route_staff) : '-';
-                document.getElementById('live-banner-staff-details').innerText = `Route Incharge: ${staffText}`;
-                if (stations.length > 0) {
-                    const first = stations[0];
-                    const navLink = document.getElementById('live-banner-nav-link');
-                    if (navLink) navLink.href = `https://www.google.com/maps/dir/?api=1&destination=${first.latitude},${first.longitude}`;
+                const firstStation = stations[0];
+                const psName = selectedPS || firstStation.psname || 'Police Station';
+                const routeNo = selectedRoute || firstStation.route_no || '-';
+
+                const routeTagEl = document.getElementById('live-banner-route-tag');
+                if (routeTagEl) routeTagEl.innerHTML = `<i class="fa-solid fa-route mr-1"></i>ROUTE ${routeNo}`;
+
+                const fromPsEl = document.getElementById('live-banner-from-ps');
+                if (fromPsEl) fromPsEl.innerText = `${psName} PS`;
+
+                const toLocEl = document.getElementById('live-banner-to-location');
+                const distTextEl = document.getElementById('live-banner-distance-text');
+
+                if (stations.length === 1) {
+                    if (toLocEl) toLocEl.innerText = firstStation.polling_station_location || 'Polling Station';
+                    const dist = firstStation.distance_from_ps_kms ? `${firstStation.distance_from_ps_kms} KM` : 'N/A';
+                    if (distTextEl) distTextEl.innerText = `Distance: ${dist} from ${psName} PS`;
+                } else {
+                    if (toLocEl) toLocEl.innerText = `${firstStation.polling_station_location} (+${stations.length - 1} more)`;
+                    const distances = stations.map(s => parseFloat(s.distance_from_ps_kms)).filter(d => !isNaN(d) && d > 0);
+                    if (distances.length > 0) {
+                        const minDist = Math.min(...distances);
+                        const maxDist = Math.max(...distances);
+                        if (distTextEl) distTextEl.innerText = minDist === maxDist
+                            ? `Distance: ${minDist} KM`
+                            : `Distance: ${minDist} - ${maxDist} KM (${stations.length} PS)`;
+                    } else {
+                        if (distTextEl) distTextEl.innerText = `${stations.length} Polling Stations`;
+                    }
                 }
+
+                const staffEl = document.getElementById('live-banner-staff-details');
+                if (staffEl) {
+                    const bannerParts = [];
+                    const rInc = firstStation.route_incharge || firstStation.route_staff;
+                    if (rInc) bannerParts.push(`<b>Route Incharge:</b> ${rInc}`);
+                    if (firstStation.striking_force_incharge) bannerParts.push(`<b>Striking Force:</b> ${firstStation.striking_force_incharge}`);
+                    if (firstStation.special_striking_force_incharge) bannerParts.push(`<b>SSF Incharge:</b> ${firstStation.special_striking_force_incharge}`);
+                    staffEl.innerHTML = bannerParts.length > 0 ? formatPhoneLinks(bannerParts.join(' | ')) : '<span class="text-slate-400">Police Incharge: Not Assigned</span>';
+                }
+
+                const navLink = document.getElementById('live-banner-nav-link');
+                if (navLink) navLink.href = `https://www.google.com/maps/dir/?api=1&destination=${firstStation.latitude},${firstStation.longitude}`;
             } else {
                 banner.classList.add('hidden');
             }
@@ -5015,61 +5061,28 @@
                 { enableHighAccuracy: true, timeout: 8000 }
             );
         }
-        function onLiveMapSearchInput(val) {
-            const dropdown = document.getElementById('live-psl-suggestions');
-            if (!dropdown) return;
-            const q = (val || '').trim().toLowerCase();
-            if (!q || q.length < 2) {
-                dropdown.classList.add('hidden');
-                applyLiveMapFilters();
-                return;
-            }
-            const matches = [];
-            allStations.forEach(s => {
-                const loc = (s.polling_station_location || '').toLowerCase();
-                const ps = (s.psname || '').toLowerCase();
-                if (loc.includes(q) || ps.includes(q)) {
-                    if (!matches.some(m => m.location === s.polling_station_location)) {
-                        matches.push({
-                            location: s.polling_station_location,
-                            psname: s.psname,
-                            route: s.route_no
-                        });
-                    }
-                }
-            });
-            if (matches.length === 0) {
-                dropdown.classList.add('hidden');
-            } else {
-                dropdown.innerHTML = matches.slice(0, 10).map(m => `
-                    <div onclick="selectLiveMapSearchResult('${(m.location || '').replace(/'/g, "\\'")}')" class="px-3 py-2 hover:bg-emerald-50 cursor-pointer text-xs flex justify-between items-center">
-                        <span class="font-medium text-slate-800">${m.location}</span>
-                        <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">PS: ${m.psname} | R-${m.route}</span>
-                    </div>
-                `).join('');
-                dropdown.classList.remove('hidden');
-            }
+        function onLiveMapSearchInput(query) {
             applyLiveMapFilters();
+            renderPslSuggestions(query, 'live-psl-suggestions', 'selectLiveMapSearchResult');
         }
         function onLiveMapSearchFocus() {
-            const val = document.getElementById('live-search-text')?.value;
-            if (val && val.length >= 2) onLiveMapSearchInput(val);
-        }
-        function selectLiveMapSearchResult(loc) {
             const input = document.getElementById('live-search-text');
-            if (input) input.value = loc;
-            const dropdown = document.getElementById('live-psl-suggestions');
-            if (dropdown) dropdown.classList.add('hidden');
+            if (input && input.value.trim().length > 0) {
+                renderPslSuggestions(input.value, 'live-psl-suggestions', 'selectLiveMapSearchResult');
+            }
+        }
+        function selectLiveMapSearchResult(pslName) {
+            const input = document.getElementById('live-search-text');
+            if (input) input.value = pslName;
+            hideSuggestions('live-psl-suggestions');
             applyLiveMapFilters();
         }
         function clearLiveMapSearch() {
             const input = document.getElementById('live-search-text');
             if (input) input.value = '';
-            const dropdown = document.getElementById('live-psl-suggestions');
-            if (dropdown) dropdown.classList.add('hidden');
+            hideSuggestions('live-psl-suggestions');
             applyLiveMapFilters();
         }
-        // ================= HIDE / UNHIDE FILTER CONTROLS =================
         function toggleMapFilterBar() {
             const row = document.getElementById('map-filter-row-inputs');
             const btn = document.getElementById('btn-map-filter-toggle');
