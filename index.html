@@ -32,6 +32,10 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.25);
             white-space: nowrap;
         }
+        /* Remove Leaflet attribution bottom banner */
+        .leaflet-control-attribution {
+            display: none !important;
+        }
         /* Full Screen Live Map Styles */
         .live-map-fullscreen-active {
             position: fixed !important;
@@ -1673,7 +1677,7 @@
         function initMainMap() {
             if (mainMap) return;
             // Default centered on Srikakulam / AP region
-            mainMap = L.map('main-map').setView([18.3, 83.9], 10);
+            mainMap = L.map('main-map', { attributionControl: false }).setView([18.3, 83.9], 10);
             // Base Tile Layers
             const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
@@ -3773,7 +3777,7 @@
                 return;
             }
             if (!routeMap) {
-                routeMap = L.map('route-map').setView([18.3, 83.9], 10);
+                routeMap = L.map('route-map', { attributionControl: false }).setView([18.3, 83.9], 10);
                 const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     maxZoom: 19,
                     attribution: '� OpenStreetMap contributors'
@@ -4315,7 +4319,7 @@
         }
         function initLiveMap() {
             if (liveMap) return;
-            liveMap = L.map('live-map-canvas').setView([18.3, 83.9], 10);
+            liveMap = L.map('live-map-canvas', { attributionControl: false }).setView([18.3, 83.9], 10);
             const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '� OpenStreetMap contributors'
