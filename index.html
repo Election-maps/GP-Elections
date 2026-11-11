@@ -1872,21 +1872,13 @@
             const cleanQ = rawQuery.replace(/\s*[\(\[].*$/, '').trim().toLowerCase();
             if (!cleanQ) return true;
             const loc = (s.polling_station_location || '').toLowerCase();
-            const ps = (s.psname || '').toLowerCase();
-            const mandal = (s.mandal_zptc_segment || '').toLowerCase();
-            const mptc = (s.mptc_segment || '').toLowerCase();
-            const code = String(s.code || '').toLowerCase();
-            const staff = (s.route_staff || '').toLowerCase();
-            const full = `${loc} ${ps} ${mandal} ${mptc} ${code} ${staff}`;
-            if (full.includes(cleanQ)) return true;
+            if (loc.includes(cleanQ)) return true;
             const tokens = cleanQ.split(/\s+/).filter(t => t.length > 0);
             if (tokens.length > 1) {
-                return tokens.every(t => full.includes(t) || (t.length >= 5 && full.includes(t.slice(0, -1))));
+                return tokens.every(t => loc.includes(t));
             } else if (tokens.length === 1) {
                 const t = tokens[0];
-                if (full.includes(t)) return true;
-                if (t.length >= 5 && full.includes(t.slice(0, -1))) return true;
-                if (t.length >= 6 && full.includes(t.slice(0, -2))) return true;
+                if (loc.includes(t)) return true;
             }
             return false;
         }
@@ -3547,26 +3539,17 @@
             for (let i = 0; i < allStations.length; i++) {
                 const s = allStations[i];
                 const psl = (s.polling_station_location || '').trim();
-                const village = (s.staying_point || s.mptc_segment || '').trim();
-                const ps = (s.psname || '').trim();
-                const mandal = (s.mandal_zptc_segment || '').trim();
+                if (!psl) continue;
                 const pslLower = psl.toLowerCase();
-                const villageLower = village.toLowerCase();
-                const psLower = ps.toLowerCase();
-                const mandalLower = mandal.toLowerCase();
-                const codeStr = String(s.code || '').toLowerCase();
 
-                const isMatch = pslLower.includes(q) || villageLower.includes(q) || psLower.includes(q) || mandalLower.includes(q) || codeStr.includes(q);
-                if (!isMatch) continue;
+                // Strictly search ONLY on Name of the Polling Station Location (PSL)
+                if (!pslLower.includes(q)) continue;
 
-                const uniqueKey = `${pslLower}___${psLower}___${s.route_no || ''}`;
-                if (!seenPsl.has(uniqueKey)) {
-                    seenPsl.add(uniqueKey);
+                if (!seenPsl.has(pslLower)) {
+                    seenPsl.add(pslLower);
                     matches.push({
-                        psl: psl || village || 'Polling Station',
-                        village: village,
-                        psname: ps,
-                        mandal: mandal,
+                        psl: psl,
+                        psname: s.psname || '',
                         route_no: s.route_no || '',
                         voters: s.no_of_voters || 0,
                         code: s.code || '',
@@ -3673,8 +3656,8 @@
                 }
                 // Search query
                 if (search) {
-                    const rowText = `${s.psname || ''} ${s.mandal_zptc_segment || ''} ${s.mptc_segment || ''} ${s.polling_station_location || ''} ${s.route_staff || ''} ${s.blo_contact_no || ''} ${s.code || ''} ${s.id || ''}`.toLowerCase();
-                    if (!rowText.includes(search)) return false;
+                    const locText = (s.polling_station_location || '').toLowerCase();
+                    if (!locText.includes(search)) return false;
                 }
                 return true;
             });
