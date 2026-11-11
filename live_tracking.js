@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Live Forces Real-time Tracking (Routes, SF, SSF, QRTs, Reserve Parties)
  * Exclusively active on "Live Route Map" tab (liveMap)
  * Srikakulam District Police
@@ -877,10 +877,13 @@ function handleIncomingOfficerMessage(payload) {
     // Show floating banner toast on Live Route Map
     showLiveOfficerToast(msgObj);
 
-    // If modal is currently open, re-render the list
-    const modal = document.getElementById('officer-messages-modal');
-    if (modal && !modal.classList.contains('hidden')) {
-        renderOfficerMessagesList();
+    // Automatically open the Control Room Message Box Modal right on screen!
+    if (typeof openOfficerMessagesModal === 'function') {
+        openOfficerMessagesModal();
+    } else {
+        const modal = document.getElementById('officer-messages-modal');
+        if (modal) modal.classList.remove('hidden');
+        if (typeof renderOfficerMessagesList === 'function') renderOfficerMessagesList();
     }
 }
 
@@ -1340,3 +1343,11 @@ window.submitControlReply = function() {
         }
     }
 };
+
+// Automatically start Real-time MQTT connection and message storage on page load
+if (typeof initOfficerMessagesStorage === 'function') {
+    initOfficerMessagesStorage();
+}
+if (typeof initLiveMQTT === 'function') {
+    setTimeout(initLiveMQTT, 300);
+}
